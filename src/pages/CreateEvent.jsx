@@ -1,0 +1,39 @@
+import React from "react";
+import axios from "axios";
+import EventForm from "../components/module3/EventForm";
+
+const CreateEvent = () => {
+  const handleCreateEvent = async (formData) => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const res = await axios.post(
+        "http://localhost:5000/api/events",
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      alert("Event created successfully");
+      console.log(res.data);
+    } catch (error) {
+      console.error("Error creating event:", error);
+      alert("Failed to create event");
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-950 text-white p-6">
+      <h1 className="text-3xl font-bold mb-6">
+        Create Event
+      </h1>
+
+      <EventForm onSubmit={handleCreateEvent} />
+    </div>
+  );
+};
+
+export default CreateEvent;

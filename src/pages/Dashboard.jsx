@@ -7,12 +7,14 @@ const Dashboard = () => {
   const [users, setUsers] = useState([]);
 
   const load = () => {
-    setUsers(getLeaderboard());
+    const data = getLeaderboard() || [];
+    setUsers(data);
   };
 
   useEffect(() => {
     load();
 
+    // custom event for local updates
     window.addEventListener("storageUpdate", load);
 
     return () => {
@@ -27,15 +29,18 @@ const Dashboard = () => {
     0
   );
 
-  const topUser = users[0];
+  // FIX: avoid crash if empty array
+  const topUser = users.length > 0 ? users[0] : null;
 
   return (
-    <div>
+    <div className="p-6">
+
       <h1 className="text-3xl font-bold mb-8">
         Dashboard Overview
       </h1>
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
+
         <StatCard
           title="Total Users"
           value={totalUsers}
@@ -63,6 +68,7 @@ const Dashboard = () => {
           icon={<FaMedal />}
           color="red"
         />
+
       </div>
     </div>
   );
