@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { FaUsers, FaStar, FaTrophy, FaMedal } from "react-icons/fa";
-import StatCard from "../components/module5/StatCard";
+import StatCard from "../components/module5/Statcard";
 import api from "../utils/api";
 import socket from "../socket";
 
