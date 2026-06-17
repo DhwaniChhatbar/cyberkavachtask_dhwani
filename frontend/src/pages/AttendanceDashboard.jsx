@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import AttendanceStats from "../components/Module4/AttendanceStats";
-import AttendanceTable from "../components/Module4/AttendanceTable";
+import AttendanceStats from "../components/module4/AttendanceStats";
+import AttendanceTable from "../components/module4/AttendanceTable";
 import socket from "../socket";
 
 const AttendanceDashboard = () => {

@@ -1,5 +1,5 @@
 import React from "react";
-import MemberAttendanceCard from "../components/Module4/MemberAttendanceCard";
+import MemberAttendanceCard from "../components/module4/MemberAttendanceCard";
 
 const AttendanceReport = () => {
   const members = [

@@ -1,6 +1,6 @@
 import React from "react";
-import ManualEntry from "../components/Module4/ManualEntry";
-import QRScanner from "../components/Module4/QRScanner";
+import ManualEntry from "../components/module4/ManualEntry";
+import QRScanner from "../components/module4/QRScanner";
 
 const CheckInPage = () => {
   return (

@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import StatsCard from "../components/Module6/StatsCard";
-import BarChart from "../components/Module6/BarChart";
-import LineChart from "../components/Module6/LineChart";
+import StatsCard from "../components/module6/StatsCard";
+import BarChart from "../components/module6/BarChart";
+import LineChart from "../components/module6/LineChart";
 
 const Analytics = () => {
   const [stats, setStats] = useState({
