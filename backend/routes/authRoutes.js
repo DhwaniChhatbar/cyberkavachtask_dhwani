@@ -8,19 +8,12 @@ import {
 } from "../controllers/authController.js";
 
 const router = express.Router();
-//test//
-router.get("/auth/test-login", (req, res) => {
-  res.json({ message: "AUTH LOGIN ROUTE WORKS" });
-});
-router.get("/test-router", (req, res) => {
-  res.json({ message: "ROUTER WORKS" });
-});
+
 // ==========================
 // 🔥 AUTH ROUTES
 // ==========================
-router.post("/auth/register", register);
-router.post("/auth/login", login);
-
+router.post("/register", register);
+router.post("/login", login);
 
 // ==========================
 // 🔥 OTP ROUTES
@@ -28,6 +21,5 @@ router.post("/auth/login", login);
 router.post("/send-otp", sendOTP);
 router.post("/verify-otp", verifyOTP);
 router.post("/reset-password", resetPassword);
-
 
 export default router;

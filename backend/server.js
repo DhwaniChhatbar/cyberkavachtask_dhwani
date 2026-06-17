@@ -1,4 +1,3 @@
-console.log("SERVER VERSION JUNE17");
 import express from "express";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
@@ -8,9 +7,6 @@ import { Server } from "socket.io";
 
 // ROUTES
 import authRoutes from "./routes/authRoutes.js";
-//test
-console.log("AUTH ROUTES OBJECT:");
-console.log(authRoutes);
 import requestRoutes from "./routes/requestRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
 import certificateRoutes from "./routes/certificateRoutes.js";
@@ -58,28 +54,16 @@ export const io = new Server(server, {
 io.on("connection", (socket) => {
   console.log("🟢 User Connected:", socket.id);
 
-  // ======================
-  // USER ROOM
-  // ======================
   socket.on("join", (userId) => {
     socket.join(userId);
-    console.log(`User joined room: ${userId}`);
   });
 
-  // ======================
-  // EVENT ROOM
-  // ======================
   socket.on("join-event", (eventId) => {
     socket.join(eventId);
-    console.log(`Joined event room: ${eventId}`);
   });
 
-  // ======================
-  // LEAVE EVENT ROOM
-  // ======================
   socket.on("leave-event", (eventId) => {
     socket.leave(eventId);
-    console.log(`Left event room: ${eventId}`);
   });
 
   socket.on("disconnect", () => {
@@ -90,13 +74,9 @@ io.on("connection", (socket) => {
 // ==========================
 // ROUTES
 // ==========================
-// TEST ROUTE
-app.get("/api/auth/test", (req, res) => {
-  res.json({ message: "AUTH TEST WORKS" });
-});
+
 // AUTH / CORE
-app.use("/api", authRoutes);
-console.log("AUTH ROUTES REGISTERED");
+app.use("/api/auth", authRoutes);
 app.use("/api/requests", requestRoutes);
 app.use("/api/notifications", notificationRoutes);
 
@@ -125,9 +105,7 @@ app.use("/api/settings", settingRoutes);
 app.get("/", (req, res) => {
   res.send("CyberKavach API Running 🚀");
 });
-app.get("/test123", (req, res) => {
-  res.send("NEW CODE IS RUNNING");
-});
+
 // ==========================
 // DATABASE + SERVER START
 // ==========================
