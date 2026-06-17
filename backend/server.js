@@ -87,9 +87,13 @@ io.on("connection", (socket) => {
 // ==========================
 // ROUTES
 // ==========================
-
+// TEST ROUTE
+app.post("/api/auth/test", (req, res) => {
+  res.json({ message: "AUTH TEST WORKS" });
+});
 // AUTH / CORE
 app.use("/api/auth", authRoutes);
+console.log("AUTH ROUTES REGISTERED");
 app.use("/api/requests", requestRoutes);
 app.use("/api/notifications", notificationRoutes);
 
