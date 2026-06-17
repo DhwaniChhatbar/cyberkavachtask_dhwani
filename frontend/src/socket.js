@@ -1,10 +1,9 @@
 import { io } from "socket.io-client";
 
 // ==========================
-// ENV SAFE BASE URL
+// SOCKET BASE URL
 // ==========================
-const SOCKET_URL =
-  import.meta.env.VITE_SOCKET_URL || "http://localhost:5000";
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL;
 
 // ==========================
 // SINGLE SOCKET INSTANCE
@@ -24,7 +23,7 @@ const socket = io(SOCKET_URL, {
 });
 
 // ==========================
-// AUTO CONNECT LOGS
+// CONNECTION LOGS
 // ==========================
 socket.on("connect", () => {
   console.log("🟢 Socket Connected:", socket.id);
@@ -35,7 +34,7 @@ socket.on("disconnect", (reason) => {
 });
 
 // ==========================
-// HELPER FUNCTIONS (IMPORTANT)
+// HELPER FUNCTIONS
 // ==========================
 
 // Join user room
