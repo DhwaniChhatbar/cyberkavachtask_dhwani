@@ -6,7 +6,7 @@ import Notification from "../models/Notification.js";
 
 import { io } from "../server.js";
 import { generateAttendanceCSV } from "../utils/attendanceReport.js";
-import { evaluateBadgesForUser } from "../services/badgeService.js";
+import { evaluateBadgesForUser } from "../utils/badgeEngine.js";
 
 // ======================
 // CHECK IN
