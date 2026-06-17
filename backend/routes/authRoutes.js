@@ -15,8 +15,8 @@ router.get("/test-router", (req, res) => {
 // ==========================
 // 🔥 AUTH ROUTES
 // ==========================
-router.post("/register", register);
-router.post("/login", login);
+router.post("/auth/register", register);
+router.post("/auth/login", login);
 
 
 // ==========================
