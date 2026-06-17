@@ -8,8 +8,10 @@ import {
 } from "../controllers/authController.js";
 
 const router = express.Router();
-
-
+//test//
+router.get("/test-router", (req, res) => {
+  res.json({ message: "ROUTER WORKS" });
+});
 // ==========================
 // 🔥 AUTH ROUTES
 // ==========================
