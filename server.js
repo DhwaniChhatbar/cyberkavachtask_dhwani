@@ -29,11 +29,23 @@ const app = express();
 const server = http.createServer(app);
 
 // ==========================
-// SOCKET.IO (MINIMAL SAFE)
+// MIDDLEWARE
+// ==========================
+app.use(
+  cors({
+    origin: process.env.CLIENT_URL,
+    credentials: true,
+  })
+);
+
+app.use(express.json());
+
+// ==========================
+// SOCKET.IO
 // ==========================
 export const io = new Server(server, {
   cors: {
-    origin: "http://localhost:5173",
+    origin: process.env.CLIENT_URL,
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   },
@@ -42,24 +54,34 @@ export const io = new Server(server, {
 io.on("connection", (socket) => {
   console.log("🟢 User Connected:", socket.id);
 
+  // ======================
+  // USER ROOM
+  // ======================
   socket.on("join", (userId) => {
     socket.join(userId);
+    console.log(`User joined room: ${userId}`);
   });
 
+  // ======================
+  // EVENT ROOM
+  // ======================
   socket.on("join-event", (eventId) => {
     socket.join(eventId);
+    console.log(`Joined event room: ${eventId}`);
+  });
+
+  // ======================
+  // LEAVE EVENT ROOM
+  // ======================
+  socket.on("leave-event", (eventId) => {
+    socket.leave(eventId);
+    console.log(`Left event room: ${eventId}`);
   });
 
   socket.on("disconnect", () => {
     console.log("🔴 User Disconnected:", socket.id);
   });
 });
-
-// ==========================
-// MIDDLEWARE
-// ==========================
-app.use(cors());
-app.use(express.json());
 
 // ==========================
 // ROUTES
@@ -97,18 +119,19 @@ app.get("/", (req, res) => {
 });
 
 // ==========================
-// DB + SERVER START
+// DATABASE + SERVER START
 // ==========================
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => {
-    console.log("MongoDB Connected");
+    console.log("✅ MongoDB Connected");
 
     const PORT = process.env.PORT || 5000;
+
     server.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
+      console.log(`🚀 Server running on port ${PORT}`);
     });
   })
   .catch((err) => {
-    console.log("MongoDB Error:", err.message);
+    console.log("❌ MongoDB Error:", err.message);
   });
