@@ -1,4 +1,3 @@
-```js
 import mongoose from "mongoose";
 
 const notificationPreferenceSchema = new mongoose.Schema(
@@ -68,4 +67,3 @@ export default mongoose.model(
   "NotificationPreference",
   notificationPreferenceSchema
 );
-```
