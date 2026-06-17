@@ -46,15 +46,21 @@ export const register = async (req, res) => {
     });
   }
 };
-
 // ==========================
 // 🔥 LOGIN
 // ==========================
 export const login = async (req, res) => {
+  console.log("🔥 LOGIN ROUTE HIT");
+  console.log("BODY:", req.body);
+
   try {
     const { email, password } = req.body;
 
+    console.log("Email:", email);
+
     if (!email || !password) {
+      console.log("❌ Missing email or password");
+
       return res.status(400).json({
         message: "Email and password are required",
       });
@@ -62,25 +68,29 @@ export const login = async (req, res) => {
 
     const user = await User.findOne({ email });
 
+    console.log("User found:", user);
+
     if (!user) {
+      console.log("❌ User not found");
+
       return res.status(404).json({
         message: "User not found",
       });
     }
 
-   // if (!user.isApproved) {
-    //  return res.status(403).json({
-    //    message: "Account not approved yet",
-    //  });
-  //  }
-
     const isMatch = await bcrypt.compare(password, user.password);
 
+    console.log("Password match:", isMatch);
+
     if (!isMatch) {
+      console.log("❌ Invalid credentials");
+
       return res.status(400).json({
         message: "Invalid credentials",
       });
     }
+
+    console.log("JWT_SECRET exists:", !!process.env.JWT_SECRET);
 
     const token = jwt.sign(
       {
@@ -93,14 +103,15 @@ export const login = async (req, res) => {
       }
     );
 
-    // OPTIONAL LOG ONLY
-    console.log("User login:", user.email);
+    console.log("✅ Login successful:", user.email);
 
     return res.status(200).json({
       token,
       user,
     });
   } catch (err) {
+    console.log("❌ LOGIN ERROR:", err);
+
     return res.status(500).json({
       message: err.message,
     });
