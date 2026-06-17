@@ -1,36 +1,87 @@
 import Certificate from "../models/Certificate.js";
+import Points from "../models/Points.js";
+import crypto from "crypto";
+import { generateCertificateId } from "../utils/generateCertificateId.js";
 
 // ==========================
 // 🔥 GENERATE CERTIFICATE
 // ==========================
 export const generateCertificate = async (req, res) => {
   try {
-    const { eventName, user } = req.body;
+    const { event, eventName, user } = req.body;
 
-    // Validation
-    if (!eventName || !user) {
+    if (!event || !eventName || !user) {
       return res.status(400).json({
-        message: "eventName and user are required",
+        success: false,
+        message: "event, eventName and user are required",
       });
     }
 
+    // Prevent duplicate certificates
+    const existingCertificate = await Certificate.findOne({
+      event,
+      user,
+    });
+
+    if (existingCertificate) {
+      return res.status(400).json({
+        success: false,
+        message: "Certificate already exists",
+      });
+    }
+
+    // Check eligibility using points
+    const pointsData = await Points.aggregate([
+      {
+        $match: {
+          user,
+        },
+      },
+      {
+        $group: {
+          _id: "$user",
+          totalPoints: {
+            $sum: "$points",
+          },
+        },
+      },
+    ]);
+
+    const totalPoints = pointsData[0]?.totalPoints || 0;
+
+    if (totalPoints <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: "User is not eligible for certificate",
+      });
+    }
+
+    const certificateId = generateCertificateId();
+
+    const hash = crypto
+      .createHash("sha256")
+      .update(
+        certificateId +
+          user.toString() +
+          event.toString()
+      )
+      .digest("hex");
+
     const certificate = await Certificate.create({
+      certificateId,
+      event,
       eventName: eventName.trim(),
       user,
       issuedBy: req.user.id,
-
-      // More unique ID (avoid duplicates in production)
-      certificateId: `CERT-${Date.now()}-${Math.floor(
-        Math.random() * 1000
-      )}`,
+      hash,
     });
 
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
       certificate,
     });
   } catch (err) {
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: err.message,
     });
@@ -45,15 +96,16 @@ export const getCertificates = async (req, res) => {
     const certificates = await Certificate.find()
       .populate("user")
       .populate("issuedBy")
+      .populate("event")
       .sort({ createdAt: -1 });
 
-    res.json({
+    return res.status(200).json({
       success: true,
       count: certificates.length,
       certificates,
     });
   } catch (err) {
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: err.message,
     });
@@ -69,6 +121,7 @@ export const verifyCertificate = async (req, res) => {
 
     if (!certificateId) {
       return res.status(400).json({
+        success: false,
         message: "Certificate ID is required",
       });
     }
@@ -77,7 +130,8 @@ export const verifyCertificate = async (req, res) => {
       certificateId,
     })
       .populate("user")
-      .populate("issuedBy");
+      .populate("issuedBy")
+      .populate("event");
 
     if (!certificate) {
       return res.status(404).json({
@@ -86,12 +140,13 @@ export const verifyCertificate = async (req, res) => {
       });
     }
 
-    res.json({
+    return res.status(200).json({
       success: true,
+      verified: true,
       certificate,
     });
   } catch (err) {
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: err.message,
     });

@@ -2,19 +2,24 @@ import mongoose from "mongoose";
 
 const eventSchema = new mongoose.Schema(
   {
+    // ==========================
+    // BASIC DETAILS
+    // ==========================
     name: {
       type: String,
       required: true,
+      trim: true,
     },
 
     description: {
       type: String,
       default: "",
+      trim: true,
     },
 
     date: {
-      type: String,
-      default: "",
+      type: Date,
+      required: true,
     },
 
     time: {
@@ -25,9 +30,63 @@ const eventSchema = new mongoose.Schema(
     venue: {
       type: String,
       default: "",
+      trim: true,
     },
 
+    // ==========================
+    // REGISTRATION
+    // ==========================
     registrationDeadline: {
+      type: Date,
+    },
+
+    registrationLink: {
+      type: String,
+      default: "",
+    },
+
+    teamSize: {
+      type: Number,
+      default: 1,
+      min: 1,
+    },
+
+    capacity: {
+      type: Number,
+      default: 100,
+      min: 1,
+    },
+
+    registrationCount: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+
+    // ==========================
+    // EVENT TYPE
+    // ==========================
+    eventType: {
+      type: String,
+      enum: ["Solo", "Team"],
+      default: "Solo",
+    },
+
+    category: {
+      type: String,
+      default: "General",
+    },
+
+    tags: [
+      {
+        type: String,
+      },
+    ],
+
+    // ==========================
+    // RULES & MEDIA
+    // ==========================
+    rules: {
       type: String,
       default: "",
     },
@@ -37,35 +96,27 @@ const eventSchema = new mongoose.Schema(
       default: "",
     },
 
-    teamSize: {
-      type: Number,
-      default: 1,
+    // ==========================
+    // OWNERSHIP
+    // ==========================
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
     },
 
-    rules: {
-      type: String,
-      default: "",
+    approvedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
     },
 
-    tags: [
-      {
-        type: String,
-      },
-    ],
-
-    // Event capacity
-    capacity: {
-      type: Number,
-      default: 100,
+    approvalDate: {
+      type: Date,
     },
 
-    // Registration count
-    registrationCount: {
-      type: Number,
-      default: 0,
-    },
-
-    // Publish approval workflow
+    // ==========================
+    // WORKFLOW
+    // ==========================
     status: {
       type: String,
       enum: [
@@ -76,20 +127,9 @@ const eventSchema = new mongoose.Schema(
       default: "Draft",
     },
 
-    // Coordinator approval info
-    approvedBy: {
-      type: String,
-      default: "",
-    },
-
-    approvalDate: {
-      type: Date,
-    },
-
-    // Public registration link
-    registrationLink: {
-      type: String,
-      default: "",
+    isCompleted: {
+      type: Boolean,
+      default: false,
     },
   },
   {
@@ -97,7 +137,11 @@ const eventSchema = new mongoose.Schema(
   }
 );
 
-export default mongoose.model(
-  "Event",
-  eventSchema
-);
+// ==========================
+// INDEXES
+// ==========================
+eventSchema.index({ status: 1 });
+eventSchema.index({ date: 1 });
+eventSchema.index({ createdBy: 1 });
+
+export default mongoose.model("Event", eventSchema);

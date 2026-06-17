@@ -2,6 +2,9 @@ import mongoose from "mongoose";
 
 const teamSchema = new mongoose.Schema(
   {
+    // ==========================
+    // BASIC INFO
+    // ==========================
     teamName: {
       type: String,
       required: true,
@@ -14,26 +17,24 @@ const teamSchema = new mongoose.Schema(
       required: true,
     },
 
-    members: [
-      {
-        type: String,
-        trim: true,
-      },
-    ],
-
-    // Team history reuse
-    previousEvent: {
-      type: String,
-      default: "",
+    // ==========================
+    // EVENT LINK
+    // ==========================
+    event: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Event",
+      required: true,
     },
 
-    // Event this team is currently registered for
-    eventName: {
-      type: String,
-      default: "",
+    // ==========================
+    // TEAM LEADER
+    // ==========================
+    leader: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
     },
 
-    // Leader information
     leaderName: {
       type: String,
       default: "",
@@ -44,21 +45,52 @@ const teamSchema = new mongoose.Schema(
       default: "",
     },
 
-    // QR code data (can store Team ID or QR URL later)
+    // ==========================
+    // MEMBERS
+    // ==========================
+    members: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
+
+    // ==========================
+    // OPTIONAL HISTORY
+    // ==========================
+    previousEvent: {
+      type: String,
+      default: "",
+    },
+
+    // ==========================
+    // QR / CHECK-IN SUPPORT
+    // ==========================
     qrCode: {
       type: String,
       default: "",
     },
 
-    // Team status
+    // ==========================
+    // STATUS
+    // ==========================
     status: {
       type: String,
-      enum: [
-        "Pending",
-        "Approved",
-        "Rejected",
-      ],
+      enum: ["Pending", "Approved", "Rejected"],
       default: "Pending",
+    },
+
+    // ==========================
+    // ANALYTICS
+    // ==========================
+    points: {
+      type: Number,
+      default: 0,
+    },
+
+    badgesEarned: {
+      type: Number,
+      default: 0,
     },
   },
   {
@@ -66,7 +98,10 @@ const teamSchema = new mongoose.Schema(
   }
 );
 
-export default mongoose.model(
-  "Team",
-  teamSchema
-);
+// ==========================
+// INDEXES (FIXED - NO DUPLICATE INDEX)
+// ==========================
+teamSchema.index({ event: 1 });
+teamSchema.index({ leader: 1 });
+
+export default mongoose.model("Team", teamSchema);

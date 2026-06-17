@@ -9,10 +9,28 @@ import { protect } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-router.post("/generate", protect, generateCertificate);
+// ==========================
+// 🔥 GENERATE CERTIFICATE
+// ==========================
+router.post(
+  "/generate",
+  protect,
+  generateCertificate
+);
 
-router.get("/", protect, getCertificates);
+// ==========================
+// 🔥 GET ALL CERTIFICATES
+// ==========================
+router.get(
+  "/",
+  protect,
+  getCertificates
+);
 
+// ==========================
+// 🔥 VERIFY CERTIFICATE
+// Public endpoint
+// ==========================
 router.get(
   "/verify/:certificateId",
   verifyCertificate

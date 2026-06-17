@@ -11,13 +11,17 @@ import requestRoutes from "./routes/requestRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
 import certificateRoutes from "./routes/certificateRoutes.js";
 
-// MODULE 3 ROUTES
 import teamRoutes from "./routes/teamRoutes.js";
 import eventRoutes from "./routes/eventRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 
-// MODULE 4 ROUTES
 import attendanceRoutes from "./routes/attendanceRoutes.js";
+
+import leaderboardRoutes from "./routes/leaderboardRoutes.js";
+import userBadgeRoutes from "./routes/userBadgeRoutes.js";
+
+import analyticsRoutes from "./routes/analyticsRoutes.js";
+import settingRoutes from "./routes/settingRoutes.js";
 
 dotenv.config();
 
@@ -25,80 +29,109 @@ const app = express();
 const server = http.createServer(app);
 
 // ==========================
-// SOCKET.IO SETUP
+// MIDDLEWARE
+// ==========================
+app.use(
+  cors({
+    origin: process.env.CLIENT_URL,
+    credentials: true,
+  })
+);
+
+app.use(express.json());
+
+// ==========================
+// SOCKET.IO
 // ==========================
 export const io = new Server(server, {
   cors: {
-    origin: "http://localhost:5173",
+    origin: process.env.CLIENT_URL,
     methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true,
   },
 });
 
 io.on("connection", (socket) => {
-  console.log("User Connected:", socket.id);
+  console.log("🟢 User Connected:", socket.id);
 
-  // Module 1 Notifications
+  // ======================
+  // USER ROOM
+  // ======================
   socket.on("join", (userId) => {
     socket.join(userId);
+    console.log(`User joined room: ${userId}`);
   });
 
-  // Module 4 Attendance Dashboard
+  // ======================
+  // EVENT ROOM
+  // ======================
   socket.on("join-event", (eventId) => {
     socket.join(eventId);
+    console.log(`Joined event room: ${eventId}`);
+  });
+
+  // ======================
+  // LEAVE EVENT ROOM
+  // ======================
+  socket.on("leave-event", (eventId) => {
+    socket.leave(eventId);
+    console.log(`Left event room: ${eventId}`);
   });
 
   socket.on("disconnect", () => {
-    console.log("User Disconnected:", socket.id);
+    console.log("🔴 User Disconnected:", socket.id);
   });
 });
-
-// ==========================
-// MIDDLEWARE
-// ==========================
-app.use(cors());
-app.use(express.json());
 
 // ==========================
 // ROUTES
 // ==========================
 
-// Module 1
+// AUTH / CORE
 app.use("/api/auth", authRoutes);
 app.use("/api/requests", requestRoutes);
 app.use("/api/notifications", notificationRoutes);
 
-// Module 2
+// MODULE 2
 app.use("/api/certificates", certificateRoutes);
 
-// Module 3
+// MODULE 3
 app.use("/api/teams", teamRoutes);
 app.use("/api/events", eventRoutes);
 app.use("/api/users", userRoutes);
 
-// Module 4
+// MODULE 4
 app.use("/api/attendance", attendanceRoutes);
 
+// MODULE 5
+app.use("/api/leaderboard", leaderboardRoutes);
+app.use("/api/user-badges", userBadgeRoutes);
+
+// MODULE 6
+app.use("/api/analytics", analyticsRoutes);
+app.use("/api/settings", settingRoutes);
+
 // ==========================
-// TEST ROUTE
+// HEALTH CHECK
 // ==========================
 app.get("/", (req, res) => {
-  res.send("CyberKavach API Running");
+  res.send("CyberKavach API Running 🚀");
 });
 
 // ==========================
-// DATABASE CONNECTION
+// DATABASE + SERVER START
 // ==========================
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => {
-    console.log("MongoDB Connected");
+    console.log("✅ MongoDB Connected");
 
     const PORT = process.env.PORT || 5000;
 
     server.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
+      console.log(`🚀 Server running on port ${PORT}`);
     });
   })
   .catch((err) => {
-    console.log("MongoDB Error:", err.message);
+    console.log("❌ MongoDB Error:", err.message);
   });
