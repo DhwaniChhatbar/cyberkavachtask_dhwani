@@ -68,11 +68,11 @@ export const login = async (req, res) => {
       });
     }
 
-    if (!user.isApproved) {
-      return res.status(403).json({
-        message: "Account not approved yet",
-      });
-    }
+   // if (!user.isApproved) {
+    //  return res.status(403).json({
+    //    message: "Account not approved yet",
+    //  });
+  //  }
 
     const isMatch = await bcrypt.compare(password, user.password);
 

@@ -16,23 +16,35 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const res = await loginUser({
-        email,
-        password,
-      });
+      const res = await loginUser({ email, password });
 
-      // store auth data
-      localStorage.setItem("token", res.data.token);
-      localStorage.setItem("user", JSON.stringify(res.data.user));
+      // ❗ safety checks (prevents crashes)
+      if (!res || !res.data) {
+        throw new Error("Invalid server response");
+      }
 
-      setLoading(false);
+      const { token, user } = res.data;
 
-      // redirect after login
+      if (!token || !user) {
+        throw new Error("Missing token or user data");
+      }
+
+      localStorage.setItem("token", token);
+      localStorage.setItem("user", JSON.stringify(user));
+
       navigate("/dashboard");
 
     } catch (err) {
+      console.error("Login error:", err);
+
+      setError(
+        err?.response?.data?.message ||
+        err.message ||
+        "Login failed. Please try again."
+      );
+
+    } finally {
       setLoading(false);
-      setError(err.response?.data?.message || "Login failed");
     }
   };
 
@@ -52,7 +64,6 @@ const Login = () => {
 
         <form onSubmit={handleLogin} className="space-y-4">
 
-          {/* EMAIL */}
           <input
             type="email"
             placeholder="Email"
@@ -62,7 +73,6 @@ const Login = () => {
             required
           />
 
-          {/* PASSWORD */}
           <input
             type="password"
             placeholder="Password"
@@ -72,7 +82,6 @@ const Login = () => {
             required
           />
 
-          {/* BUTTON */}
           <button
             type="submit"
             disabled={loading}
