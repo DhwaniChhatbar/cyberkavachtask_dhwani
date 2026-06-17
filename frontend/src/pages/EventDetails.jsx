@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useParams } from "react-router-dom";
-import EventBanner from "../components/module3/EventBanner";
+import EventBanner from "./components/module3/EventBanner";
 
 const EventDetails = () => {
   const { id } = useParams();
