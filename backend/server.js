@@ -8,6 +8,8 @@ import { Server } from "socket.io";
 
 // ROUTES
 import authRoutes from "./routes/authRoutes.js";
+console.log("AUTH ROUTES OBJECT:");
+console.log(authRoutes);
 import requestRoutes from "./routes/requestRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
 import certificateRoutes from "./routes/certificateRoutes.js";
