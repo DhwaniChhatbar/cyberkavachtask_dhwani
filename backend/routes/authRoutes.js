@@ -9,6 +9,9 @@ import {
 
 const router = express.Router();
 //test//
+router.get("/auth/test-login", (req, res) => {
+  res.json({ message: "AUTH LOGIN ROUTE WORKS" });
+});
 router.get("/test-router", (req, res) => {
   res.json({ message: "ROUTER WORKS" });
 });
