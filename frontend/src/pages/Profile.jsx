@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { FaUser, FaStar, FaAward } from "react-icons/fa";
 import { getLeaderboard } from "../utils/storage";
-import BadgeCard from "../components/module5/TempBadgeCard";
+import BadgeCard from "../components/module5/BadgeCard";
 
 const Profile = () => {
   const [user, setUser] = useState(null);

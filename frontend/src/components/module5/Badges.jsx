@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import api from "../../utils/api";
-import BadgeCard from "./TempBadgeCard";
+import BadgeCard from "./BadgeCard";
 
 const Badges = () => {
   const [badges, setBadges] = useState([]);
