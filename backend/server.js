@@ -1,3 +1,4 @@
+console.log("SERVER VERSION JUNE17");
 import express from "express";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
@@ -117,7 +118,9 @@ app.use("/api/settings", settingRoutes);
 app.get("/", (req, res) => {
   res.send("CyberKavach API Running 🚀");
 });
-
+app.get("/test123", (req, res) => {
+  res.send("NEW CODE IS RUNNING");
+});
 // ==========================
 // DATABASE + SERVER START
 // ==========================
