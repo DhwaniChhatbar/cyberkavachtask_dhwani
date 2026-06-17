@@ -8,6 +8,7 @@ import { Server } from "socket.io";
 
 // ROUTES
 import authRoutes from "./routes/authRoutes.js";
+//test
 console.log("AUTH ROUTES OBJECT:");
 console.log(authRoutes);
 import requestRoutes from "./routes/requestRoutes.js";
@@ -94,7 +95,7 @@ app.get("/api/auth/test", (req, res) => {
   res.json({ message: "AUTH TEST WORKS" });
 });
 // AUTH / CORE
-app.use("/api/auth", authRoutes);
+app.use("/api", authRoutes);
 console.log("AUTH ROUTES REGISTERED");
 app.use("/api/requests", requestRoutes);
 app.use("/api/notifications", notificationRoutes);
