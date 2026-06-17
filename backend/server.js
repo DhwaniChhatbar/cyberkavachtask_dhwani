@@ -88,7 +88,7 @@ io.on("connection", (socket) => {
 // ROUTES
 // ==========================
 // TEST ROUTE
-app.post("/api/auth/test", (req, res) => {
+app.get("/api/auth/test", (req, res) => {
   res.json({ message: "AUTH TEST WORKS" });
 });
 // AUTH / CORE
