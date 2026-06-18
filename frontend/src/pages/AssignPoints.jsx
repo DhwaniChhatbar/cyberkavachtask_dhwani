@@ -1,9 +1,7 @@
 import React, { useState } from "react";
-import { useUsers } from "../context/UserContext";
+import api from "../utils/api";
 
 const AssignPoints = () => {
-  const { users, assignPoints } = useUsers();
-
   const [form, setForm] = useState({
     name: "",
     newName: "",
@@ -19,7 +17,7 @@ const AssignPoints = () => {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     const username =
@@ -37,23 +35,31 @@ const AssignPoints = () => {
       return;
     }
 
-    // ✅ Context-based update (auto syncs leaderboard)
-    assignPoints(
-      username,
-      Number(form.points),
-      form.category,
-      form.remarks
-    );
+    try {
+      // ✅ SAVE TO BACKEND (MongoDB Points collection)
+      await api.post("/leaderboard/assign", {
+        userName: username,
+        points: Number(form.points),
+        category: form.category,
+        remarks: form.remarks,
+      });
 
-    setForm({
-      name: "",
-      newName: "",
-      points: "",
-      category: "",
-      remarks: "",
-    });
+      setForm({
+        name: "",
+        newName: "",
+        points: "",
+        category: "",
+        remarks: "",
+      });
 
-    alert("Points assigned successfully!");
+      alert("Points assigned successfully!");
+    } catch (error) {
+      console.error("Assign points error:", error);
+      alert(
+        error?.response?.data?.message ||
+          "Failed to assign points"
+      );
+    }
   };
 
   return (
@@ -74,12 +80,7 @@ const AssignPoints = () => {
         >
           <option value="">Select User</option>
 
-          {users.map((user, index) => (
-            <option key={index} value={user.name}>
-              {user.name}
-            </option>
-          ))}
-
+          {/* NOTE: this assumes users list is optional */}
           <option value="new">+ Add New User</option>
         </select>
 
