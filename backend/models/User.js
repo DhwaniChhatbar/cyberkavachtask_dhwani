@@ -31,7 +31,7 @@ const userSchema = new mongoose.Schema(
       default: false,
     },
 
-    // 🔥 OTP SYSTEM
+    // OTP SYSTEM
     otp: {
       type: String,
       default: null,
@@ -42,7 +42,7 @@ const userSchema = new mongoose.Schema(
       default: null,
     },
 
-    // 🔥 OPTIONAL (useful for security)
+    // Optional reset token
     resetPasswordToken: {
       type: String,
       default: null,
