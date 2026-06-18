@@ -6,14 +6,20 @@ import socket from "../socket";
 
 const Dashboard = () => {
   const [users, setUsers] = useState([]);
+  const [totalUsers, setTotalUsers] = useState(0);
 
   // ==========================
   // FETCH FROM BACKEND
   // ==========================
   const fetchDashboardData = async () => {
     try {
-      const res = await api.get("/leaderboard");
-      setUsers(res.data);
+      // Leaderboard data
+      const leaderboardRes = await api.get("/leaderboard");
+      setUsers(leaderboardRes.data);
+
+      // Total registered users
+      const usersRes = await api.get("/users");
+      setTotalUsers(usersRes.data.length);
     } catch (error) {
       console.error("Dashboard fetch error:", error);
     }
@@ -38,8 +44,6 @@ const Dashboard = () => {
   // ==========================
   // STATS CALCULATIONS
   // ==========================
-  const totalUsers = users.length;
-
   const totalPoints = users.reduce(
     (sum, user) => sum + Number(user.totalPoints || 0),
     0
