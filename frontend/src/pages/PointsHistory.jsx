@@ -1,24 +1,75 @@
-import React from "react";
-import { getUsers } from "../utils/storage";
+import React, { useEffect, useState } from "react";
+import api from "../utils/api";
 
 const PointsHistory = () => {
-  const users = getUsers();
+  const [history, setHistory] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchHistory();
+  }, []);
+
+  const fetchHistory = async () => {
+    try {
+      const res = await api.get("/points/history");
+      setHistory(res.data);
+    } catch (err) {
+      console.error("History fetch error:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="p-6 text-white">
+        Loading history...
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 text-white">
-      <h1 className="text-2xl font-bold mb-4">Points History</h1>
+      <h1 className="text-3xl font-bold mb-6">
+        Points History
+      </h1>
 
-      {users.map((user, i) => (
-        <div key={i} className="mb-4">
-          <h2 className="font-bold">{user.name}</h2>
+      {history.length === 0 ? (
+        <p>No points history found.</p>
+      ) : (
+        <div className="space-y-4">
+          {history.map((item) => (
+            <div
+              key={item._id}
+              className="bg-[#111827] p-4 rounded-lg border border-gray-700"
+            >
+              <h2 className="font-bold text-lg">
+                {item.user?.name || "Unknown User"}
+              </h2>
 
-          {user.history?.map((h, index) => (
-            <div key={index} className="text-sm text-gray-300 ml-4">
-              • {h.category} | +{h.points} | {h.remarks} | {h.date}
+              <p className="text-emerald-400">
+                +{item.points} points
+              </p>
+
+              <p className="text-gray-300">
+                Category: {item.category}
+              </p>
+
+              <p className="text-gray-300">
+                Remarks: {item.remarks || "-"}
+              </p>
+
+              <p className="text-gray-400 text-sm">
+                Assigned By: {item.assignedBy?.name || "Unknown"}
+              </p>
+
+              <p className="text-gray-500 text-sm">
+                {new Date(item.createdAt).toLocaleString()}
+              </p>
             </div>
           ))}
         </div>
-      ))}
+      )}
     </div>
   );
 };
