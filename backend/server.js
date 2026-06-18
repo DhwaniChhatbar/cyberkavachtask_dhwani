@@ -23,8 +23,13 @@ import userBadgeRoutes from "./routes/userBadgeRoutes.js";
 import analyticsRoutes from "./routes/analyticsRoutes.js";
 import settingRoutes from "./routes/settingRoutes.js";
 
+// ✅ FIX: ADD THIS
+import pointsRoutes from "./routes/pointsRoutes.js";
+
 dotenv.config();
+
 console.log("CLIENT_URL =", process.env.CLIENT_URL);
+
 const app = express();
 const server = http.createServer(app);
 
@@ -94,6 +99,9 @@ app.use("/api/attendance", attendanceRoutes);
 // MODULE 5
 app.use("/api/leaderboard", leaderboardRoutes);
 app.use("/api/user-badges", userBadgeRoutes);
+
+// ✅ FIX: POINTS ROUTES ADDED HERE
+app.use("/api/points", pointsRoutes);
 
 // MODULE 6
 app.use("/api/analytics", analyticsRoutes);

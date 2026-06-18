@@ -4,51 +4,42 @@ import UserBadge from "../models/UserBadge.js";
 
 export const getLeaderboard = async (req, res) => {
   try {
-    // Aggregate points per user
+    // 1. Aggregate points per user
     const leaderboard = await Points.aggregate([
       {
         $group: {
           _id: "$user",
-          totalPoints: {
-            $sum: "$points",
-          },
-          contributions: {
-            $sum: 1,
-          },
+          totalPoints: { $sum: "$points" },
+          contributions: { $sum: 1 },
         },
       },
-      {
-        $sort: {
-          totalPoints: -1,
-        },
-      },
+      { $sort: { totalPoints: -1 } },
     ]);
 
-    if (!leaderboard.length) {
+    // IMPORTANT: always return empty array (never crash frontend)
+    if (!leaderboard || leaderboard.length === 0) {
       return res.status(200).json([]);
     }
 
-    // User IDs
     const userIds = leaderboard.map((item) => item._id);
 
-    // Fetch user details
+    // 2. Fetch users safely
     const users = await User.find({
       _id: { $in: userIds },
     }).select("name email role");
 
-    // Fetch badges
+    // 3. Fetch badges safely
     const badges = await UserBadge.find({
       user: { $in: userIds },
     }).populate("badge");
 
-    // Create user lookup
+    // 4. Map users
     const userMap = {};
-
     users.forEach((user) => {
       userMap[user._id.toString()] = user;
     });
 
-    // Create badge lookup (latest badge)
+    // 5. Map latest badge
     const badgeMap = {};
 
     badges.forEach((item) => {
@@ -56,29 +47,36 @@ export const getLeaderboard = async (req, res) => {
 
       if (
         !badgeMap[userId] ||
-        item.awardedAt > badgeMap[userId].awardedAt
+        new Date(item.awardedAt) > new Date(badgeMap[userId].awardedAt)
       ) {
         badgeMap[userId] = item;
       }
     });
 
-    // Build leaderboard response
+    // 6. Build response
     const result = leaderboard.map((item, index) => {
       const userId = item._id.toString();
+      const user = userMap[userId];
 
       return {
         rank: index + 1,
 
-        user:
-          userMap[userId] || {
-            name: "Unknown User",
-            email: "",
-            role: "unknown",
-          },
+        user: user
+          ? {
+              id: user._id,
+              name: user.name,
+              email: user.email,
+              role: user.role,
+            }
+          : {
+              id: null,
+              name: "Unknown User",
+              email: "",
+              role: "unknown",
+            },
 
-        totalPoints: item.totalPoints,
-
-        contributions: item.contributions,
+        totalPoints: item.totalPoints || 0,
+        contributions: item.contributions || 0,
 
         badge: badgeMap[userId]?.badge || null,
       };
@@ -86,6 +84,8 @@ export const getLeaderboard = async (req, res) => {
 
     return res.status(200).json(result);
   } catch (error) {
+    console.error("Leaderboard error:", error);
+
     return res.status(500).json({
       success: false,
       message: "Leaderboard error",

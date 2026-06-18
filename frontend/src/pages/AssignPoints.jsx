@@ -10,6 +10,8 @@ const AssignPoints = () => {
     remarks: "",
   });
 
+  const [loading, setLoading] = useState(false);
+
   const handleChange = (e) => {
     setForm({
       ...form,
@@ -36,13 +38,17 @@ const AssignPoints = () => {
     }
 
     try {
-      // ✅ SAVE TO BACKEND (MongoDB Points collection)
-      await api.post("/leaderboard/assign", {
+      setLoading(true);
+
+      // ✅ REAL BACKEND CALL (THIS IS THE FIX)
+      await api.post("/points/assign", {
         userName: username,
         points: Number(form.points),
         category: form.category,
         remarks: form.remarks,
       });
+
+      alert("Points assigned successfully!");
 
       setForm({
         name: "",
@@ -51,14 +57,14 @@ const AssignPoints = () => {
         category: "",
         remarks: "",
       });
-
-      alert("Points assigned successfully!");
     } catch (error) {
       console.error("Assign points error:", error);
       alert(
         error?.response?.data?.message ||
           "Failed to assign points"
       );
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -79,8 +85,6 @@ const AssignPoints = () => {
           className="w-full p-3 bg-[#0B0F1A] border border-gray-700 rounded text-white"
         >
           <option value="">Select User</option>
-
-          {/* NOTE: this assumes users list is optional */}
           <option value="new">+ Add New User</option>
         </select>
 
@@ -129,9 +133,10 @@ const AssignPoints = () => {
 
         <button
           type="submit"
+          disabled={loading}
           className="w-full bg-emerald-600 hover:bg-emerald-500 transition duration-300 p-3 rounded-lg font-semibold"
         >
-          Assign Points
+          {loading ? "Assigning..." : "Assign Points"}
         </button>
       </form>
     </div>
