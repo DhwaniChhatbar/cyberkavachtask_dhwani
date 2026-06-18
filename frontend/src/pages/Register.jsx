@@ -95,11 +95,14 @@ const Register = () => {
             onChange={handleChange}
             className="w-full p-3 rounded bg-gray-800 outline-none"
           >
+            <option value="Admin">Admin</option>
             <option value="Member">Member</option>
             <option value="StudentCoordinator">Student Coordinator</option>
             <option value="TechCoordinator">Tech Coordinator</option>
             <option value="ContentCoordinator">Content Coordinator</option>
-            <option value="SocialMediaCoordinator">Social Media Coordinator</option>
+            <option value="SocialMediaCoordinator">
+              Social Media Coordinator
+            </option>
             <option value="FacultyCoordinator">Faculty Coordinator</option>
             <option value="Guest">Guest</option>
           </select>
