@@ -20,12 +20,14 @@ export const assignPoints = async (req, res) => {
       });
     }
 
-    // 🔥 THIS IS WHAT YOU WERE MISSING
+    // 🔥 FIX: MUST ADD assignedBy
     const newPoint = await Points.create({
       user: user._id,
       points: Number(points),
       category,
       remarks,
+
+      assignedBy: req.user?.id, // ✅ REQUIRED FIX
     });
 
     return res.status(201).json({

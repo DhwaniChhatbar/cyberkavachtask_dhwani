@@ -1,8 +1,10 @@
 import express from "express";
 import { assignPoints } from "../controllers/pointsController.js";
+import { protect } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-router.post("/assign", assignPoints);
+// 🔥 FIX: protect added here
+router.post("/assign", protect, assignPoints);
 
 export default router;
