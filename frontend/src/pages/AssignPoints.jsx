@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from "react";
-import { assignPoints, getUsers } from "../utils/storage";
+import React, { useState } from "react";
+import { useUsers } from "../context/UserContext";
 
 const AssignPoints = () => {
-  const [users, setUsers] = useState([]);
+  const { users, assignPoints } = useUsers();
 
   const [form, setForm] = useState({
     name: "",
@@ -11,10 +11,6 @@ const AssignPoints = () => {
     category: "",
     remarks: "",
   });
-
-  useEffect(() => {
-    setUsers(getUsers());
-  }, []);
 
   const handleChange = (e) => {
     setForm({
@@ -41,14 +37,13 @@ const AssignPoints = () => {
       return;
     }
 
+    // ✅ Context-based update (auto syncs leaderboard)
     assignPoints(
       username,
-      form.points,
+      Number(form.points),
       form.category,
       form.remarks
     );
-
-    setUsers(getUsers());
 
     setForm({
       name: "",
@@ -115,21 +110,11 @@ const AssignPoints = () => {
           className="w-full p-3 bg-[#0B0F1A] border border-gray-700 rounded text-white"
         >
           <option value="">Select Category</option>
-          <option value="Event Participation">
-            Event Participation
-          </option>
-          <option value="Workshop">
-            Workshop
-          </option>
-          <option value="Competition">
-            Competition
-          </option>
-          <option value="Volunteer Work">
-            Volunteer Work
-          </option>
-          <option value="Other">
-            Other
-          </option>
+          <option value="Event Participation">Event Participation</option>
+          <option value="Workshop">Workshop</option>
+          <option value="Competition">Competition</option>
+          <option value="Volunteer Work">Volunteer Work</option>
+          <option value="Other">Other</option>
         </select>
 
         <textarea
