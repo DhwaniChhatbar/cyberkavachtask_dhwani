@@ -6,7 +6,7 @@ import socket from "../socket";
 
 const Dashboard = () => {
   const [users, setUsers] = useState([]);
-  const [totalUsers, setTotalUsers] = useState(0);
+  const [totalUsers, setTotalUsers] = useState(null);
 
   // ==========================
   // FETCH FROM BACKEND
@@ -15,13 +15,26 @@ const Dashboard = () => {
     try {
       // Leaderboard data
       const leaderboardRes = await api.get("/leaderboard");
-      setUsers(leaderboardRes.data);
+
+      if (Array.isArray(leaderboardRes.data)) {
+        setUsers(leaderboardRes.data);
+      }
 
       // Registered users count
       const usersRes = await api.get("/users");
-      setTotalUsers(usersRes.data.users.length);
+
+      if (
+        usersRes.data &&
+        usersRes.data.users &&
+        Array.isArray(usersRes.data.users)
+      ) {
+        setTotalUsers(usersRes.data.users.length);
+      }
     } catch (error) {
       console.error("Dashboard fetch error:", error);
+
+      // DON'T reset state to 0 here
+      // Keep previous values
     }
   };
 
@@ -29,13 +42,10 @@ const Dashboard = () => {
   // INIT LOAD + SOCKET SYNC
   // ==========================
   useEffect(() => {
-    // Initial load
     fetchDashboardData();
 
-    // Realtime updates
     socket.on("leaderboard:update", fetchDashboardData);
 
-    // Cleanup
     return () => {
       socket.off("leaderboard:update", fetchDashboardData);
     };
@@ -61,7 +71,7 @@ const Dashboard = () => {
 
         <StatCard
           title="Total Users"
-          value={totalUsers}
+          value={totalUsers ?? "Loading..."}
           icon={<FaUsers />}
           color="emerald"
         />
