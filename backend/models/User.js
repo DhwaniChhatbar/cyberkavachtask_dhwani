@@ -3,12 +3,18 @@ import mongoose from "mongoose";
 const userSchema = new mongoose.Schema(
   {
     name: String,
-    email: { type: String, unique: true },
+
+    email: {
+      type: String,
+      unique: true,
+    },
+
     password: String,
 
     role: {
       type: String,
       enum: [
+        "Admin",
         "FacultyCoordinator",
         "StudentCoordinator",
         "TechCoordinator",
@@ -25,7 +31,7 @@ const userSchema = new mongoose.Schema(
       default: false,
     },
 
-    // 🔥 OTP SYSTEM (ADDED)
+    // 🔥 OTP SYSTEM
     otp: {
       type: String,
       default: null,
@@ -42,7 +48,9 @@ const userSchema = new mongoose.Schema(
       default: null,
     },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+  }
 );
 
 export default mongoose.model("User", userSchema);

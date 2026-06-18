@@ -39,6 +39,32 @@ import Analytics from "./pages/Analytics";
 import Settings from "./pages/Settings";
 import AdminPanel from "./pages/AdminPanel";
 
+// 🔐 SIMPLE ROLE CHECK
+const getUser = () => {
+  return JSON.parse(localStorage.getItem("user"));
+};
+
+const PrivateRoute = ({ children }) => {
+  const user = getUser();
+
+  if (!user) {
+    return <Navigate to="/login" />;
+  }
+
+  return children;
+};
+
+// 🔐 ADMIN ONLY ROUTE
+const AdminRoute = ({ children }) => {
+  const user = getUser();
+
+  if (!user || user.role !== "Admin") {
+    return <Navigate to="/dashboard" />;
+  }
+
+  return children;
+};
+
 function App() {
   return (
     <BrowserRouter>
@@ -52,36 +78,119 @@ function App() {
         <Route path="/register" element={<Register />} />
 
         {/* MODULE 5 */}
-        <Route path="/dashboard" element={<Layout><Dashboard /></Layout>} />
-        <Route path="/assign-points" element={<Layout><AssignPoints /></Layout>} />
-        <Route path="/points-history" element={<Layout><PointsHistory /></Layout>} />
-        <Route path="/leaderboard" element={<Layout><Leaderboard /></Layout>} />
-        <Route path="/profile" element={<Layout><Profile /></Layout>} />
-        <Route path="/badges" element={<Layout><Badges /></Layout>} />
+        <Route
+          path="/dashboard"
+          element={<PrivateRoute><Layout><Dashboard /></Layout></PrivateRoute>}
+        />
+
+        <Route
+          path="/assign-points"
+          element={<AdminRoute><Layout><AssignPoints /></Layout></AdminRoute>}
+        />
+
+        <Route
+          path="/points-history"
+          element={<PrivateRoute><Layout><PointsHistory /></Layout></PrivateRoute>}
+        />
+
+        <Route
+          path="/leaderboard"
+          element={<PrivateRoute><Layout><Leaderboard /></Layout></PrivateRoute>}
+        />
+
+        <Route
+          path="/profile"
+          element={<PrivateRoute><Layout><Profile /></Layout></PrivateRoute>}
+        />
+
+        <Route
+          path="/badges"
+          element={<PrivateRoute><Layout><Badges /></Layout></PrivateRoute>}
+        />
 
         {/* MODULE 1 */}
-        <Route path="/request-form" element={<Layout><RequestFormPage /></Layout>} />
-        <Route path="/approvals" element={<Layout><ApprovalDashboard /></Layout>} />
-        <Route path="/request-history" element={<Layout><RequestHistory /></Layout>} />
-        <Route path="/notifications" element={<Layout><Notifications /></Layout>} />
-        <Route path="/request-details/:id" element={<Layout><RequestDetails /></Layout>} />
+        <Route
+          path="/request-form"
+          element={<PrivateRoute><Layout><RequestFormPage /></Layout></PrivateRoute>}
+        />
+
+        <Route
+          path="/approvals"
+          element={<PrivateRoute><Layout><ApprovalDashboard /></Layout></PrivateRoute>}
+        />
+
+        <Route
+          path="/request-history"
+          element={<PrivateRoute><Layout><RequestHistory /></Layout></PrivateRoute>}
+        />
+
+        <Route
+          path="/notifications"
+          element={<PrivateRoute><Layout><Notifications /></Layout></PrivateRoute>}
+        />
+
+        <Route
+          path="/request-details/:id"
+          element={<PrivateRoute><Layout><RequestDetails /></Layout></PrivateRoute>}
+        />
 
         {/* MODULE 2 */}
-        <Route path="/certificates" element={<Layout><CertificateDashboard /></Layout>} />
-        <Route path="/verify-certificate" element={<Layout><VerifyCertificate /></Layout>} />
-        <Route path="/generate-certificate" element={<Layout><GenerateCertificate /></Layout>} />
+        <Route
+          path="/certificates"
+          element={<PrivateRoute><Layout><CertificateDashboard /></Layout></PrivateRoute>}
+        />
+
+        <Route
+          path="/verify-certificate"
+          element={<PrivateRoute><Layout><VerifyCertificate /></Layout></PrivateRoute>}
+        />
+
+        <Route
+          path="/generate-certificate"
+          element={<PrivateRoute><Layout><GenerateCertificate /></Layout></PrivateRoute>}
+        />
 
         {/* MODULE 3 */}
-        <Route path="/event-dashboard" element={<Layout><EventDashboard /></Layout>} />
-        <Route path="/event-analytics" element={<Layout><EventAnalytics /></Layout>} />
-        <Route path="/my-teams" element={<Layout><MyTeams /></Layout>} />
-        <Route path="/team-registration" element={<Layout><TeamRegistration /></Layout>} />
-        <Route path="/create-event" element={<Layout><EventCreation /></Layout>} />
+        <Route
+          path="/event-dashboard"
+          element={<PrivateRoute><Layout><EventDashboard /></Layout></PrivateRoute>}
+        />
+
+        <Route
+          path="/event-analytics"
+          element={<PrivateRoute><Layout><EventAnalytics /></Layout></PrivateRoute>}
+        />
+
+        <Route
+          path="/my-teams"
+          element={<PrivateRoute><Layout><MyTeams /></Layout></PrivateRoute>}
+        />
+
+        <Route
+          path="/team-registration"
+          element={<PrivateRoute><Layout><TeamRegistration /></Layout></PrivateRoute>}
+        />
+
+        <Route
+          path="/create-event"
+          element={<PrivateRoute><Layout><EventCreation /></Layout></PrivateRoute>}
+        />
 
         {/* MODULE 6 */}
-        <Route path="/analytics" element={<Layout><Analytics /></Layout>} />
-        <Route path="/settings" element={<Layout><Settings /></Layout>} />
-        <Route path="/admin" element={<Layout><AdminPanel /></Layout>} />
+        <Route
+          path="/analytics"
+          element={<AdminRoute><Layout><Analytics /></Layout></AdminRoute>}
+        />
+
+        <Route
+          path="/settings"
+          element={<AdminRoute><Layout><Settings /></Layout></AdminRoute>}
+        />
+
+        <Route
+          path="/admin"
+          element={<AdminRoute><Layout><AdminPanel /></Layout></AdminRoute>}
+        />
 
       </Routes>
     </BrowserRouter>

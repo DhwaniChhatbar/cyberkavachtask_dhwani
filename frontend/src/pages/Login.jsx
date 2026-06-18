@@ -18,7 +18,7 @@ const Login = () => {
     try {
       const res = await loginUser({ email, password });
 
-      // ❗ safety checks (prevents crashes)
+      // safety checks
       if (!res || !res.data) {
         throw new Error("Invalid server response");
       }
@@ -29,8 +29,14 @@ const Login = () => {
         throw new Error("Missing token or user data");
       }
 
+      // 🔥 FIX (ONLY CHANGE): ensure role is always valid
+      const safeUser = {
+        ...user,
+        role: user.role || "Member",
+      };
+
       localStorage.setItem("token", token);
-      localStorage.setItem("user", JSON.stringify(user));
+      localStorage.setItem("user", JSON.stringify(safeUser));
 
       navigate("/dashboard");
 
