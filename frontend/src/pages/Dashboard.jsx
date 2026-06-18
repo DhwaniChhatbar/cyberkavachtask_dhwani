@@ -17,9 +17,9 @@ const Dashboard = () => {
       const leaderboardRes = await api.get("/leaderboard");
       setUsers(leaderboardRes.data);
 
-      // Total registered users
+      // Registered users count
       const usersRes = await api.get("/users");
-      setTotalUsers(usersRes.data.length);
+      setTotalUsers(usersRes.data.users.length);
     } catch (error) {
       console.error("Dashboard fetch error:", error);
     }
@@ -29,13 +29,13 @@ const Dashboard = () => {
   // INIT LOAD + SOCKET SYNC
   // ==========================
   useEffect(() => {
-    // initial load
+    // Initial load
     fetchDashboardData();
 
-    // realtime update from backend
+    // Realtime updates
     socket.on("leaderboard:update", fetchDashboardData);
 
-    // cleanup
+    // Cleanup
     return () => {
       socket.off("leaderboard:update", fetchDashboardData);
     };
