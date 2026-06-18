@@ -12,7 +12,8 @@ const pointsSchema = new mongoose.Schema(
     event: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Event",
-      required: true,
+      required: false, // 🔥 FIXED (was true)
+      default: null,
       index: true,
     },
 
@@ -52,7 +53,7 @@ const pointsSchema = new mongoose.Schema(
   }
 );
 
-// Prevent duplicate points for same user in same event
+// ❌ REMOVE THIS INDEX (it will break manual points)
 pointsSchema.index(
   {
     user: 1,
@@ -63,7 +64,4 @@ pointsSchema.index(
   }
 );
 
-export default mongoose.model(
-  "Points",
-  pointsSchema
-);
+export default mongoose.model("Points", pointsSchema);

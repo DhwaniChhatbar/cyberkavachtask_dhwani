@@ -13,19 +13,17 @@ const AssignPoints = () => {
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
-    setForm({
-      ...form,
+    setForm((prev) => ({
+      ...prev,
       [e.target.name]: e.target.value,
-    });
+    }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     const username =
-      form.name === "new"
-        ? form.newName.trim()
-        : form.name;
+      form.name === "new" ? form.newName.trim() : form.name;
 
     if (!username) {
       alert("Please select or enter a user name");
@@ -37,14 +35,25 @@ const AssignPoints = () => {
       return;
     }
 
+    // ⚠️ MAP FRONTEND CATEGORY → BACKEND ENUM
+    const categoryMap = {
+      "Event Participation": "Participation",
+      Workshop: "Participation",
+      Competition: "Winner",
+      "Volunteer Work": "Volunteer",
+      Other: "Bonus",
+    };
+
+    const mappedCategory =
+      categoryMap[form.category] || "Participation";
+
     try {
       setLoading(true);
 
-      // ✅ REAL BACKEND CALL (THIS IS THE FIX)
       await api.post("/points/assign", {
         userName: username,
         points: Number(form.points),
-        category: form.category,
+        category: mappedCategory,
         remarks: form.remarks,
       });
 
@@ -70,9 +79,7 @@ const AssignPoints = () => {
 
   return (
     <div>
-      <h1 className="text-3xl font-bold mb-6">
-        Assign Points
-      </h1>
+      <h1 className="text-3xl font-bold mb-6">Assign Points</h1>
 
       <form
         onSubmit={handleSubmit}
@@ -108,6 +115,7 @@ const AssignPoints = () => {
           className="w-full p-3 bg-[#0B0F1A] border border-gray-700 rounded text-white"
         />
 
+        {/* FRONTEND LABELS (SAFE FOR UI) */}
         <select
           name="category"
           value={form.category}
@@ -115,10 +123,14 @@ const AssignPoints = () => {
           className="w-full p-3 bg-[#0B0F1A] border border-gray-700 rounded text-white"
         >
           <option value="">Select Category</option>
-          <option value="Event Participation">Event Participation</option>
+          <option value="Event Participation">
+            Event Participation
+          </option>
           <option value="Workshop">Workshop</option>
           <option value="Competition">Competition</option>
-          <option value="Volunteer Work">Volunteer Work</option>
+          <option value="Volunteer Work">
+            Volunteer Work
+          </option>
           <option value="Other">Other</option>
         </select>
 
