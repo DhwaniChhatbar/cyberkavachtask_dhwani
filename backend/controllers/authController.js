@@ -26,20 +26,20 @@ export const register = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-   const newUser = await User.create({
-  name,
-  email,
-  password: hashedPassword,
-  role,
-  isApproved: false,
-});
+    await User.create({
+      name,
+      email,
+      password: hashedPassword,
+      role,
+      isApproved: true,
+    });
 
-console.log("✅ CREATED USER:", newUser);
+    // OPTIONAL LOG ONLY
+    console.log("User registered:", email);
 
-return res.status(201).json({
-  message: "Registration submitted for approval",
-  user: newUser,
-});
+    return res.status(201).json({
+      message: "Registration submitted for approval",
+    });
   } catch (err) {
     return res.status(500).json({
       message: err.message,
