@@ -2,7 +2,8 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import TimelineCard from "../components/module1/TimelineCard";
 import StatusBadge from "../components/ui/StatusBadge";
-import api from "../utils/api"; // IMPORTANT FIX
+import api from "../utils/api";
+import { canApproveRequests } from "../utils/roles";
 
 function RequestDetails() {
   const { id } = useParams();
@@ -10,8 +11,13 @@ function RequestDetails() {
   const [request, setRequest] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [comment, setComment] = useState("");
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
+    const currentUser = JSON.parse(localStorage.getItem("user"));
+    setUser(currentUser);
+
     fetchRequest();
   }, [id]);
 
@@ -21,7 +27,6 @@ function RequestDetails() {
       setError(null);
 
       const res = await api.get(`/requests/${id}`);
-
       setRequest(res.data);
 
     } catch (error) {
@@ -29,6 +34,26 @@ function RequestDetails() {
       setError("Failed to load request");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleApprove = async () => {
+    try {
+      await api.put(`/requests/approve/${id}`, { comment });
+      setComment("");
+      fetchRequest();
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  const handleReject = async () => {
+    try {
+      await api.put(`/requests/reject/${id}`, { comment });
+      setComment("");
+      fetchRequest();
+    } catch (err) {
+      console.log(err);
     }
   };
 
@@ -55,6 +80,8 @@ function RequestDetails() {
       </div>
     );
   }
+
+  const canApprove = canApproveRequests(user);
 
   return (
     <div className="min-h-screen bg-gray-950 text-white p-6">
@@ -92,9 +119,36 @@ function RequestDetails() {
             <span className="font-semibold">Current Stage:</span>{" "}
             {request.currentStage}
           </div>
-
         </div>
       </div>
+
+      {/* APPROVAL PANEL (FIXED) */}
+      {canApprove && request.status === "Under Review" && (
+        <div className="mt-6 bg-gray-900 p-4 rounded-xl">
+          <textarea
+            className="w-full p-3 bg-gray-800 rounded-lg"
+            placeholder="Add comment (optional)"
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+          />
+
+          <div className="flex gap-3 mt-3">
+            <button
+              onClick={handleApprove}
+              className="bg-green-600 px-4 py-2 rounded-lg"
+            >
+              Approve
+            </button>
+
+            <button
+              onClick={handleReject}
+              className="bg-red-600 px-4 py-2 rounded-lg"
+            >
+              Reject
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* TIMELINE */}
       <div className="mt-8">
@@ -106,10 +160,7 @@ function RequestDetails() {
         <div className="space-y-4">
           {request.timeline?.length > 0 ? (
             request.timeline.map((item, index) => (
-              <TimelineCard
-                key={index}
-                timeline={item}
-              />
+              <TimelineCard key={index} timeline={item} />
             ))
           ) : (
             <p className="text-gray-400">
