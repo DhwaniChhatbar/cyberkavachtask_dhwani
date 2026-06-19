@@ -15,7 +15,7 @@ const router = express.Router();
 
 /**
  * ==========================
- * DEBUG MIDDLEWARE (TEMP SAFE)
+ * DEBUG MIDDLEWARE (OPTIONAL)
  * ==========================
  */
 const debugRequest = (req, res, next) => {
@@ -24,38 +24,68 @@ const debugRequest = (req, res, next) => {
   next();
 };
 
-// ==========================
-// ROLES THAT CAN APPROVE/REJECT
-// ==========================
+/**
+ * ==========================
+ * ROLES THAT CAN APPROVE/REJECT
+ * ==========================
+ */
 const approverRoles = [
+  "Admin",
   "Tech Coordinator",
   "Student Coordinator",
   "Faculty Coordinator",
 ];
 
-// ==========================
-// CREATE REQUEST
-// ==========================
-router.post("/", protect, debugRequest, createRequest);
+/**
+ * ==========================
+ * CREATE REQUEST
+ * ==========================
+ */
+router.post(
+  "/",
+  protect,
+  debugRequest,
+  createRequest
+);
 
-// ==========================
-// GET MY REQUESTS
-// ==========================
-router.get("/my", protect, getMyRequests);
+/**
+ * ==========================
+ * GET MY REQUESTS
+ * ==========================
+ */
+router.get(
+  "/my",
+  protect,
+  getMyRequests
+);
 
-// ==========================
-// GET ALL REQUESTS
-// ==========================
-router.get("/", protect, getAllRequests);
+/**
+ * ==========================
+ * GET ALL REQUESTS
+ * ==========================
+ */
+router.get(
+  "/",
+  protect,
+  getAllRequests
+);
 
-// ==========================
-// GET SINGLE REQUEST
-// ==========================
-router.get("/:id", protect, getRequestById);
+/**
+ * ==========================
+ * GET SINGLE REQUEST
+ * ==========================
+ */
+router.get(
+  "/:id",
+  protect,
+  getRequestById
+);
 
-// ==========================
-// APPROVE REQUEST (ROLE PROTECTED)
-// ==========================
+/**
+ * ==========================
+ * APPROVE REQUEST
+ * ==========================
+ */
 router.put(
   "/approve/:id",
   protect,
@@ -63,9 +93,11 @@ router.put(
   approveRequest
 );
 
-// ==========================
-// REJECT REQUEST (ROLE PROTECTED)
-// ==========================
+/**
+ * ==========================
+ * REJECT REQUEST
+ * ==========================
+ */
 router.put(
   "/reject/:id",
   protect,
