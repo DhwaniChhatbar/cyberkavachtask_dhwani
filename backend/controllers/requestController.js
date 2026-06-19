@@ -57,6 +57,7 @@ export const createRequest = async (req, res) => {
     });
   } catch (err) {
     console.error("CREATE REQUEST ERROR:", err);
+
     return res.status(500).json({
       error: err.message,
     });
@@ -65,7 +66,7 @@ export const createRequest = async (req, res) => {
 
 /**
  * ==========================
- * GET ALL REQUESTS (ROLE BASED)
+ * GET ALL REQUESTS
  * ==========================
  */
 export const getAllRequests = async (req, res) => {
@@ -73,6 +74,7 @@ export const getAllRequests = async (req, res) => {
     const role = req.user.role;
 
     const canViewAll = [
+      "Admin",
       "Tech Coordinator",
       "Student Coordinator",
       "Faculty Coordinator",
@@ -88,7 +90,9 @@ export const getAllRequests = async (req, res) => {
 
     return res.json(requests);
   } catch (err) {
-    return res.status(500).json({ error: err.message });
+    return res.status(500).json({
+      error: err.message,
+    });
   }
 };
 
@@ -99,13 +103,17 @@ export const getAllRequests = async (req, res) => {
  */
 export const getMyRequests = async (req, res) => {
   try {
-    const requests = await Request.find({ createdBy: req.user.id })
+    const requests = await Request.find({
+      createdBy: req.user.id,
+    })
       .populate("createdBy", "name email role")
       .sort({ createdAt: -1 });
 
     return res.json(requests);
   } catch (err) {
-    return res.status(500).json({ error: err.message });
+    return res.status(500).json({
+      error: err.message,
+    });
   }
 };
 
@@ -122,14 +130,18 @@ export const getRequestById = async (req, res) => {
     );
 
     if (!request) {
-      return res.status(404).json({ message: "Request not found" });
+      return res.status(404).json({
+        message: "Request not found",
+      });
     }
 
     const role = req.user.role;
 
-    const isOwner = request.createdBy._id.toString() === req.user.id;
+    const isOwner =
+      request.createdBy._id.toString() === req.user.id;
 
     const canViewAll = [
+      "Admin",
       "Tech Coordinator",
       "Student Coordinator",
       "Faculty Coordinator",
@@ -143,13 +155,15 @@ export const getRequestById = async (req, res) => {
 
     return res.json(request);
   } catch (err) {
-    return res.status(500).json({ error: err.message });
+    return res.status(500).json({
+      error: err.message,
+    });
   }
 };
 
 /**
  * ==========================
- * APPROVE REQUEST (STRICT ROLE MATCH)
+ * APPROVE REQUEST
  * ==========================
  */
 export const approveRequest = async (req, res) => {
@@ -159,18 +173,30 @@ export const approveRequest = async (req, res) => {
     const request = await Request.findById(req.params.id);
 
     if (!request) {
-      return res.status(404).json({ message: "Request not found" });
+      return res.status(404).json({
+        message: "Request not found",
+      });
     }
 
     const role = req.user.role;
 
-    if (!["Tech Coordinator", "Student Coordinator", "Faculty Coordinator"].includes(role)) {
+    if (
+      ![
+        "Admin",
+        "Tech Coordinator",
+        "Student Coordinator",
+        "Faculty Coordinator",
+      ].includes(role)
+    ) {
       return res.status(403).json({
         message: "You cannot approve requests",
       });
     }
 
-    if (["Approved", "Rejected"].includes(request.status)) {
+    if (
+      request.status === "Approved" ||
+      request.status === "Rejected"
+    ) {
       return res.status(400).json({
         message: "Request already finalized",
       });
@@ -185,7 +211,8 @@ export const approveRequest = async (req, res) => {
       });
     }
 
-    if (currentRole !== role) {
+    // Admin can approve any stage
+    if (role !== "Admin" && currentRole !== role) {
       return res.status(403).json({
         message: "Not your approval level",
       });
@@ -221,13 +248,15 @@ export const approveRequest = async (req, res) => {
 
     return res.json(request);
   } catch (err) {
-    return res.status(500).json({ error: err.message });
+    return res.status(500).json({
+      error: err.message,
+    });
   }
 };
 
 /**
  * ==========================
- * REJECT REQUEST (STRICT ROLE MATCH)
+ * REJECT REQUEST
  * ==========================
  */
 export const rejectRequest = async (req, res) => {
@@ -237,18 +266,30 @@ export const rejectRequest = async (req, res) => {
     const request = await Request.findById(req.params.id);
 
     if (!request) {
-      return res.status(404).json({ message: "Request not found" });
+      return res.status(404).json({
+        message: "Request not found",
+      });
     }
 
     const role = req.user.role;
 
-    if (!["Tech Coordinator", "Student Coordinator", "Faculty Coordinator"].includes(role)) {
+    if (
+      ![
+        "Admin",
+        "Tech Coordinator",
+        "Student Coordinator",
+        "Faculty Coordinator",
+      ].includes(role)
+    ) {
       return res.status(403).json({
         message: "You cannot reject requests",
       });
     }
 
-    if (["Approved", "Rejected"].includes(request.status)) {
+    if (
+      request.status === "Approved" ||
+      request.status === "Rejected"
+    ) {
       return res.status(400).json({
         message: "Request already finalized",
       });
@@ -274,6 +315,8 @@ export const rejectRequest = async (req, res) => {
 
     return res.json(request);
   } catch (err) {
-    return res.status(500).json({ error: err.message });
+    return res.status(500).json({
+      error: err.message,
+    });
   }
 };
