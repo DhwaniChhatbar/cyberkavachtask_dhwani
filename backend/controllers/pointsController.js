@@ -10,18 +10,22 @@ export const assignPoints = async (req, res) => {
 
     if (!userName || !points) {
       return res.status(400).json({
+        success: false,
         message: "userName and points are required",
       });
     }
 
+    // Find user
     const user = await User.findOne({ name: userName });
 
     if (!user) {
       return res.status(404).json({
+        success: false,
         message: "User not found",
       });
     }
 
+    // Create new points entry
     const newPoint = await Points.create({
       user: user._id,
       points: Number(points),
@@ -36,7 +40,14 @@ export const assignPoints = async (req, res) => {
       data: newPoint,
     });
   } catch (err) {
+    // 🔥 VERY IMPORTANT
+    console.error("=================================");
+    console.error("ASSIGN POINTS ERROR");
+    console.error(err);
+    console.error("=================================");
+
     return res.status(500).json({
+      success: false,
       message: err.message,
     });
   }
@@ -52,9 +63,15 @@ export const getPointsHistory = async (req, res) => {
       .populate("assignedBy", "name")
       .sort({ createdAt: -1 });
 
-    return res.status(200).json(history);
+    return res.status(200).json({
+      success: true,
+      history,
+    });
   } catch (err) {
+    console.error("GET HISTORY ERROR:", err);
+
     return res.status(500).json({
+      success: false,
       message: err.message,
     });
   }
