@@ -7,7 +7,7 @@ import Layout from "./components/module5/Layout";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 
-// MODULE 5 (MAIN DASHBOARD SYSTEM)
+// MODULE 5
 import Dashboard from "./pages/Dashboard";
 import AssignPoints from "./pages/AssignPoints";
 import PointsHistory from "./pages/PointsHistory";
@@ -20,7 +20,7 @@ import RequestFormPage from "./pages/RequestFormPage";
 import ApprovalDashboard from "./pages/ApprovalDashboard";
 import RequestDetails from "./pages/RequestDetails";
 import Notifications from "./pages/Notifications";
-import RequestHistory from "./pages/RequestHistory";
+import RequestHistoryPage from "./pages/RequestHistoryPage"; // ✅ FIXED
 
 // MODULE 2
 import CertificateDashboard from "./pages/CertificateDashboard";
@@ -34,12 +34,14 @@ import MyTeams from "./pages/MyTeams";
 import TeamRegistration from "./pages/TeamRegistration";
 import EventCreation from "./pages/EventCreation";
 
-// MODULE 6 (CORE ONLY)
+// MODULE 6
 import Analytics from "./pages/Analytics";
 import Settings from "./pages/Settings";
 import AdminPanel from "./pages/AdminPanel";
 
-// 🔐 SIMPLE ROLE CHECK
+// =========================
+// AUTH HELPERS
+// =========================
 const getUser = () => {
   return JSON.parse(localStorage.getItem("user"));
 };
@@ -47,14 +49,11 @@ const getUser = () => {
 const PrivateRoute = ({ children }) => {
   const user = getUser();
 
-  if (!user) {
-    return <Navigate to="/login" />;
-  }
+  if (!user) return <Navigate to="/login" />;
 
   return children;
 };
 
-// 🔐 ADMIN ONLY ROUTE
 const AdminRoute = ({ children }) => {
   const user = getUser();
 
@@ -65,6 +64,9 @@ const AdminRoute = ({ children }) => {
   return children;
 };
 
+// =========================
+// APP
+// =========================
 function App() {
   return (
     <BrowserRouter>
@@ -119,9 +121,10 @@ function App() {
           element={<PrivateRoute><Layout><ApprovalDashboard /></Layout></PrivateRoute>}
         />
 
+        {/* ✅ FIXED ROUTE */}
         <Route
           path="/request-history"
-          element={<PrivateRoute><Layout><RequestHistory /></Layout></PrivateRoute>}
+          element={<PrivateRoute><Layout><RequestHistoryPage /></Layout></PrivateRoute>}
         />
 
         <Route
