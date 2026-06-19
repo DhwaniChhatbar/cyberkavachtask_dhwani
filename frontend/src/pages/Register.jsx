@@ -31,7 +31,10 @@ const Register = () => {
 
       const res = await registerUser(formData);
 
-      alert(res.data.message);
+      alert(
+        res.data.message ||
+          "Registration successful. Please login."
+      );
 
       navigate("/login");
     } catch (err) {
@@ -44,15 +47,19 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-950 text-white">
-      <div className="w-full max-w-md bg-gray-900 p-8 rounded-xl shadow-lg">
+    <div className="min-h-screen bg-gray-950 flex items-center justify-center px-4 text-white">
+      <div className="w-full max-w-md bg-gray-900 p-8 rounded-2xl shadow-lg">
 
-        <h1 className="text-3xl font-bold mb-6 text-center">
-          Register
+        <h1 className="text-3xl font-bold text-center mb-2">
+          Create Account
         </h1>
 
+        <p className="text-gray-400 text-center mb-6">
+          Register to access the platform
+        </p>
+
         {error && (
-          <div className="bg-red-600 p-3 rounded mb-4">
+          <div className="bg-red-600 text-white p-3 rounded-lg mb-4">
             {error}
           </div>
         )}
@@ -62,20 +69,20 @@ const Register = () => {
           <input
             type="text"
             name="name"
-            placeholder="Name"
+            placeholder="Full Name"
             value={formData.name}
             onChange={handleChange}
-            className="w-full p-3 rounded bg-gray-800 outline-none"
+            className="w-full p-3 bg-gray-800 rounded-lg outline-none"
             required
           />
 
           <input
             type="email"
             name="email"
-            placeholder="Email"
+            placeholder="Email Address"
             value={formData.email}
             onChange={handleChange}
-            className="w-full p-3 rounded bg-gray-800 outline-none"
+            className="w-full p-3 bg-gray-800 rounded-lg outline-none"
             required
           />
 
@@ -85,7 +92,7 @@ const Register = () => {
             placeholder="Password"
             value={formData.password}
             onChange={handleChange}
-            className="w-full p-3 rounded bg-gray-800 outline-none"
+            className="w-full p-3 bg-gray-800 rounded-lg outline-none"
             required
           />
 
@@ -93,39 +100,47 @@ const Register = () => {
             name="role"
             value={formData.role}
             onChange={handleChange}
-            className="w-full p-3 rounded bg-gray-800 outline-none"
+            className="w-full p-3 bg-gray-800 rounded-lg outline-none"
           >
             <option value="Admin">Admin</option>
             <option value="Member">Member</option>
-            <option value="StudentCoordinator">Student Coordinator</option>
-            <option value="TechCoordinator">Tech Coordinator</option>
-            <option value="ContentCoordinator">Content Coordinator</option>
-            <option value="SocialMediaCoordinator">
+            <option value="Student Coordinator">
+              Student Coordinator
+            </option>
+            <option value="Tech Coordinator">
+              Tech Coordinator
+            </option>
+            <option value="Content Coordinator">
+              Content Coordinator
+            </option>
+            <option value="Social Media Coordinator">
               Social Media Coordinator
             </option>
-            <option value="FacultyCoordinator">Faculty Coordinator</option>
+            <option value="Faculty Coordinator">
+              Faculty Coordinator
+            </option>
             <option value="Guest">Guest</option>
           </select>
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-700 p-3 rounded font-semibold"
+            className="w-full bg-blue-600 hover:bg-blue-700 p-3 rounded-lg font-semibold transition"
           >
             {loading ? "Registering..." : "Register"}
           </button>
 
         </form>
 
-        <p className="text-center mt-5 text-gray-400">
+        <div className="mt-6 text-center text-gray-400">
           Already have an account?{" "}
           <Link
             to="/login"
-            className="text-blue-400 hover:underline"
+            className="text-blue-400 hover:text-blue-300 hover:underline"
           >
             Login
           </Link>
-        </p>
+        </div>
 
       </div>
     </div>
