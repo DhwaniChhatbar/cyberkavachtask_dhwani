@@ -12,7 +12,6 @@ const pointsSchema = new mongoose.Schema(
     event: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Event",
-      required: false, // 🔥 FIXED (was true)
       default: null,
       index: true,
     },
@@ -50,17 +49,6 @@ const pointsSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-  }
-);
-
-// ❌ REMOVE THIS INDEX (it will break manual points)
-pointsSchema.index(
-  {
-    user: 1,
-    event: 1,
-  },
-  {
-    unique: true,
   }
 );
 
