@@ -1,25 +1,38 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { FaUser, FaStar, FaAward } from "react-icons/fa";
-import { getLeaderboard } from "../utils/storage";
 import BadgeCard from "../components/module5/BadgeCard";
+import api from "../utils/api";
 
 const Profile = () => {
-  const [user, setUser] = useState(null);
-
-  const loadData = () => {
-    const users = getLeaderboard();
-    setUser(users[0] || null);
-  };
+  const [profile, setProfile] = useState(null);
 
   useEffect(() => {
-    loadData();
+    const fetchProfile = async () => {
+      try {
+        // logged-in user from localStorage
+        const currentUser = JSON.parse(localStorage.getItem("user"));
 
-    window.addEventListener("storageUpdate", loadData);
+        if (!currentUser) return;
 
-    return () => {
-      window.removeEventListener("storageUpdate", loadData);
+        // get latest user data from backend
+        const res = await api.get(`/users/${currentUser._id}`);
+
+        setProfile(res.data.user);
+      } catch (error) {
+        console.error("Profile fetch error:", error);
+      }
     };
+
+    fetchProfile();
   }, []);
+
+  if (!profile) {
+    return (
+      <div className="bg-[#111827] rounded-2xl p-8 text-center text-gray-400">
+        No user data found
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -27,81 +40,72 @@ const Profile = () => {
         Profile
       </h1>
 
-      {!user ? (
-        <div className="bg-[#111827] rounded-2xl p-8 text-center text-gray-400">
-          No user data found
-        </div>
-      ) : (
-        <div className="bg-[#111827] rounded-2xl shadow-lg p-8 max-w-2xl border border-gray-800">
-          <div className="space-y-6">
+      <div className="bg-[#111827] rounded-2xl shadow-lg p-8 max-w-2xl border border-gray-800">
+        <div className="space-y-6">
 
-            <div className="flex items-center gap-4">
-              <div className="bg-violet-600 p-4 rounded-full text-2xl">
-                <FaUser />
-              </div>
-
-              <div>
-                <h2 className="text-2xl font-bold">
-                  {user.name}
-                </h2>
-
-                <p className="text-gray-400">
-                  Club Member
-                </p>
-              </div>
+          <div className="flex items-center gap-4">
+            <div className="bg-violet-600 p-4 rounded-full text-2xl">
+              <FaUser />
             </div>
 
-            <hr className="border-gray-700" />
-
-            <div className="grid md:grid-cols-2 gap-6">
-
-              <div className="bg-[#1F2937] rounded-xl p-5 border-l-4 border-violet-500">
-                <div className="flex items-center gap-3">
-                  <FaStar className="text-violet-400 text-xl" />
-
-                  <div>
-                    <p className="text-gray-400">
-                      Total Points
-                    </p>
-
-                    <h3 className="text-2xl font-bold text-violet-400">
-                      {user.points}
-                    </h3>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-[#1F2937] rounded-xl p-5 border-l-4 border-emerald-500">
-                <div className="flex items-center gap-3">
-                  <FaAward className="text-emerald-400 text-xl" />
-
-                  <div>
-                    <p className="text-gray-400">
-                      Current Badge
-                    </p>
-
-                    <h3 className="text-2xl font-bold text-emerald-400">
-                      {user.badge}
-                    </h3>
-                  </div>
-                </div>
-              </div>
-
-            </div>
-
-            <div className="mt-8">
-              <h2 className="text-xl font-bold mb-4">
-                Achievement
+            <div>
+              <h2 className="text-2xl font-bold">
+                {profile.name}
               </h2>
 
-              <BadgeCard
-                badge={user.badge}
-                points={user.points}
-              />
+              <p className="text-gray-400">
+                {profile.role}
+              </p>
             </div>
           </div>
+
+          <hr className="border-gray-700" />
+
+          <div className="grid md:grid-cols-2 gap-6">
+
+            <div className="bg-[#1F2937] rounded-xl p-5 border-l-4 border-violet-500">
+              <div className="flex items-center gap-3">
+                <FaStar className="text-violet-400 text-xl" />
+
+                <div>
+                  <p className="text-gray-400">
+                    Email
+                  </p>
+
+                  <h3 className="text-lg font-bold text-violet-400">
+                    {profile.email}
+                  </h3>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-[#1F2937] rounded-xl p-5 border-l-4 border-emerald-500">
+              <div className="flex items-center gap-3">
+                <FaAward className="text-emerald-400 text-xl" />
+
+                <div>
+                  <p className="text-gray-400">
+                    Approval Status
+                  </p>
+
+                  <h3 className="text-lg font-bold text-emerald-400">
+                    {profile.isApproved ? "Approved" : "Pending"}
+                  </h3>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <div className="mt-8">
+            <BadgeCard
+              badge="Member"
+              points={0}
+            />
+          </div>
+
         </div>
-      )}
+      </div>
     </div>
   );
 };
