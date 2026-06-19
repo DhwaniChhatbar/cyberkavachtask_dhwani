@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Layout from "../components/module5/Layout";
 import RequestCard from "../components/module1/RequestCard";
 import api from "../utils/api";
 import socket from "../socket";
@@ -15,7 +14,7 @@ const RequestHistoryPage = () => {
   const user = JSON.parse(localStorage.getItem("user") || "{}");
 
   // =========================
-  // FETCH (ROLE BASED FIX)
+  // FETCH REQUESTS
   // =========================
   const fetchRequests = async () => {
     try {
@@ -50,12 +49,12 @@ const RequestHistoryPage = () => {
   // SOCKET UPDATES
   // =========================
   useEffect(() => {
-    if (!socket) return;
-
     const handleCreated = (newRequest) => {
       setRequests((prev) => {
         const exists = prev.find((r) => r._id === newRequest._id);
+
         if (exists) return prev;
+
         return [newRequest, ...prev];
       });
     };
@@ -63,9 +62,7 @@ const RequestHistoryPage = () => {
     const handleUpdated = (updatedRequest) => {
       setRequests((prev) =>
         prev.map((req) =>
-          req._id === updatedRequest._id
-            ? updatedRequest
-            : req
+          req._id === updatedRequest._id ? updatedRequest : req
         )
       );
     };
@@ -79,51 +76,44 @@ const RequestHistoryPage = () => {
     };
   }, []);
 
-  // =========================
-  // UI
-  // =========================
   return (
-    <Layout>
-      <div className="min-h-screen bg-gray-950 text-white p-6">
+    <div className="min-h-screen bg-gray-950 text-white p-6">
+      <h1 className="text-3xl font-bold mb-6">
+        Request History
+      </h1>
 
-        <h1 className="text-3xl font-bold mb-6">
-          Request History
-        </h1>
-
-        {loading && (
-          <div className="text-gray-400">
-            Loading requests...
-          </div>
-        )}
-
-        {error && (
-          <div className="text-red-400 mb-4">
-            {error}
-          </div>
-        )}
-
-        {!loading && requests.length === 0 && (
-          <div className="text-gray-400">
-            No requests found.
-          </div>
-        )}
-
-        <div className="grid md:grid-cols-2 gap-4 mt-4">
-          {requests.map((request) => (
-            <div
-              key={request._id}
-              onClick={() =>
-                navigate(`/requests/${request._id}`)
-              }
-              className="cursor-pointer"
-            >
-              <RequestCard request={request} />
-            </div>
-          ))}
+      {loading && (
+        <div className="text-gray-400">
+          Loading requests...
         </div>
+      )}
 
+      {error && (
+        <div className="text-red-400 mb-4">
+          {error}
+        </div>
+      )}
+
+      {!loading && requests.length === 0 && (
+        <div className="text-gray-400">
+          No requests found.
+        </div>
+      )}
+
+      <div className="grid md:grid-cols-2 gap-4 mt-4">
+        {requests.map((request) => (
+          <div
+            key={request._id}
+            className="cursor-pointer"
+            onClick={() =>
+              navigate(`/request-details/${request._id}`)
+            }
+          >
+            <RequestCard request={request} />
+          </div>
+        ))}
       </div>
-    </Layout>
+    </div>
   );
 };
 
