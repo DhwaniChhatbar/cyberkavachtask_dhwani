@@ -7,6 +7,16 @@ import { io } from "../server.js";
 // ==========================
 export const createRequest = async (req, res) => {
   try {
+    console.log("BODY RECEIVED:", req.body);
+
+    const { title, type, description } = req.body;
+
+    if (!title || !type || !description) {
+      return res.status(400).json({
+        error: "All fields are required",
+      });
+    }
+
     const approvalChain = [
       { role: "Tech Coordinator", status: "Pending" },
       { role: "Student Coordinator", status: "Pending" },
@@ -14,20 +24,21 @@ export const createRequest = async (req, res) => {
     ];
 
     const request = await Request.create({
-      ...req.body,
+      title,
+      type,
+      description,
       createdBy: req.user.id,
       approvalChain,
       currentStage: 0,
       status: "Under Review",
+      timeline: [
+        {
+          action: "Request Created",
+          by: req.user.id,
+          comment: "Request Submitted",
+        },
+      ],
     });
-
-    request.timeline.push({
-      action: "Request Created",
-      by: req.user.id,
-      comment: "Request Submitted",
-    });
-
-    await request.save();
 
     const notification = await Notification.create({
       recipient: req.user.id,
@@ -38,12 +49,18 @@ export const createRequest = async (req, res) => {
     io.emit("requestCreated", request);
     io.emit("notification", notification);
 
-    return res.status(201).json(request);
+    return res.status(201).json({
+      success: true,
+      request,
+    });
   } catch (err) {
-    return res.status(500).json({ error: err.message });
+    console.error("CREATE REQUEST ERROR:", err);
+
+    return res.status(500).json({
+      error: err.message,
+    });
   }
 };
-
 // ==========================
 // GET ALL REQUESTS
 // ==========================
