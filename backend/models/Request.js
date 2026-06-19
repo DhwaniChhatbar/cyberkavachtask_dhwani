@@ -1,121 +1,152 @@
-import mongoose from "mongoose";
+import React, { useState } from "react";
+import api from "../utils/api";
 
-const requestSchema = new mongoose.Schema(
-{
-type: {
-type: String,
-enum: [
-"Event Permission",
-"Resource Request",
-"Budget Approval",
-"Social Media Approval",
-"Content Approval",
-"Certificate Approval",
-"Collaboration Request"
-],
-required: true
-},
+const RequestFormPage = () => {
+  const [formData, setFormData] = useState({
+    title: "",
+    type: "",
+    description: "",
+  });
 
-title: {
-  type: String,
-  required: true,
-  trim: true
-},
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-description: {
-  type: String,
-  required: true,
-  trim: true
-},
+  const handleChange = (e) => {
+    setFormData((prev) => ({
+      ...prev,
+      [e.target.name]: e.target.value,
+    }));
+  };
 
-createdBy: {
-  type: mongoose.Schema.Types.ObjectId,
-  ref: "User",
-  required: true
-},
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
 
-status: {
-  type: String,
-  enum: ["Pending", "Under Review", "Approved", "Rejected"],
-  default: "Pending"
-},
+    try {
+      setLoading(true);
 
-approvalChain: {
-  type: [
-    {
-      role: {
-        type: String,
-        required: true
-      },
+      await api.post("/requests", formData);
 
-      status: {
-        type: String,
-        enum: ["Pending", "Approved", "Rejected"],
-        default: "Pending"
-      },
+      alert("Request submitted successfully!");
 
-      approvedBy: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-        default: null
-      },
+      setFormData({
+        title: "",
+        type: "",
+        description: "",
+      });
+    } catch (error) {
+      console.error(error);
 
-      comment: {
-        type: String,
-        default: ""
-      },
-
-      timestamp: {
-        type: Date,
-        default: null
-      }
+      setError(
+        error.response?.data?.error ||
+          error.response?.data?.message ||
+          "Failed to submit request"
+      );
+    } finally {
+      setLoading(false);
     }
-  ],
-  default: []
-},
+  };
 
-currentStage: {
-  type: Number,
-  default: 0
-},
+  return (
+    <div className="min-h-screen bg-gray-950 text-white flex justify-center items-center p-6">
+      <div className="bg-gray-900 w-full max-w-2xl rounded-2xl p-8 shadow-lg">
 
-timeline: {
-  type: [
-    {
-      action: {
-        type: String,
-        required: true
-      },
+        <h1 className="text-3xl font-bold mb-6">
+          Create Request
+        </h1>
 
-      by: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-        required: true
-      },
+        {error && (
+          <div className="bg-red-600 p-2 rounded mb-4">
+            {error}
+          </div>
+        )}
 
-      comment: {
-        type: String,
-        default: ""
-      },
+        <form onSubmit={handleSubmit} className="space-y-5">
 
-      timestamp: {
-        type: Date,
-        default: Date.now
-      }
-    }
-  ],
-  default: []
-},
+          {/* TITLE */}
+          <div>
+            <label className="block mb-2">Title</label>
 
-currentLevel: {
-  type: String,
-  default: "Club Member"
-}
+            <input
+              type="text"
+              name="title"
+              value={formData.title}
+              onChange={handleChange}
+              className="w-full bg-gray-800 p-3 rounded-lg outline-none"
+              required
+            />
+          </div>
 
-},
-{
-timestamps: true
-}
-);
+          {/* TYPE */}
+          <div>
+            <label className="block mb-2">Request Type</label>
 
-export default mongoose.model("Request", requestSchema);
+            <select
+              name="type"
+              value={formData.type}
+              onChange={handleChange}
+              className="w-full bg-gray-800 p-3 rounded-lg outline-none"
+              required
+            >
+              <option value="">Select Type</option>
+
+              <option value="Event Permission">
+                Event Permission
+              </option>
+
+              <option value="Resource Request">
+                Resource Request
+              </option>
+
+              <option value="Budget Approval">
+                Budget Approval
+              </option>
+
+              <option value="Social Media Approval">
+                Social Media Approval
+              </option>
+
+              <option value="Content Approval">
+                Content Approval
+              </option>
+
+              <option value="Certificate Approval">
+                Certificate Approval
+              </option>
+
+              <option value="Collaboration Request">
+                Collaboration Request
+              </option>
+            </select>
+          </div>
+
+          {/* DESCRIPTION */}
+          <div>
+            <label className="block mb-2">Description</label>
+
+            <textarea
+              rows="5"
+              name="description"
+              value={formData.description}
+              onChange={handleChange}
+              className="w-full bg-gray-800 p-3 rounded-lg outline-none"
+              required
+            />
+          </div>
+
+          {/* BUTTON */}
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-blue-600 hover:bg-blue-700 p-3 rounded-lg font-semibold"
+          >
+            {loading ? "Submitting..." : "Submit Request"}
+          </button>
+
+        </form>
+      </div>
+    </div>
+  );
+};
+
+export default RequestFormPage;
