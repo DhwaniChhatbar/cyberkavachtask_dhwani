@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import api from "../utils/api"; // IMPORTANT: use central axios instance
+import api from "../utils/api";
 
 const RequestFormPage = () => {
   const [formData, setFormData] = useState({
@@ -25,7 +25,11 @@ const RequestFormPage = () => {
     try {
       setLoading(true);
 
-      await api.post("/requests", formData);
+      await api.post("/requests", {
+        title: formData.title,
+        type: formData.type,
+        description: formData.description,
+      });
 
       alert("Request submitted successfully!");
 
@@ -34,12 +38,13 @@ const RequestFormPage = () => {
         type: "",
         description: "",
       });
-
     } catch (error) {
       console.error(error);
+
       setError(
         error.response?.data?.error ||
-          "Failed to submit request"
+        error.response?.data?.message ||
+        "Failed to submit request"
       );
     } finally {
       setLoading(false);
@@ -62,9 +67,9 @@ const RequestFormPage = () => {
 
         <form onSubmit={handleSubmit} className="space-y-5">
 
-          {/* TITLE */}
           <div>
             <label className="block mb-2">Title</label>
+
             <input
               type="text"
               name="title"
@@ -75,9 +80,9 @@ const RequestFormPage = () => {
             />
           </div>
 
-          {/* TYPE */}
           <div>
             <label className="block mb-2">Request Type</label>
+
             <select
               name="type"
               value={formData.type}
@@ -86,16 +91,40 @@ const RequestFormPage = () => {
               required
             >
               <option value="">Select Type</option>
-              <option value="Event">Event</option>
-              <option value="Budget">Budget</option>
-              <option value="Purchase">Purchase</option>
-              <option value="Permission">Permission</option>
+
+              <option value="Event Permission">
+                Event Permission
+              </option>
+
+              <option value="Resource Request">
+                Resource Request
+              </option>
+
+              <option value="Budget Approval">
+                Budget Approval
+              </option>
+
+              <option value="Social Media Approval">
+                Social Media Approval
+              </option>
+
+              <option value="Content Approval">
+                Content Approval
+              </option>
+
+              <option value="Certificate Approval">
+                Certificate Approval
+              </option>
+
+              <option value="Collaboration Request">
+                Collaboration Request
+              </option>
             </select>
           </div>
 
-          {/* DESCRIPTION */}
           <div>
             <label className="block mb-2">Description</label>
+
             <textarea
               rows="5"
               name="description"
@@ -106,7 +135,6 @@ const RequestFormPage = () => {
             />
           </div>
 
-          {/* BUTTON */}
           <button
             type="submit"
             disabled={loading}

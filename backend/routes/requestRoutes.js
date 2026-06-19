@@ -15,7 +15,10 @@ const router = express.Router();
 // ==========================
 // CREATE REQUEST
 // ==========================
-router.post("/", protect, createRequest);
+router.post("/", protect, (req, res, next) => {
+  console.log("POST /api/requests HIT");
+  next();
+}, createRequest);
 
 // ==========================
 // GET ALL REQUESTS
