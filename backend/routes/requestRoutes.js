@@ -12,24 +12,32 @@ import { protect } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
+/**
+ * ==========================
+ * DEBUG MIDDLEWARE (TEMP SAFE)
+ * ==========================
+ */
+const debugRequest = (req, res, next) => {
+  console.log("📩 REQUEST HIT:", req.method, req.originalUrl);
+  console.log("BODY:", req.body);
+  next();
+};
+
 // ==========================
 // CREATE REQUEST
 // ==========================
-router.post("/", protect, (req, res, next) => {
-  console.log("POST /api/requests HIT");
-  next();
-}, createRequest);
-
-// ==========================
-// GET ALL REQUESTS
-// ==========================
-router.get("/", protect, getAllRequests);
+router.post("/", protect, debugRequest, createRequest);
 
 // ==========================
 // GET MY REQUESTS
 // MUST BE ABOVE "/:id"
 // ==========================
 router.get("/my", protect, getMyRequests);
+
+// ==========================
+// GET ALL REQUESTS
+// ==========================
+router.get("/", protect, getAllRequests);
 
 // ==========================
 // GET SINGLE REQUEST

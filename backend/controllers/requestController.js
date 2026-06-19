@@ -17,18 +17,16 @@ export const createRequest = async (req, res) => {
       });
     }
 
-    const approvalChain = [
-      { role: "Tech Coordinator", status: "Pending" },
-      { role: "Student Coordinator", status: "Pending" },
-      { role: "Faculty Coordinator", status: "Pending" },
-    ];
-
     const request = await Request.create({
       title,
       type,
       description,
       createdBy: req.user.id,
-      approvalChain,
+      approvalChain: [
+        { role: "Tech Coordinator", status: "Pending" },
+        { role: "Student Coordinator", status: "Pending" },
+        { role: "Faculty Coordinator", status: "Pending" },
+      ],
       currentStage: 0,
       status: "Under Review",
       timeline: [
@@ -40,14 +38,13 @@ export const createRequest = async (req, res) => {
       ],
     });
 
-    const notification = await Notification.create({
+    await Notification.create({
       recipient: req.user.id,
       message: "Request submitted successfully",
       type: "Request",
     });
 
     io.emit("requestCreated", request);
-    io.emit("notification", notification);
 
     return res.status(201).json({
       success: true,
@@ -55,12 +52,12 @@ export const createRequest = async (req, res) => {
     });
   } catch (err) {
     console.error("CREATE REQUEST ERROR:", err);
-
     return res.status(500).json({
       error: err.message,
     });
   }
 };
+
 // ==========================
 // GET ALL REQUESTS
 // ==========================
@@ -68,16 +65,20 @@ export const getAllRequests = async (req, res) => {
   try {
     let requests;
 
-    if (
-      req.user.role === "Student Coordinator" ||
-      req.user.role === "Faculty Coordinator"
-    ) {
+    const role = req.user.role;
+
+    const canViewAll =
+      role === "Student Coordinator" ||
+      role === "Faculty Coordinator" ||
+      role === "Tech Coordinator";
+
+    if (canViewAll) {
       requests = await Request.find()
-        .populate("createdBy")
+        .populate("createdBy", "name email role")
         .sort({ createdAt: -1 });
     } else {
       requests = await Request.find({ createdBy: req.user.id })
-        .populate("createdBy")
+        .populate("createdBy", "name email role")
         .sort({ createdAt: -1 });
     }
 
@@ -93,7 +94,7 @@ export const getAllRequests = async (req, res) => {
 export const getMyRequests = async (req, res) => {
   try {
     const requests = await Request.find({ createdBy: req.user.id })
-      .populate("createdBy")
+      .populate("createdBy", "name email role")
       .sort({ createdAt: -1 });
 
     return res.json(requests);
@@ -108,7 +109,8 @@ export const getMyRequests = async (req, res) => {
 export const getRequestById = async (req, res) => {
   try {
     const request = await Request.findById(req.params.id).populate(
-      "createdBy"
+      "createdBy",
+      "name email role"
     );
 
     if (!request) {
@@ -118,12 +120,15 @@ export const getRequestById = async (req, res) => {
     const isOwner =
       request.createdBy._id.toString() === req.user.id;
 
-    const isAdmin =
+    const isCoordinator =
       req.user.role === "Student Coordinator" ||
-      req.user.role === "Faculty Coordinator";
+      req.user.role === "Faculty Coordinator" ||
+      req.user.role === "Tech Coordinator";
 
-    if (!isOwner && !isAdmin) {
-      return res.status(403).json({ message: "Access denied" });
+    if (!isOwner && !isCoordinator) {
+      return res.status(403).json({
+        message: "Access denied",
+      });
     }
 
     return res.json(request);
@@ -133,7 +138,7 @@ export const getRequestById = async (req, res) => {
 };
 
 // ==========================
-// APPROVE REQUEST
+// APPROVE REQUEST (ONLY COORDINATORS)
 // ==========================
 export const approveRequest = async (req, res) => {
   try {
@@ -145,27 +150,33 @@ export const approveRequest = async (req, res) => {
       return res.status(404).json({ message: "Request not found" });
     }
 
-    if (
-      request.status === "Approved" ||
-      request.status === "Rejected"
-    ) {
-      return res
-        .status(400)
-        .json({ message: "Request already finalized" });
+    // ❌ BLOCK MEMBERS
+    if (req.user.role === "Member" || req.user.role === "Guest") {
+      return res.status(403).json({
+        message: "Members cannot approve requests",
+      });
+    }
+
+    if (["Approved", "Rejected"].includes(request.status)) {
+      return res.status(400).json({
+        message: "Request already finalized",
+      });
     }
 
     const stage = request.currentStage;
 
-    if (!request.approvalChain[stage]) {
-      return res.status(400).json({ message: "Invalid stage" });
+    const currentRole = request.approvalChain[stage]?.role;
+
+    if (!currentRole) {
+      return res.status(400).json({
+        message: "Invalid approval stage",
+      });
     }
 
-    if (
-      request.approvalChain[stage].role !== req.user.role
-    ) {
-      return res
-        .status(403)
-        .json({ message: "Not authorized for this stage" });
+    if (currentRole !== req.user.role) {
+      return res.status(403).json({
+        message: "Not authorized for this approval stage",
+      });
     }
 
     request.approvalChain[stage].status = "Approved";
@@ -174,7 +185,7 @@ export const approveRequest = async (req, res) => {
     request.approvalChain[stage].timestamp = new Date();
 
     request.timeline.push({
-      action: req.user.role + " Approved",
+      action: `${req.user.role} Approved`,
       by: req.user.id,
       comment,
     });
@@ -182,20 +193,19 @@ export const approveRequest = async (req, res) => {
     if (stage === request.approvalChain.length - 1) {
       request.status = "Approved";
     } else {
-      request.currentStage++;
+      request.currentStage += 1;
       request.status = "Under Review";
     }
 
     await request.save();
 
-    const notification = await Notification.create({
+    await Notification.create({
       recipient: request.createdBy,
-      message: req.user.role + " approved your request",
+      message: `${req.user.role} approved your request`,
       type: "Approval",
     });
 
     io.emit("requestUpdated", request);
-    io.emit("notification", notification);
 
     return res.json(request);
   } catch (err) {
@@ -204,7 +214,7 @@ export const approveRequest = async (req, res) => {
 };
 
 // ==========================
-// REJECT REQUEST
+// REJECT REQUEST (ONLY COORDINATORS)
 // ==========================
 export const rejectRequest = async (req, res) => {
   try {
@@ -216,33 +226,36 @@ export const rejectRequest = async (req, res) => {
       return res.status(404).json({ message: "Request not found" });
     }
 
-    if (
-      request.status === "Approved" ||
-      request.status === "Rejected"
-    ) {
-      return res
-        .status(400)
-        .json({ message: "Request already finalized" });
+    // ❌ BLOCK MEMBERS
+    if (req.user.role === "Member" || req.user.role === "Guest") {
+      return res.status(403).json({
+        message: "Members cannot reject requests",
+      });
+    }
+
+    if (["Approved", "Rejected"].includes(request.status)) {
+      return res.status(400).json({
+        message: "Request already finalized",
+      });
     }
 
     request.status = "Rejected";
 
     request.timeline.push({
-      action: req.user.role + " Rejected",
+      action: `${req.user.role} Rejected`,
       by: req.user.id,
       comment,
     });
 
     await request.save();
 
-    const notification = await Notification.create({
+    await Notification.create({
       recipient: request.createdBy,
-      message: req.user.role + " rejected your request",
+      message: `${req.user.role} rejected your request`,
       type: "Rejection",
     });
 
     io.emit("requestUpdated", request);
-    io.emit("notification", notification);
 
     return res.json(request);
   } catch (err) {
