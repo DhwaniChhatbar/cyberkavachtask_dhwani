@@ -1,12 +1,14 @@
 export const canApproveRequests = (user) => {
-  if (!user) return false;
+  if (!user || !user.role) return false;
 
-  const role = user.role;
+  const role = String(user.role).trim();
 
-  return [
+  const APPROVER_ROLES = [
     "Admin",
     "Faculty Coordinator",
     "Student Coordinator",
     "Tech Coordinator",
-  ].includes(role);
+  ];
+
+  return APPROVER_ROLES.includes(role);
 };

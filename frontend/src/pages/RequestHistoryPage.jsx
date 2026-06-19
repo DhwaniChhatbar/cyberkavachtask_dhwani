@@ -12,18 +12,28 @@ const RequestHistoryPage = () => {
 
   const navigate = useNavigate();
 
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
+
   // =========================
-  // FETCH REQUESTS
+  // FETCH (ROLE BASED FIX)
   // =========================
   const fetchRequests = async () => {
     try {
       setLoading(true);
       setError(null);
 
-      const res = await api.get("/requests/my");
+      const isCoordinator = [
+        "Admin",
+        "Faculty Coordinator",
+        "Student Coordinator",
+        "Tech Coordinator",
+      ].includes(user?.role?.trim());
+
+      const url = isCoordinator ? "/requests" : "/requests/my";
+
+      const res = await api.get(url);
 
       setRequests(res.data || []);
-
     } catch (err) {
       console.error(err);
       setError("Failed to load requests");
@@ -37,7 +47,7 @@ const RequestHistoryPage = () => {
   }, []);
 
   // =========================
-  // SOCKET REALTIME UPDATES
+  // SOCKET UPDATES
   // =========================
   useEffect(() => {
     if (!socket) return;
@@ -77,31 +87,27 @@ const RequestHistoryPage = () => {
       <div className="min-h-screen bg-gray-950 text-white p-6">
 
         <h1 className="text-3xl font-bold mb-6">
-          My Requests
+          Request History
         </h1>
 
-        {/* LOADING */}
         {loading && (
           <div className="text-gray-400">
             Loading requests...
           </div>
         )}
 
-        {/* ERROR */}
         {error && (
           <div className="text-red-400 mb-4">
             {error}
           </div>
         )}
 
-        {/* EMPTY STATE */}
         {!loading && requests.length === 0 && (
           <div className="text-gray-400">
             No requests found.
           </div>
         )}
 
-        {/* REQUEST LIST */}
         <div className="grid md:grid-cols-2 gap-4 mt-4">
           {requests.map((request) => (
             <div
