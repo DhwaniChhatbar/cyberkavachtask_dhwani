@@ -9,6 +9,7 @@ import {
 } from "../controllers/requestController.js";
 
 import { protect } from "../middleware/authMiddleware.js";
+import { authorizeRoles } from "../middleware/authorizeRoles.js";
 
 const router = express.Router();
 
@@ -24,13 +25,21 @@ const debugRequest = (req, res, next) => {
 };
 
 // ==========================
+// ROLES THAT CAN APPROVE/REJECT
+// ==========================
+const approverRoles = [
+  "Tech Coordinator",
+  "Student Coordinator",
+  "Faculty Coordinator",
+];
+
+// ==========================
 // CREATE REQUEST
 // ==========================
 router.post("/", protect, debugRequest, createRequest);
 
 // ==========================
 // GET MY REQUESTS
-// MUST BE ABOVE "/:id"
 // ==========================
 router.get("/my", protect, getMyRequests);
 
@@ -45,13 +54,23 @@ router.get("/", protect, getAllRequests);
 router.get("/:id", protect, getRequestById);
 
 // ==========================
-// APPROVE REQUEST
+// APPROVE REQUEST (ROLE PROTECTED)
 // ==========================
-router.put("/approve/:id", protect, approveRequest);
+router.put(
+  "/approve/:id",
+  protect,
+  authorizeRoles(...approverRoles),
+  approveRequest
+);
 
 // ==========================
-// REJECT REQUEST
+// REJECT REQUEST (ROLE PROTECTED)
 // ==========================
-router.put("/reject/:id", protect, rejectRequest);
+router.put(
+  "/reject/:id",
+  protect,
+  authorizeRoles(...approverRoles),
+  rejectRequest
+);
 
 export default router;
