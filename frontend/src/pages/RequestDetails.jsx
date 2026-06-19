@@ -3,7 +3,6 @@ import { useParams } from "react-router-dom";
 import TimelineCard from "../components/module1/TimelineCard";
 import StatusBadge from "../components/ui/StatusBadge";
 import api from "../utils/api";
-import { canApproveRequests } from "../utils/roles";
 
 function RequestDetails() {
   const { id } = useParams();
@@ -12,12 +11,11 @@ function RequestDetails() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [comment, setComment] = useState("");
-  const [user, setUser] = useState(null);
+
+  // FIX: direct read (no async state issue)
+  const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
 
   useEffect(() => {
-    const currentUser = JSON.parse(localStorage.getItem("user"));
-    setUser(currentUser);
-
     fetchRequest();
   }, [id]);
 
@@ -57,6 +55,14 @@ function RequestDetails() {
     }
   };
 
+  // FIX: direct role check (NO helper function)
+  const canApprove = [
+    "Admin",
+    "Faculty Coordinator",
+    "Student Coordinator",
+    "Tech Coordinator",
+  ].includes(currentUser.role);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-950 text-white flex justify-center items-center">
@@ -80,8 +86,6 @@ function RequestDetails() {
       </div>
     );
   }
-
-  const canApprove = canApproveRequests(user);
 
   return (
     <div className="min-h-screen bg-gray-950 text-white p-6">
@@ -122,9 +126,10 @@ function RequestDetails() {
         </div>
       </div>
 
-      {/* APPROVAL PANEL (FIXED) */}
+      {/* APPROVAL PANEL */}
       {canApprove && request.status === "Under Review" && (
         <div className="mt-6 bg-gray-900 p-4 rounded-xl">
+
           <textarea
             className="w-full p-3 bg-gray-800 rounded-lg"
             placeholder="Add comment (optional)"
@@ -133,6 +138,7 @@ function RequestDetails() {
           />
 
           <div className="flex gap-3 mt-3">
+
             <button
               onClick={handleApprove}
               className="bg-green-600 px-4 py-2 rounded-lg"
@@ -146,6 +152,7 @@ function RequestDetails() {
             >
               Reject
             </button>
+
           </div>
         </div>
       )}
