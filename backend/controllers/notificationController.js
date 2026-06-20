@@ -6,13 +6,24 @@ import NotificationPreference from "../models/NotificationPreference.js";
 // ==========================
 export const getNotifications = async (req, res) => {
   try {
+    console.log("Logged user:", req.user);
+
     const notifications = await Notification.find({
       recipient: req.user.id,
-    }).sort({ createdAt: -1 });
+    })
+      .sort({ createdAt: -1 })
+      .lean();
 
-    res.json(notifications);
+    console.log("Notifications found:", notifications.length);
+
+    return res.status(200).json(notifications);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("GET NOTIFICATIONS ERROR:", err);
+
+    return res.status(500).json({
+      success: false,
+      error: err.message,
+    });
   }
 };
 
@@ -25,16 +36,26 @@ export const markAsRead = async (req, res) => {
 
     if (!notification) {
       return res.status(404).json({
+        success: false,
         message: "Notification not found",
       });
     }
 
     notification.isRead = true;
+
     await notification.save();
 
-    res.json(notification);
+    return res.status(200).json({
+      success: true,
+      notification,
+    });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("MARK AS READ ERROR:", err);
+
+    return res.status(500).json({
+      success: false,
+      error: err.message,
+    });
   }
 };
 
@@ -48,9 +69,16 @@ export const getUnreadCount = async (req, res) => {
       isRead: false,
     });
 
-    res.json({ unreadCount: count });
+    return res.status(200).json({
+      unreadCount: count,
+    });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("UNREAD COUNT ERROR:", err);
+
+    return res.status(500).json({
+      success: false,
+      error: err.message,
+    });
   }
 };
 
@@ -69,9 +97,14 @@ export const getPreferences = async (req, res) => {
       });
     }
 
-    res.json(preferences);
+    return res.status(200).json(preferences);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("GET PREFERENCES ERROR:", err);
+
+    return res.status(500).json({
+      success: false,
+      error: err.message,
+    });
   }
 };
 
@@ -102,8 +135,13 @@ export const updatePreferences = async (req, res) => {
 
     await preferences.save();
 
-    res.json(preferences);
+    return res.status(200).json(preferences);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("UPDATE PREFERENCES ERROR:", err);
+
+    return res.status(500).json({
+      success: false,
+      error: err.message,
+    });
   }
 };

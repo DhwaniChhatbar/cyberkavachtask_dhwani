@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../utils/api";
 import socket from "../socket";
 import NotificationPanel from "../components/module1/NotificationPanel";
 
@@ -14,32 +14,26 @@ const Notifications = () => {
 
   const fetchNotifications = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const res = await api.get("/notifications");
 
-      const res = await axios.get(
-        "http://localhost:5000/api/notifications",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      // Handle both formats safely
+      const data = Array.isArray(res.data)
+        ? res.data
+        : res.data.notifications || [];
 
-      setNotifications(res.data);
+      setNotifications(data);
     } catch (error) {
       console.error("Error fetching notifications:", error);
+      setNotifications([]);
     } finally {
       setLoading(false);
     }
   };
 
-  // Socket.io real-time updates
+  // Real-time updates
   useEffect(() => {
     socket.on("notification", (notification) => {
-      setNotifications((prev) => [
-        notification,
-        ...prev,
-      ]);
+      setNotifications((prev) => [notification, ...prev]);
     });
 
     socket.on("requestUpdated", (request) => {
