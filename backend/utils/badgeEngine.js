@@ -10,6 +10,8 @@ export const evaluateBadgesForUser = async (userId, eventId = null) => {
   try {
     if (!userId) return;
 
+    console.log("🏅 Badge engine started");
+
     // =========================
     // TOTAL POINTS CALCULATION
     // =========================
@@ -25,6 +27,8 @@ export const evaluateBadgesForUser = async (userId, eventId = null) => {
 
     const totalPoints = result[0]?.totalPoints || 0;
 
+    console.log("⭐ Total points:", totalPoints);
+
     // =========================
     // GET ACTIVE BADGES
     // =========================
@@ -32,10 +36,19 @@ export const evaluateBadgesForUser = async (userId, eventId = null) => {
       minPoints: 1,
     });
 
+    console.log("🎖 Badges found:", badges.length);
+
     // =========================
     // UNLOCK BADGES
     // =========================
     for (const badge of badges) {
+      console.log(
+        "Checking:",
+        badge.name,
+        "Required:",
+        badge.minPoints
+      );
+
       if (totalPoints < badge.minPoints) continue;
 
       const existingBadge = await UserBadge.findOne({
@@ -43,7 +56,10 @@ export const evaluateBadgesForUser = async (userId, eventId = null) => {
         badge: badge._id,
       });
 
-      if (existingBadge) continue;
+      if (existingBadge) {
+        console.log("Already has badge:", badge.name);
+        continue;
+      }
 
       await UserBadge.create({
         user: userId,
@@ -53,22 +69,24 @@ export const evaluateBadgesForUser = async (userId, eventId = null) => {
         remarks: `${badge.name} unlocked`,
       });
 
-      console.log(`🏅 Badge unlocked: ${badge.name} for user ${userId}`);
+      console.log(
+        `🏅 Badge unlocked: ${badge.name} for user ${userId}`
+      );
     }
   } catch (error) {
-    console.error("❌ Badge Engine Error:", error.message);
+    console.error("❌ Badge Engine Error:");
+    console.error(error);
   }
 };
 
 /**
- * =========================
- * NEW: GET CURRENT BADGE
- * (THIS IS WHAT YOU WERE MISSING)
- * =========================
+ * GET CURRENT BADGE
  */
 export const getCurrentBadgeForUser = async (userId) => {
   try {
-    const userBadge = await UserBadge.findOne({ user: userId })
+    const userBadge = await UserBadge.findOne({
+      user: userId,
+    })
       .populate("badge")
       .sort({ createdAt: -1 });
 
