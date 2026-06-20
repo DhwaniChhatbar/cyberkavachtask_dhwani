@@ -13,25 +13,51 @@ const Profile = () => {
 
         if (!currentUser?._id) return;
 
+        // =========================
         // USER DETAILS
+        // =========================
         const userRes = await api.get(`/users/${currentUser._id}`);
 
-        // IMPORTANT FIX: handle BOTH response formats safely
         const userData = userRes.data?.user || userRes.data;
 
+        // =========================
         // LEADERBOARD
+        // =========================
         const leaderboardRes = await api.get("/leaderboard");
 
-        const leaderboardUser = leaderboardRes.data?.find(
+        const leaderboardData = Array.isArray(leaderboardRes.data)
+          ? leaderboardRes.data
+          : [];
+
+        const leaderboardUser = leaderboardData.find(
           (item) =>
             String(item.user?._id || item.user?.id) ===
             String(currentUser._id)
         );
 
+        // =========================
+        // SAFE BADGE LOGIC FIX
+        // =========================
+        const roleBadgeMap = {
+          "Faculty Coordinator": "Faculty",
+          "Student Coordinator": "Coordinator",
+          "Tech Coordinator": "Tech",
+          "Content Coordinator": "Content",
+          "Social Media Coordinator": "Social",
+          Member: "Member",
+          Guest: "Guest",
+        };
+
+        const finalBadge =
+          leaderboardUser?.badge?.name ||
+          roleBadgeMap[userData?.role] ||
+          userData?.role ||
+          "Member";
+
         setProfile({
           ...userData,
           totalPoints: leaderboardUser?.totalPoints || 0,
-          badge: leaderboardUser?.badge?.name || "Member",
+          badge: finalBadge,
         });
       } catch (error) {
         console.error("Profile fetch error:", error);
@@ -41,6 +67,9 @@ const Profile = () => {
     fetchProfile();
   }, []);
 
+  // =========================
+  // LOADING STATE FIX
+  // =========================
   if (!profile) {
     return (
       <div className="bg-[#111827] rounded-2xl p-8 text-center text-gray-400">
@@ -78,6 +107,7 @@ const Profile = () => {
           {/* STATS */}
           <div className="grid md:grid-cols-2 gap-6">
 
+            {/* POINTS */}
             <div className="bg-[#1F2937] rounded-xl p-5 border-l-4 border-violet-500">
               <div className="flex items-center gap-3">
                 <FaStar className="text-violet-400 text-xl" />
@@ -91,6 +121,7 @@ const Profile = () => {
               </div>
             </div>
 
+            {/* BADGE */}
             <div className="bg-[#1F2937] rounded-xl p-5 border-l-4 border-emerald-500">
               <div className="flex items-center gap-3">
                 <FaAward className="text-emerald-400 text-xl" />
