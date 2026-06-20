@@ -12,8 +12,6 @@ const Profile = () => {
       try {
         const currentUser = JSON.parse(localStorage.getItem("user"));
 
-        console.log("Current user:", currentUser);
-
         if (!currentUser?._id) {
           setLoading(false);
           return;
@@ -23,57 +21,44 @@ const Profile = () => {
         const userRes = await api.get(`/users/${currentUser._id}`);
         const userData = userRes.data?.user || userRes.data;
 
-        // DEFAULT VALUES
+        // Member gets points and badges
+        const isMember = userData?.role === "Member";
+
         let totalPoints = 0;
         let badgeName = null;
 
-        // LEADERBOARD (don't fail whole profile if leaderboard fails)
-        try {
-          const leaderboardRes = await api.get("/leaderboard");
+        if (isMember) {
+          try {
+            const leaderboardRes = await api.get("/leaderboard");
 
-          const leaderboardData = Array.isArray(leaderboardRes.data)
-            ? leaderboardRes.data
-            : [];
+            const leaderboardData = Array.isArray(leaderboardRes.data)
+              ? leaderboardRes.data
+              : [];
 
-          const leaderboardUser = leaderboardData.find(
-            (item) =>
-              String(item.user?._id || item.user?.id) ===
-              String(currentUser._id)
-          );
+            const leaderboardUser = leaderboardData.find(
+              (item) =>
+                String(item.user?._id || item.user?.id) ===
+                String(currentUser._id)
+            );
 
-          totalPoints = leaderboardUser?.totalPoints || 0;
-          badgeName = leaderboardUser?.badge?.name || null;
-        } catch (err) {
-          console.error("Leaderboard fetch failed:", err);
+            totalPoints = leaderboardUser?.totalPoints || 0;
+            badgeName = leaderboardUser?.badge?.name || "Bronze";
+          } catch (err) {
+            console.error("Leaderboard fetch failed:", err);
+          }
         }
-
-        const roleBadgeMap = {
-          "Faculty Coordinator": "Faculty",
-          "Student Coordinator": "Coordinator",
-          "Tech Coordinator": "Tech",
-          "Content Coordinator": "Content",
-          "Social Media Coordinator": "Social",
-          Member: "Member",
-          Guest: "Guest",
-        };
 
         setProfile({
           ...userData,
           totalPoints,
-          badge:
-            badgeName ||
-            roleBadgeMap[userData?.role] ||
-            userData?.role ||
-            "Member",
+          badge: badgeName,
+          isMember,
         });
       } catch (error) {
         console.error(
           "Profile fetch error:",
           error.response?.data || error
         );
-
-        // IMPORTANT:
-        // Do NOT clear profile on error
       } finally {
         setLoading(false);
       }
@@ -105,6 +90,7 @@ const Profile = () => {
       <div className="bg-[#111827] rounded-2xl shadow-lg p-8 max-w-2xl border border-gray-800">
         <div className="space-y-6">
 
+          {/* HEADER */}
           <div className="flex items-center gap-4">
             <div className="bg-violet-600 p-4 rounded-full text-2xl">
               <FaUser />
@@ -121,46 +107,51 @@ const Profile = () => {
             </div>
           </div>
 
-          <hr className="border-gray-700" />
+          {/* Only Members have points and badges */}
+          {profile.isMember && (
+            <>
+              <hr className="border-gray-700" />
 
-          <div className="grid md:grid-cols-2 gap-6">
+              <div className="grid md:grid-cols-2 gap-6">
 
-            <div className="bg-[#1F2937] rounded-xl p-5 border-l-4 border-violet-500">
-              <div className="flex items-center gap-3">
-                <FaStar className="text-violet-400 text-xl" />
+                <div className="bg-[#1F2937] rounded-xl p-5 border-l-4 border-violet-500">
+                  <div className="flex items-center gap-3">
+                    <FaStar className="text-violet-400 text-xl" />
 
-                <div>
-                  <p className="text-gray-400">Total Points</p>
+                    <div>
+                      <p className="text-gray-400">Total Points</p>
 
-                  <h3 className="text-2xl font-bold text-violet-400">
-                    {profile.totalPoints}
-                  </h3>
+                      <h3 className="text-2xl font-bold text-violet-400">
+                        {profile.totalPoints}
+                      </h3>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
 
-            <div className="bg-[#1F2937] rounded-xl p-5 border-l-4 border-emerald-500">
-              <div className="flex items-center gap-3">
-                <FaAward className="text-emerald-400 text-xl" />
+                <div className="bg-[#1F2937] rounded-xl p-5 border-l-4 border-emerald-500">
+                  <div className="flex items-center gap-3">
+                    <FaAward className="text-emerald-400 text-xl" />
 
-                <div>
-                  <p className="text-gray-400">Current Badge</p>
+                    <div>
+                      <p className="text-gray-400">Current Badge</p>
 
-                  <h3 className="text-2xl font-bold text-emerald-400">
-                    {profile.badge}
-                  </h3>
+                      <h3 className="text-2xl font-bold text-emerald-400">
+                        {profile.badge}
+                      </h3>
+                    </div>
+                  </div>
                 </div>
+
               </div>
-            </div>
 
-          </div>
-
-          <div className="mt-8">
-            <BadgeCard
-              badge={profile.badge}
-              points={profile.totalPoints}
-            />
-          </div>
+              <div className="mt-8">
+                <BadgeCard
+                  badge={profile.badge}
+                  points={profile.totalPoints}
+                />
+              </div>
+            </>
+          )}
 
         </div>
       </div>
