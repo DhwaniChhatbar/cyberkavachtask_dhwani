@@ -1,5 +1,6 @@
 import Points from "../models/Points.js";
 import User from "../models/User.js";
+import { evaluateBadgesForUser } from "../utils/badgeEngine.js";
 
 // =======================
 // ASSIGN POINTS
@@ -34,13 +35,15 @@ export const assignPoints = async (req, res) => {
       assignedBy: req.user?.id,
     });
 
+    // ⭐ Evaluate badges after assigning points
+    await evaluateBadgesForUser(user._id);
+
     return res.status(201).json({
       success: true,
       message: "Points added successfully",
       data: newPoint,
     });
   } catch (err) {
-    // 🔥 VERY IMPORTANT
     console.error("=================================");
     console.error("ASSIGN POINTS ERROR");
     console.error(err);
