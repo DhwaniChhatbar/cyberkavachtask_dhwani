@@ -16,25 +16,40 @@ export const getLeaderboard = async (req, res) => {
       { $sort: { totalPoints: -1 } },
     ]);
 
-    // IMPORTANT: always return empty array (never crash frontend)
+    // Return empty array if no points exist
     if (!leaderboard || leaderboard.length === 0) {
       return res.status(200).json([]);
     }
 
     const userIds = leaderboard.map((item) => item._id);
 
-    // 2. Fetch users safely
+    // 2. Fetch users
     const users = await User.find({
       _id: { $in: userIds },
     }).select("name email role");
 
-    // 3. Fetch badges safely
+    // 3. Fetch badges
     const badges = await UserBadge.find({
       user: { $in: userIds },
     }).populate("badge");
 
+    // ===== DEBUG =====
+    console.log("========== BADGES ==========");
+    console.log(JSON.stringify(badges, null, 2));
+
+    badges.forEach((item) => {
+      console.log(
+        "USER:",
+        item.user.toString(),
+        "BADGE:",
+        item.badge?.name
+      );
+    });
+    // =================
+
     // 4. Map users
     const userMap = {};
+
     users.forEach((user) => {
       userMap[user._id.toString()] = user;
     });
@@ -47,7 +62,8 @@ export const getLeaderboard = async (req, res) => {
 
       if (
         !badgeMap[userId] ||
-        new Date(item.awardedAt) > new Date(badgeMap[userId].awardedAt)
+        new Date(item.awardedAt) >
+          new Date(badgeMap[userId].awardedAt)
       ) {
         badgeMap[userId] = item;
       }
