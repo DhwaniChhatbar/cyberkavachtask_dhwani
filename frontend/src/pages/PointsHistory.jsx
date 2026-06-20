@@ -12,9 +12,16 @@ const PointsHistory = () => {
   const fetchHistory = async () => {
     try {
       const res = await api.get("/points/history");
-      setHistory(res.data);
+
+      // ✅ SAFE FIX (IMPORTANT)
+      const data = Array.isArray(res.data)
+        ? res.data
+        : res.data?.data || res.data?.history || [];
+
+      setHistory(data);
     } catch (err) {
       console.error("History fetch error:", err);
+      setHistory([]); // safety fallback
     } finally {
       setLoading(false);
     }
@@ -38,7 +45,7 @@ const PointsHistory = () => {
         <p>No points history found.</p>
       ) : (
         <div className="space-y-4">
-          {history.map((item) => (
+          {(Array.isArray(history) ? history : []).map((item) => (
             <div
               key={item._id}
               className="bg-[#111827] p-4 rounded-lg border border-gray-700"
