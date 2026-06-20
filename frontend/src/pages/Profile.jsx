@@ -11,21 +11,25 @@ const Profile = () => {
       try {
         const currentUser = JSON.parse(localStorage.getItem("user"));
 
-        if (!currentUser) return;
+        if (!currentUser?._id) return;
 
-        // User details
+        // USER DETAILS
         const userRes = await api.get(`/users/${currentUser._id}`);
 
-        // Leaderboard
+        // IMPORTANT FIX: handle BOTH response formats safely
+        const userData = userRes.data?.user || userRes.data;
+
+        // LEADERBOARD
         const leaderboardRes = await api.get("/leaderboard");
 
-        const leaderboardUser = leaderboardRes.data.find(
+        const leaderboardUser = leaderboardRes.data?.find(
           (item) =>
-            String(item.user?.id) === String(currentUser._id)
+            String(item.user?._id || item.user?.id) ===
+            String(currentUser._id)
         );
 
         setProfile({
-          ...userRes.data.user,
+          ...userData,
           totalPoints: leaderboardUser?.totalPoints || 0,
           badge: leaderboardUser?.badge?.name || "Member",
         });
@@ -47,13 +51,12 @@ const Profile = () => {
 
   return (
     <div>
-      <h1 className="text-3xl font-bold mb-8">
-        Profile
-      </h1>
+      <h1 className="text-3xl font-bold mb-8">Profile</h1>
 
       <div className="bg-[#111827] rounded-2xl shadow-lg p-8 max-w-2xl border border-gray-800">
         <div className="space-y-6">
 
+          {/* HEADER */}
           <div className="flex items-center gap-4">
             <div className="bg-violet-600 p-4 rounded-full text-2xl">
               <FaUser />
@@ -61,29 +64,26 @@ const Profile = () => {
 
             <div>
               <h2 className="text-2xl font-bold">
-                {profile.name}
+                {profile.name || "Unknown"}
               </h2>
 
               <p className="text-gray-400">
-                {profile.role}
+                {profile.role || "No role"}
               </p>
             </div>
           </div>
 
           <hr className="border-gray-700" />
 
+          {/* STATS */}
           <div className="grid md:grid-cols-2 gap-6">
 
-            {/* TOTAL POINTS */}
             <div className="bg-[#1F2937] rounded-xl p-5 border-l-4 border-violet-500">
               <div className="flex items-center gap-3">
                 <FaStar className="text-violet-400 text-xl" />
 
                 <div>
-                  <p className="text-gray-400">
-                    Total Points
-                  </p>
-
+                  <p className="text-gray-400">Total Points</p>
                   <h3 className="text-2xl font-bold text-violet-400">
                     {profile.totalPoints}
                   </h3>
@@ -91,16 +91,12 @@ const Profile = () => {
               </div>
             </div>
 
-            {/* BADGE */}
             <div className="bg-[#1F2937] rounded-xl p-5 border-l-4 border-emerald-500">
               <div className="flex items-center gap-3">
                 <FaAward className="text-emerald-400 text-xl" />
 
                 <div>
-                  <p className="text-gray-400">
-                    Current Badge
-                  </p>
-
+                  <p className="text-gray-400">Current Badge</p>
                   <h3 className="text-2xl font-bold text-emerald-400">
                     {profile.badge}
                   </h3>
@@ -110,6 +106,7 @@ const Profile = () => {
 
           </div>
 
+          {/* BADGE CARD */}
           <div className="mt-8">
             <BadgeCard
               badge={profile.badge}
