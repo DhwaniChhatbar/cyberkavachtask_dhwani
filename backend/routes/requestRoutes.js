@@ -26,25 +26,44 @@ const debugRequest = (req, res, next) => {
 
 /**
  * ==========================
- * ROLES THAT CAN APPROVE/REJECT
+ * APPROVER ROLES
  * ==========================
+ *
+ * Faculty Coordinator -> Final Approver
+ * Student Coordinator -> Level 2 Approver
+ * Tech Coordinator -> Technical approvals
+ * Content Coordinator -> Content approvals
+ * Social Media Coordinator -> Social approvals
+ * Admin -> Full access
  */
 const approverRoles = [
   "Admin",
-  "Tech Coordinator",
-  "Student Coordinator",
   "Faculty Coordinator",
+  "Student Coordinator",
+  "Tech Coordinator",
+  "Content Coordinator",
+  "Social Media Coordinator",
 ];
 
 /**
  * ==========================
  * CREATE REQUEST
+ * Anyone except Guest can create requests
  * ==========================
  */
 router.post(
   "/",
   protect,
   debugRequest,
+  authorizeRoles(
+    "Admin",
+    "Faculty Coordinator",
+    "Student Coordinator",
+    "Tech Coordinator",
+    "Content Coordinator",
+    "Social Media Coordinator",
+    "Member"
+  ),
   createRequest
 );
 
@@ -62,11 +81,13 @@ router.get(
 /**
  * ==========================
  * GET ALL REQUESTS
+ * Approvers only
  * ==========================
  */
 router.get(
   "/",
   protect,
+  authorizeRoles(...approverRoles),
   getAllRequests
 );
 

@@ -56,10 +56,14 @@ const PrivateRoute = ({ children }) => {
   return children;
 };
 
-const AdminRoute = ({ children }) => {
+const RoleRoute = ({ children, allowedRoles }) => {
   const user = getUser();
 
-  if (!user || user.role !== "Admin") {
+  if (!user) {
+    return <Navigate to="/login" />;
+  }
+
+  if (!allowedRoles.includes(user.role)) {
     return <Navigate to="/dashboard" />;
   }
 
@@ -81,7 +85,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
 
-        {/* MODULE 5 */}
+        {/* DASHBOARD */}
         <Route
           path="/dashboard"
           element={
@@ -93,25 +97,36 @@ function App() {
           }
         />
 
+        {/* MODULE 5 */}
+
         <Route
           path="/assign-points"
           element={
-            <AdminRoute>
+            <RoleRoute
+              allowedRoles={[
+                "Faculty Coordinator",
+              ]}
+            >
               <Layout>
                 <AssignPoints />
               </Layout>
-            </AdminRoute>
+            </RoleRoute>
           }
         />
 
         <Route
           path="/points-history"
           element={
-            <PrivateRoute>
+            <RoleRoute
+              allowedRoles={[
+                "Faculty Coordinator",
+                "Student Coordinator",
+              ]}
+            >
               <Layout>
                 <PointsHistory />
               </Layout>
-            </PrivateRoute>
+            </RoleRoute>
           }
         />
 
@@ -149,6 +164,7 @@ function App() {
         />
 
         {/* MODULE 1 */}
+
         <Route
           path="/request-form"
           element={
@@ -163,11 +179,19 @@ function App() {
         <Route
           path="/approvals"
           element={
-            <PrivateRoute>
+            <RoleRoute
+              allowedRoles={[
+                "Faculty Coordinator",
+                "Student Coordinator",
+                "Tech Coordinator",
+                "Content Coordinator",
+                "Social Media Coordinator",
+              ]}
+            >
               <Layout>
                 <ApprovalDashboard />
               </Layout>
-            </PrivateRoute>
+            </RoleRoute>
           }
         />
 
@@ -205,14 +229,21 @@ function App() {
         />
 
         {/* MODULE 2 */}
+
         <Route
           path="/certificates"
           element={
-            <PrivateRoute>
+            <RoleRoute
+              allowedRoles={[
+                "Faculty Coordinator",
+                "Student Coordinator",
+                "Member",
+              ]}
+            >
               <Layout>
                 <CertificateDashboard />
               </Layout>
-            </PrivateRoute>
+            </RoleRoute>
           }
         />
 
@@ -230,15 +261,21 @@ function App() {
         <Route
           path="/generate-certificate"
           element={
-            <PrivateRoute>
+            <RoleRoute
+              allowedRoles={[
+                "Faculty Coordinator",
+                "Student Coordinator",
+              ]}
+            >
               <Layout>
                 <GenerateCertificate />
               </Layout>
-            </PrivateRoute>
+            </RoleRoute>
           }
         />
 
         {/* MODULE 3 */}
+
         <Route
           path="/event-dashboard"
           element={
@@ -286,45 +323,64 @@ function App() {
         <Route
           path="/create-event"
           element={
-            <PrivateRoute>
+            <RoleRoute
+              allowedRoles={[
+                "Faculty Coordinator",
+                "Student Coordinator",
+                "Tech Coordinator",
+              ]}
+            >
               <Layout>
                 <EventCreation />
               </Layout>
-            </PrivateRoute>
+            </RoleRoute>
           }
         />
 
         {/* MODULE 6 */}
+
         <Route
           path="/analytics"
           element={
-            <AdminRoute>
+            <RoleRoute
+              allowedRoles={[
+                "Faculty Coordinator",
+              ]}
+            >
               <Layout>
                 <Analytics />
               </Layout>
-            </AdminRoute>
+            </RoleRoute>
           }
         />
 
         <Route
           path="/settings"
           element={
-            <AdminRoute>
+            <RoleRoute
+              allowedRoles={[
+                "Faculty Coordinator",
+              ]}
+            >
               <Layout>
                 <Settings />
               </Layout>
-            </AdminRoute>
+            </RoleRoute>
           }
         />
 
         <Route
           path="/admin"
           element={
-            <AdminRoute>
+            <RoleRoute
+              allowedRoles={[
+                "Faculty Coordinator",
+              ]}
+            >
               <Layout>
                 <AdminPanel />
               </Layout>
-            </AdminRoute>
+            </RoleRoute>
           }
         />
 

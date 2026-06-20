@@ -1,75 +1,113 @@
 import express from "express";
 
 import {
-createEvent,
-getEvents,
-getEventById,
-updateEvent,
-deleteEvent,
-sendForApproval,
-publishEvent,
+  createEvent,
+  getEvents,
+  getEventById,
+  updateEvent,
+  deleteEvent,
+  sendForApproval,
+  publishEvent,
 } from "../controllers/eventController.js";
 
 import { protect } from "../middleware/authMiddleware.js";
+import { authorizeRoles } from "../middleware/authorizeRoles.js";
 import upload from "../utils/upload.js";
 
 const router = express.Router();
 
-// ==========================
-// GET ALL EVENTS
-// ==========================
+/**
+ * ==========================
+ * ROLE DEFINITIONS
+ * ==========================
+ */
+const canManageEvents = [
+  "Admin",
+  "Faculty Coordinator",
+  "Student Coordinator",
+  "Tech Coordinator",
+];
+
+const canPublishEvents = [
+  "Admin",
+  "Faculty Coordinator",
+  "Student Coordinator",
+];
+
+/**
+ * ==========================
+ * GET ALL EVENTS (PUBLIC OK)
+ * ==========================
+ */
 router.get("/", getEvents);
 
-// ==========================
-// GET SINGLE EVENT
-// ==========================
+/**
+ * ==========================
+ * GET SINGLE EVENT (PUBLIC OK)
+ * ==========================
+ */
 router.get("/:id", getEventById);
 
-// ==========================
-// CREATE EVENT
-// ==========================
+/**
+ * ==========================
+ * CREATE EVENT
+ * ==========================
+ */
 router.post(
-"/",
-protect,
-upload.single("poster"),
-createEvent
+  "/",
+  protect,
+  authorizeRoles(...canManageEvents),
+  upload.single("poster"),
+  createEvent
 );
 
-// ==========================
-// UPDATE EVENT
-// ==========================
+/**
+ * ==========================
+ * UPDATE EVENT
+ * ==========================
+ */
 router.put(
-"/:id",
-protect,
-upload.single("poster"),
-updateEvent
+  "/:id",
+  protect,
+  authorizeRoles(...canManageEvents),
+  upload.single("poster"),
+  updateEvent
 );
 
-// ==========================
-// DELETE EVENT
-// ==========================
+/**
+ * ==========================
+ * DELETE EVENT
+ * ==========================
+ */
 router.delete(
-"/:id",
-protect,
-deleteEvent
+  "/:id",
+  protect,
+  authorizeRoles("Admin", "Faculty Coordinator"),
+  deleteEvent
 );
 
-// ==========================
-// SEND EVENT FOR APPROVAL
-// ==========================
+/**
+ * ==========================
+ * SEND FOR APPROVAL
+ * ==========================
+ */
 router.put(
-"/approval/:id",
-protect,
-sendForApproval
+  "/approval/:id",
+  protect,
+  authorizeRoles(...canManageEvents),
+  sendForApproval
 );
 
-// ==========================
-// PUBLISH EVENT
-// ==========================
+/**
+ * ==========================
+ * PUBLISH EVENT
+ * ==========================
+ */
 router.put(
-"/publish/:id",
-protect,
-publishEvent
+  "/publish/:id",
+  protect,
+  authorizeRoles(...canPublishEvents),
+  publishEvent
 );
 
 export default router;

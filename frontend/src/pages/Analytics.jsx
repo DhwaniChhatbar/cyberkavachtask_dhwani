@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../utils/api";
 import StatsCard from "../components/module6/StatsCard";
 import BarChart from "../components/module6/BarChart";
 import LineChart from "../components/module6/LineChart";
@@ -22,26 +22,30 @@ const Analytics = () => {
 
   const [loading, setLoading] = useState(true);
 
+  const user = JSON.parse(localStorage.getItem("user"));
+  const role = user?.role;
+
   useEffect(() => {
+    // 🔐 FRONTEND ROLE GUARD
+    const allowedRoles = [
+      "Admin",
+      "Faculty Coordinator",
+    ];
+
+    if (!user || !allowedRoles.includes(role)) {
+      window.location.href = "/dashboard";
+      return;
+    }
+
     fetchAnalytics();
   }, []);
 
   const fetchAnalytics = async () => {
     try {
-      const token = localStorage.getItem("token");
-
-      const { data } = await axios.get(
-        "http://localhost:5000/api/analytics",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
+      const { data } = await api.get("/analytics");
       setStats(data);
     } catch (error) {
-      console.error(error);
+      console.error("Analytics fetch error:", error);
     } finally {
       setLoading(false);
     }
@@ -51,7 +55,7 @@ const Analytics = () => {
     const token = localStorage.getItem("token");
 
     window.open(
-      `http://localhost:5000/api/analytics/export/pdf?token=${token}`,
+      `${import.meta.env.VITE_API_URL || "http://localhost:5000/api"}/analytics/export/pdf?token=${token}`,
       "_blank"
     );
   };
@@ -60,7 +64,7 @@ const Analytics = () => {
     const token = localStorage.getItem("token");
 
     window.open(
-      `http://localhost:5000/api/analytics/export/csv?token=${token}`,
+      `${import.meta.env.VITE_API_URL || "http://localhost:5000/api"}/analytics/export/csv?token=${token}`,
       "_blank"
     );
   };
@@ -77,10 +81,16 @@ const Analytics = () => {
 
   return (
     <div className="min-h-screen bg-gray-950 p-6">
+
       <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-8">
-        <h1 className="text-4xl text-white font-bold">
-          Analytics Dashboard
-        </h1>
+        <div>
+          <h1 className="text-4xl text-white font-bold">
+            Analytics Dashboard
+          </h1>
+          <p className="text-gray-400 mt-1">
+            Role: {role}
+          </p>
+        </div>
 
         <div className="flex gap-4 mt-4 md:mt-0">
           <button
@@ -132,6 +142,7 @@ const Analytics = () => {
         <BarChart stats={stats} />
         <LineChart stats={stats} />
       </div>
+
     </div>
   );
 };

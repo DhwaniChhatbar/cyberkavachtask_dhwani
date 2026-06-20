@@ -1,8 +1,15 @@
 import React, { useEffect, useState } from "react";
 import api from "../utils/api";
+import { useNavigate } from "react-router-dom";
 
 const AssignPoints = () => {
+  const navigate = useNavigate();
+
+  const user = JSON.parse(localStorage.getItem("user"));
+  const role = user?.role;
+
   const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   const [form, setForm] = useState({
     name: "",
@@ -12,10 +19,23 @@ const AssignPoints = () => {
     remarks: "",
   });
 
-  const [loading, setLoading] = useState(false);
+  // =========================
+  // ROLE GUARD (IMPORTANT)
+  // =========================
+  useEffect(() => {
+    const allowedRoles = [
+      "Admin",
+      "Faculty Coordinator",
+      "Student Coordinator",
+    ];
+
+    if (!role || !allowedRoles.includes(role)) {
+      navigate("/dashboard");
+    }
+  }, []);
 
   // =========================
-  // FETCH USERS FOR DROPDOWN
+  // FETCH USERS
   // =========================
   useEffect(() => {
     const fetchUsers = async () => {
@@ -30,9 +50,6 @@ const AssignPoints = () => {
     fetchUsers();
   }, []);
 
-  // =========================
-  // HANDLE INPUT CHANGE
-  // =========================
   const handleChange = (e) => {
     setForm((prev) => ({
       ...prev,
@@ -40,28 +57,17 @@ const AssignPoints = () => {
     }));
   };
 
-  // =========================
-  // SUBMIT POINTS
-  // =========================
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     const username =
       form.name === "new" ? form.newName.trim() : form.name;
 
-    if (!username) {
-      alert("Please select or enter a user name");
+    if (!username || !form.points) {
+      alert("Please fill required fields");
       return;
     }
 
-    if (!form.points) {
-      alert("Please enter points");
-      return;
-    }
-
-    // =========================
-    // CATEGORY FIX (IMPORTANT)
-    // =========================
     const categoryMap = {
       "Event Participation": "Participation",
       Workshop: "Participation",
@@ -94,18 +100,12 @@ const AssignPoints = () => {
       });
     } catch (error) {
       console.error("Assign points error:", error);
-      alert(
-        error?.response?.data?.message ||
-          "Failed to assign points"
-      );
+      alert(error?.response?.data?.message || "Failed to assign points");
     } finally {
       setLoading(false);
     }
   };
 
-  // =========================
-  // UI
-  // =========================
   return (
     <div>
       <h1 className="text-3xl font-bold mb-6">
@@ -116,7 +116,6 @@ const AssignPoints = () => {
         onSubmit={handleSubmit}
         className="bg-[#111827] p-6 rounded-xl space-y-4 max-w-xl border-l-4 border-emerald-500"
       >
-        {/* USER SELECT */}
         <select
           name="name"
           value={form.name}
@@ -134,7 +133,6 @@ const AssignPoints = () => {
           <option value="new">+ Add New User</option>
         </select>
 
-        {/* NEW USER INPUT */}
         {form.name === "new" && (
           <input
             type="text"
@@ -146,7 +144,6 @@ const AssignPoints = () => {
           />
         )}
 
-        {/* POINTS */}
         <input
           type="number"
           name="points"
@@ -156,7 +153,6 @@ const AssignPoints = () => {
           className="w-full p-3 bg-[#0B0F1A] border border-gray-700 rounded text-white"
         />
 
-        {/* CATEGORY */}
         <select
           name="category"
           value={form.category}
@@ -164,18 +160,13 @@ const AssignPoints = () => {
           className="w-full p-3 bg-[#0B0F1A] border border-gray-700 rounded text-white"
         >
           <option value="">Select Category</option>
-          <option value="Event Participation">
-            Event Participation
-          </option>
+          <option value="Event Participation">Event Participation</option>
           <option value="Workshop">Workshop</option>
           <option value="Competition">Competition</option>
-          <option value="Volunteer Work">
-            Volunteer Work
-          </option>
+          <option value="Volunteer Work">Volunteer Work</option>
           <option value="Other">Other</option>
         </select>
 
-        {/* REMARKS */}
         <textarea
           name="remarks"
           value={form.remarks}
@@ -185,7 +176,6 @@ const AssignPoints = () => {
           className="w-full p-3 bg-[#0B0F1A] border border-gray-700 rounded text-white"
         />
 
-        {/* SUBMIT */}
         <button
           type="submit"
           disabled={loading}

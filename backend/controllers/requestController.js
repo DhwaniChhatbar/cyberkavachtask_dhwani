@@ -26,9 +26,18 @@ export const createRequest = async (req, res) => {
       createdBy: req.user.id,
 
       approvalChain: [
-        { role: "Tech Coordinator", status: "Pending" },
-        { role: "Student Coordinator", status: "Pending" },
-        { role: "Faculty Coordinator", status: "Pending" },
+        {
+          role: "Tech Coordinator",
+          status: "Pending",
+        },
+        {
+          role: "Student Coordinator",
+          status: "Pending",
+        },
+        {
+          role: "Faculty Coordinator",
+          status: "Pending",
+        },
       ],
 
       currentStage: 0,
@@ -75,9 +84,11 @@ export const getAllRequests = async (req, res) => {
 
     const canViewAll = [
       "Admin",
-      "Tech Coordinator",
-      "Student Coordinator",
       "Faculty Coordinator",
+      "Student Coordinator",
+      "Tech Coordinator",
+      "Content Coordinator",
+      "Social Media Coordinator",
     ].includes(role);
 
     const requests = canViewAll
@@ -142,9 +153,11 @@ export const getRequestById = async (req, res) => {
 
     const canViewAll = [
       "Admin",
-      "Tech Coordinator",
-      "Student Coordinator",
       "Faculty Coordinator",
+      "Student Coordinator",
+      "Tech Coordinator",
+      "Content Coordinator",
+      "Social Media Coordinator",
     ].includes(role);
 
     if (!isOwner && !canViewAll) {
@@ -180,14 +193,16 @@ export const approveRequest = async (req, res) => {
 
     const role = req.user.role;
 
-    if (
-      ![
-        "Admin",
-        "Tech Coordinator",
-        "Student Coordinator",
-        "Faculty Coordinator",
-      ].includes(role)
-    ) {
+    const approverRoles = [
+      "Admin",
+      "Faculty Coordinator",
+      "Student Coordinator",
+      "Tech Coordinator",
+      "Content Coordinator",
+      "Social Media Coordinator",
+    ];
+
+    if (!approverRoles.includes(role)) {
       return res.status(403).json({
         message: "You cannot approve requests",
       });
@@ -273,14 +288,16 @@ export const rejectRequest = async (req, res) => {
 
     const role = req.user.role;
 
-    if (
-      ![
-        "Admin",
-        "Tech Coordinator",
-        "Student Coordinator",
-        "Faculty Coordinator",
-      ].includes(role)
-    ) {
+    const approverRoles = [
+      "Admin",
+      "Faculty Coordinator",
+      "Student Coordinator",
+      "Tech Coordinator",
+      "Content Coordinator",
+      "Social Media Coordinator",
+    ];
+
+    if (!approverRoles.includes(role)) {
       return res.status(403).json({
         message: "You cannot reject requests",
       });

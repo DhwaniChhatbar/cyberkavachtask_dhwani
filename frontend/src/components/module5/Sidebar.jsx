@@ -13,94 +13,194 @@ import {
   FaCertificate,
   FaChartBar,
   FaShieldAlt,
+  FaCheckCircle,
+  FaPlusCircle,
 } from "react-icons/fa";
 
 const Sidebar = () => {
-  // Get logged-in user
   const user = JSON.parse(localStorage.getItem("user"));
+  const role = user?.role;
 
-  // Menu items with role permissions
   const menuItems = [
-    // Module 5
+    // Dashboard
     {
       name: "Dashboard",
       icon: <MdDashboard />,
       path: "/dashboard",
-      roles: ["Admin", "Member"],
+      roles: [
+        "Faculty Coordinator",
+        "Student Coordinator",
+        "Tech Coordinator",
+        "Content Coordinator",
+        "Social Media Coordinator",
+        "Member",
+      ],
     },
-    {
-      name: "Assign Points",
-      icon: <FaAward />,
-      path: "/assign-points",
-      roles: ["Admin"],
-    },
-    {
-      name: "Points History",
-      icon: <FaHistory />,
-      path: "/points-history",
-      roles: ["Admin", "Member"],
-    },
+
+    // Leaderboard
     {
       name: "Leaderboard",
       icon: <FaTrophy />,
       path: "/leaderboard",
-      roles: ["Admin", "Member"],
+      roles: [
+        "Faculty Coordinator",
+        "Student Coordinator",
+        "Tech Coordinator",
+        "Content Coordinator",
+        "Social Media Coordinator",
+        "Member",
+      ],
     },
+
+    // Profile
     {
       name: "Profile",
       icon: <FaUser />,
       path: "/profile",
-      roles: ["Admin", "Member"],
+      roles: [
+        "Faculty Coordinator",
+        "Student Coordinator",
+        "Tech Coordinator",
+        "Content Coordinator",
+        "Social Media Coordinator",
+        "Member",
+      ],
     },
 
-    // Module 1
+    // Requests
     {
       name: "Requests",
       icon: <FaClipboardList />,
       path: "/request-form",
-      roles: ["Admin", "Member"],
+      roles: [
+        "Faculty Coordinator",
+        "Student Coordinator",
+        "Tech Coordinator",
+        "Content Coordinator",
+        "Social Media Coordinator",
+        "Member",
+      ],
     },
+
+    {
+      name: "Approvals",
+      icon: <FaCheckCircle />,
+      path: "/approvals",
+      roles: [
+        "Faculty Coordinator",
+        "Student Coordinator",
+        "Tech Coordinator",
+        "Content Coordinator",
+        "Social Media Coordinator",
+      ],
+    },
+
     {
       name: "Request History",
       icon: <FaHistory />,
       path: "/request-history",
-      roles: ["Admin", "Member"],
+      roles: [
+        "Faculty Coordinator",
+        "Student Coordinator",
+        "Tech Coordinator",
+        "Content Coordinator",
+        "Social Media Coordinator",
+        "Member",
+      ],
     },
+
     {
       name: "Notifications",
       icon: <FaBell />,
       path: "/notifications",
-      roles: ["Admin", "Member"],
+      roles: [
+        "Faculty Coordinator",
+        "Student Coordinator",
+        "Tech Coordinator",
+        "Content Coordinator",
+        "Social Media Coordinator",
+        "Member",
+      ],
     },
 
-    // Module 2
+    // Certificates
     {
       name: "Certificates",
       icon: <FaCertificate />,
       path: "/certificates",
-      roles: ["Admin", "Member"],
+      roles: [
+        "Faculty Coordinator",
+        "Student Coordinator",
+        "Social Media Coordinator",
+        "Member",
+      ],
     },
 
-    // Module 3
+    {
+      name: "Generate Certificate",
+      icon: <FaCertificate />,
+      path: "/generate-certificate",
+      roles: [
+        "Faculty Coordinator",
+        "Student Coordinator",
+      ],
+    },
+
+    // Events
     {
       name: "Events",
       icon: <FaCalendar />,
       path: "/event-dashboard",
-      roles: ["Admin", "Member"],
+      roles: [
+        "Faculty Coordinator",
+        "Student Coordinator",
+        "Tech Coordinator",
+        "Member",
+      ],
     },
 
-    // Module 6 (Admin only)
+    {
+      name: "Create Event",
+      icon: <FaPlusCircle />,
+      path: "/create-event",
+      roles: [
+        "Faculty Coordinator",
+        "Student Coordinator",
+        "Tech Coordinator",
+      ],
+    },
+
+    // Student + Faculty
+    {
+      name: "Points History",
+      icon: <FaHistory />,
+      path: "/points-history",
+      roles: [
+        "Faculty Coordinator",
+        "Student Coordinator",
+      ],
+    },
+
+    // Faculty only
+    {
+      name: "Assign Points",
+      icon: <FaAward />,
+      path: "/assign-points",
+      roles: ["Faculty Coordinator"],
+    },
+
     {
       name: "Analytics",
       icon: <FaChartBar />,
       path: "/analytics",
-      roles: ["Admin"],
+      roles: ["Faculty Coordinator"],
     },
+
     {
       name: "Audit Logs",
       icon: <FaShieldAlt />,
       path: "/admin",
-      roles: ["Admin"],
+      roles: ["Faculty Coordinator"],
     },
   ];
 
@@ -113,7 +213,7 @@ const Sidebar = () => {
 
         <nav className="flex flex-col gap-3">
           {menuItems
-            .filter((item) => item.roles.includes(user?.role))
+            .filter((item) => item.roles.includes(role))
             .map((item) => (
               <Link
                 key={item.name}
@@ -125,11 +225,11 @@ const Sidebar = () => {
               </Link>
             ))}
 
-          {/* Logout */}
           <button
             className="flex items-center gap-4 rounded-xl px-4 py-3 mt-4 hover:bg-red-600 transition"
             onClick={() => {
-              localStorage.clear();
+              localStorage.removeItem("token");
+              localStorage.removeItem("user");
               window.location.href = "/login";
             }}
           >

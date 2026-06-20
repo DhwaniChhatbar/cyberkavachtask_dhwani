@@ -9,34 +9,81 @@ import {
 } from "../controllers/userController.js";
 
 import { protect } from "../middleware/authMiddleware.js";
+import { authorizeRoles } from "../middleware/authorizeRoles.js";
 
 const router = express.Router();
 
 /**
  * ==========================
- * USER ROUTES (PROTECTED)
+ * ROLE GROUPS
  * ==========================
- * NOTE:
- * - All routes require JWT auth
- * - Specific routes MUST come before params
  */
+const adminOnly = ["Admin", "Faculty Coordinator"];
 
-// 🔍 SEARCH USERS
+/**
+ * ==========================
+ * SEARCH USERS
+ * ==========================
+ */
 router.get("/search", protect, searchUsers);
 
-// 👥 GET ALL USERS
-router.get("/", protect, getAllUsers);
+/**
+ * ==========================
+ * GET ALL USERS
+ * ==========================
+ * Only Admin / Faculty can see all users
+ */
+router.get(
+  "/",
+  protect,
+  authorizeRoles(...adminOnly),
+  getAllUsers
+);
 
-// 👤 GET USER BY ID
+/**
+ * ==========================
+ * GET USER BY ID
+ * ==========================
+ */
 router.get("/:id", protect, getUserById);
 
-// ✏️ UPDATE USER ROLE
-router.put("/:id/role", protect, updateUserRole);
+/**
+ * ==========================
+ * UPDATE USER ROLE
+ * ==========================
+ * ONLY ADMIN CAN CHANGE ROLES
+ */
+router.put(
+  "/:id/role",
+  protect,
+  authorizeRoles("Admin"),
+  updateUserRole
+);
 
-// ✅ APPROVE USER
-router.put("/:id/approve", protect, approveUser);
+/**
+ * ==========================
+ * APPROVE USER
+ * ==========================
+ * Admin + Faculty only
+ */
+router.put(
+  "/:id/approve",
+  protect,
+  authorizeRoles(...adminOnly),
+  approveUser
+);
 
-// ❌ DELETE USER
-router.delete("/:id", protect, deleteUser);
+/**
+ * ==========================
+ * DELETE USER
+ * ==========================
+ * ONLY ADMIN
+ */
+router.delete(
+  "/:id",
+  protect,
+  authorizeRoles("Admin"),
+  deleteUser
+);
 
 export default router;

@@ -9,7 +9,7 @@ const Register = () => {
     name: "",
     email: "",
     password: "",
-    role: "Member",
+    role: "Guest",
   });
 
   const [loading, setLoading] = useState(false);
@@ -102,24 +102,31 @@ const Register = () => {
             onChange={handleChange}
             className="w-full p-3 bg-gray-800 rounded-lg outline-none"
           >
-            <option value="Admin">Admin</option>
-            <option value="Member">Member</option>
+            <option value="Guest">Guest</option>
+
+            <option value="Member">
+              Club Member
+            </option>
+
             <option value="Student Coordinator">
               Student Coordinator
             </option>
+
             <option value="Tech Coordinator">
               Tech Coordinator
             </option>
+
             <option value="Content Coordinator">
               Content Coordinator
             </option>
+
             <option value="Social Media Coordinator">
               Social Media Coordinator
             </option>
+
             <option value="Faculty Coordinator">
               Faculty Coordinator
             </option>
-            <option value="Guest">Guest</option>
           </select>
 
           <button

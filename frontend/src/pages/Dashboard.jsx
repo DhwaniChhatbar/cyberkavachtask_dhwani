@@ -8,19 +8,17 @@ const Dashboard = () => {
   const [users, setUsers] = useState([]);
   const [totalUsers, setTotalUsers] = useState(null);
 
-  // ==========================
-  // FETCH FROM BACKEND
-  // ==========================
+  const currentUser = JSON.parse(localStorage.getItem("user"));
+  const role = currentUser?.role;
+
   const fetchDashboardData = async () => {
     try {
-      // Leaderboard data
       const leaderboardRes = await api.get("/leaderboard");
 
       if (Array.isArray(leaderboardRes.data)) {
         setUsers(leaderboardRes.data);
       }
 
-      // Registered users count
       const usersRes = await api.get("/users");
 
       if (
@@ -32,15 +30,9 @@ const Dashboard = () => {
       }
     } catch (error) {
       console.error("Dashboard fetch error:", error);
-
-      // DON'T reset state to 0 here
-      // Keep previous values
     }
   };
 
-  // ==========================
-  // INIT LOAD + SOCKET SYNC
-  // ==========================
   useEffect(() => {
     fetchDashboardData();
 
@@ -51,9 +43,6 @@ const Dashboard = () => {
     };
   }, []);
 
-  // ==========================
-  // STATS CALCULATIONS
-  // ==========================
   const totalPoints = users.reduce(
     (sum, user) => sum + Number(user.totalPoints || 0),
     0
@@ -63,9 +52,14 @@ const Dashboard = () => {
 
   return (
     <div className="p-6">
-      <h1 className="text-3xl font-bold mb-8">
-        Dashboard Overview
+
+      <h1 className="text-3xl font-bold mb-2">
+        Welcome, {currentUser?.name}
       </h1>
+
+      <p className="text-gray-400 mb-8">
+        Role : {role}
+      </p>
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
 
