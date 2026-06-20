@@ -49,6 +49,23 @@ export const getAllUsers = async (req, res) => {
   }
 };
 
+// ⚡ GET TOTAL USER COUNT (FAST)
+export const getUserCount = async (req, res) => {
+  try {
+    const count = await User.countDocuments();
+
+    return res.json({
+      success: true,
+      count,
+    });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      error: err.message,
+    });
+  }
+};
+
 // 👤 GET USER BY ID
 export const getUserById = async (req, res) => {
   try {

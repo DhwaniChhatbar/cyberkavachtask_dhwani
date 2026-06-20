@@ -2,6 +2,7 @@ import express from "express";
 import {
   searchUsers,
   getAllUsers,
+  getUserCount,
   getUserById,
   updateUserRole,
   approveUser,
@@ -18,26 +19,41 @@ const router = express.Router();
  * ROLE GROUPS
  * ==========================
  */
-const adminOnly = ["Admin", "Faculty Coordinator"];
+const facultyOnly = ["Faculty Coordinator"];
 
 /**
  * ==========================
  * SEARCH USERS
  * ==========================
  */
-router.get("/search", protect, searchUsers);
+router.get(
+  "/search",
+  protect,
+  searchUsers
+);
 
 /**
  * ==========================
  * GET ALL USERS
  * ==========================
- * Only Admin / Faculty can see all users
+ * Faculty Coordinator only
  */
 router.get(
   "/",
   protect,
-  authorizeRoles(...adminOnly),
+  authorizeRoles(...facultyOnly),
   getAllUsers
+);
+
+/**
+ * ==========================
+ * FAST USER COUNT
+ * ==========================
+ */
+router.get(
+  "/count",
+  protect,
+  getUserCount
 );
 
 /**
@@ -45,18 +61,22 @@ router.get(
  * GET USER BY ID
  * ==========================
  */
-router.get("/:id", protect, getUserById);
+router.get(
+  "/:id",
+  protect,
+  getUserById
+);
 
 /**
  * ==========================
  * UPDATE USER ROLE
  * ==========================
- * ONLY ADMIN CAN CHANGE ROLES
+ * Faculty Coordinator only
  */
 router.put(
   "/:id/role",
   protect,
-  authorizeRoles("Admin"),
+  authorizeRoles(...facultyOnly),
   updateUserRole
 );
 
@@ -64,12 +84,12 @@ router.put(
  * ==========================
  * APPROVE USER
  * ==========================
- * Admin + Faculty only
+ * Faculty Coordinator only
  */
 router.put(
   "/:id/approve",
   protect,
-  authorizeRoles(...adminOnly),
+  authorizeRoles(...facultyOnly),
   approveUser
 );
 
@@ -77,12 +97,12 @@ router.put(
  * ==========================
  * DELETE USER
  * ==========================
- * ONLY ADMIN
+ * Faculty Coordinator only
  */
 router.delete(
   "/:id",
   protect,
-  authorizeRoles("Admin"),
+  authorizeRoles(...facultyOnly),
   deleteUser
 );
 

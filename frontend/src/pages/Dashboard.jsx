@@ -6,40 +6,44 @@ import socket from "../socket";
 
 const Dashboard = () => {
   const [users, setUsers] = useState([]);
-  const [totalUsers, setTotalUsers] = useState(null);
+  const [totalUsers, setTotalUsers] = useState("Loading...");
 
   const currentUser = JSON.parse(localStorage.getItem("user"));
   const role = currentUser?.role;
 
-  const fetchDashboardData = async () => {
+  const fetchLeaderboard = async () => {
     try {
-      const leaderboardRes = await api.get("/leaderboard");
+      const res = await api.get("/leaderboard");
 
-      if (Array.isArray(leaderboardRes.data)) {
-        setUsers(leaderboardRes.data);
-      }
-
-      const usersRes = await api.get("/users");
-
-      if (
-        usersRes.data &&
-        usersRes.data.users &&
-        Array.isArray(usersRes.data.users)
-      ) {
-        setTotalUsers(usersRes.data.users.length);
+      if (Array.isArray(res.data)) {
+        setUsers(res.data);
       }
     } catch (error) {
-      console.error("Dashboard fetch error:", error);
+      console.error("Leaderboard fetch error:", error);
+    }
+  };
+
+  const fetchUsers = async () => {
+    try {
+      const res = await api.get("/users");
+
+      if (res.data?.users) {
+        setTotalUsers(res.data.users.length);
+      }
+    } catch (error) {
+      console.error("Users fetch error:", error);
     }
   };
 
   useEffect(() => {
-    fetchDashboardData();
+    // Load independently
+    fetchLeaderboard();
+    fetchUsers();
 
-    socket.on("leaderboard:update", fetchDashboardData);
+    socket.on("leaderboard:update", fetchLeaderboard);
 
     return () => {
-      socket.off("leaderboard:update", fetchDashboardData);
+      socket.off("leaderboard:update", fetchLeaderboard);
     };
   }, []);
 
@@ -52,7 +56,6 @@ const Dashboard = () => {
 
   return (
     <div className="p-6">
-
       <h1 className="text-3xl font-bold mb-2">
         Welcome, {currentUser?.name}
       </h1>
@@ -62,10 +65,9 @@ const Dashboard = () => {
       </p>
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
-
         <StatCard
           title="Total Users"
-          value={totalUsers ?? "Loading..."}
+          value={totalUsers}
           icon={<FaUsers />}
           color="emerald"
         />
@@ -90,7 +92,6 @@ const Dashboard = () => {
           icon={<FaMedal />}
           color="red"
         />
-
       </div>
     </div>
   );

@@ -10,16 +10,30 @@ import { authorizeRoles } from "../middleware/authorizeRoles.js";
 const router = express.Router();
 
 /**
- * ONLY ADDITION: role protection
- * (NO other changes made)
+ * ==========================
+ * ASSIGN POINTS
+ * Faculty Coordinator + Student Coordinator
+ * ==========================
  */
 router.post(
   "/assign",
   protect,
-  authorizeRoles("Admin", "Faculty Coordinator", "Student Coordinator"),
+  authorizeRoles(
+    "Faculty Coordinator",
+    "Student Coordinator"
+  ),
   assignPoints
 );
 
-router.get("/history", protect, getPointsHistory);
+/**
+ * ==========================
+ * POINTS HISTORY
+ * ==========================
+ */
+router.get(
+  "/history",
+  protect,
+  getPointsHistory
+);
 
 export default router;

@@ -22,14 +22,12 @@ const router = express.Router();
  * ==========================
  */
 const canManageEvents = [
-  "Admin",
   "Faculty Coordinator",
   "Student Coordinator",
   "Tech Coordinator",
 ];
 
 const canPublishEvents = [
-  "Admin",
   "Faculty Coordinator",
   "Student Coordinator",
 ];
@@ -82,7 +80,7 @@ router.put(
 router.delete(
   "/:id",
   protect,
-  authorizeRoles("Admin", "Faculty Coordinator"),
+  authorizeRoles("Faculty Coordinator"),
   deleteEvent
 );
 

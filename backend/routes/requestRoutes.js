@@ -34,10 +34,8 @@ const debugRequest = (req, res, next) => {
  * Tech Coordinator -> Technical approvals
  * Content Coordinator -> Content approvals
  * Social Media Coordinator -> Social approvals
- * Admin -> Full access
  */
 const approverRoles = [
-  "Admin",
   "Faculty Coordinator",
   "Student Coordinator",
   "Tech Coordinator",
@@ -56,7 +54,6 @@ router.post(
   protect,
   debugRequest,
   authorizeRoles(
-    "Admin",
     "Faculty Coordinator",
     "Student Coordinator",
     "Tech Coordinator",

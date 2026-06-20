@@ -14,11 +14,10 @@ const ApprovalDashboard = () => {
   const role = user?.role;
 
   // =========================
-  // ROLE GUARD (IMPORTANT)
+  // ROLE GUARD
   // =========================
   useEffect(() => {
     const allowedRoles = [
-      "Admin",
       "Faculty Coordinator",
       "Student Coordinator",
       "Tech Coordinator",
@@ -29,7 +28,7 @@ const ApprovalDashboard = () => {
     if (!user || !allowedRoles.includes(role)) {
       navigate("/dashboard");
     }
-  }, []);
+  }, [navigate, role, user]);
 
   // =========================
   // FETCH REQUESTS
@@ -97,7 +96,6 @@ const ApprovalDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-950 text-white p-6">
-
       <h1 className="text-3xl font-bold mb-2">
         Approval Dashboard
       </h1>

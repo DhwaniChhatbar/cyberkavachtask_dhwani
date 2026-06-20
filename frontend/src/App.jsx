@@ -37,7 +37,6 @@ import EventCreation from "./pages/EventCreation";
 // MODULE 6
 import Analytics from "./pages/Analytics";
 import Settings from "./pages/Settings";
-import AdminPanel from "./pages/AdminPanel";
 
 // =========================
 // AUTH HELPERS
@@ -364,21 +363,6 @@ function App() {
             >
               <Layout>
                 <Settings />
-              </Layout>
-            </RoleRoute>
-          }
-        />
-
-        <Route
-          path="/admin"
-          element={
-            <RoleRoute
-              allowedRoles={[
-                "Faculty Coordinator",
-              ]}
-            >
-              <Layout>
-                <AdminPanel />
               </Layout>
             </RoleRoute>
           }
