@@ -41,26 +41,18 @@ import Settings from "./pages/Settings";
 // =========================
 // AUTH HELPERS
 // =========================
-const getUser = () => {
-  return JSON.parse(localStorage.getItem("user"));
-};
+const getUser = () => JSON.parse(localStorage.getItem("user"));
 
 const PrivateRoute = ({ children }) => {
   const user = getUser();
-
-  if (!user) {
-    return <Navigate to="/login" />;
-  }
-
+  if (!user) return <Navigate to="/login" />;
   return children;
 };
 
 const RoleRoute = ({ children, allowedRoles }) => {
   const user = getUser();
 
-  if (!user) {
-    return <Navigate to="/login" />;
-  }
+  if (!user) return <Navigate to="/login" />;
 
   if (!allowedRoles.includes(user.role)) {
     return <Navigate to="/dashboard" />;
@@ -78,7 +70,7 @@ function App() {
       <Routes>
 
         {/* ROOT */}
-        <Route path="/" element={<Navigate to="/register" />} />
+        <Route path="/" element={<Navigate to="/login" />} />
 
         {/* AUTH */}
         <Route path="/login" element={<Login />} />
@@ -97,15 +89,10 @@ function App() {
         />
 
         {/* MODULE 5 */}
-
         <Route
           path="/assign-points"
           element={
-            <RoleRoute
-              allowedRoles={[
-                "Faculty Coordinator",
-              ]}
-            >
+            <RoleRoute allowedRoles={["Faculty Coordinator"]}>
               <Layout>
                 <AssignPoints />
               </Layout>
@@ -116,12 +103,7 @@ function App() {
         <Route
           path="/points-history"
           element={
-            <RoleRoute
-              allowedRoles={[
-                "Faculty Coordinator",
-                "Student Coordinator",
-              ]}
-            >
+            <RoleRoute allowedRoles={["Faculty Coordinator", "Student Coordinator"]}>
               <Layout>
                 <PointsHistory />
               </Layout>
@@ -163,7 +145,6 @@ function App() {
         />
 
         {/* MODULE 1 */}
-
         <Route
           path="/request-form"
           element={
@@ -228,7 +209,6 @@ function App() {
         />
 
         {/* MODULE 2 */}
-
         <Route
           path="/certificates"
           element={
@@ -260,12 +240,7 @@ function App() {
         <Route
           path="/generate-certificate"
           element={
-            <RoleRoute
-              allowedRoles={[
-                "Faculty Coordinator",
-                "Student Coordinator",
-              ]}
-            >
+            <RoleRoute allowedRoles={["Faculty Coordinator", "Student Coordinator"]}>
               <Layout>
                 <GenerateCertificate />
               </Layout>
@@ -274,7 +249,6 @@ function App() {
         />
 
         {/* MODULE 3 */}
-
         <Route
           path="/event-dashboard"
           element={
@@ -322,13 +296,7 @@ function App() {
         <Route
           path="/create-event"
           element={
-            <RoleRoute
-              allowedRoles={[
-                "Faculty Coordinator",
-                "Student Coordinator",
-                "Tech Coordinator",
-              ]}
-            >
+            <RoleRoute allowedRoles={["Tech Coordinator"]}>
               <Layout>
                 <EventCreation />
               </Layout>
@@ -336,16 +304,46 @@ function App() {
           }
         />
 
-        {/* MODULE 6 */}
+        {/* ✅ ADDED MISSING ROUTES (THIS FIXES YOUR BUG) */}
 
+        <Route
+          path="/approve-events"
+          element={
+            <RoleRoute allowedRoles={["Faculty Coordinator"]}>
+              <Layout>
+                <ApprovalDashboard />
+              </Layout>
+            </RoleRoute>
+          }
+        />
+
+        <Route
+          path="/publish-events"
+          element={
+            <RoleRoute allowedRoles={["Student Coordinator"]}>
+              <Layout>
+                <EventDashboard />
+              </Layout>
+            </RoleRoute>
+          }
+        />
+
+        <Route
+          path="/send-for-approval"
+          element={
+            <RoleRoute allowedRoles={["Tech Coordinator"]}>
+              <Layout>
+                <EventDashboard />
+              </Layout>
+            </RoleRoute>
+          }
+        />
+
+        {/* MODULE 6 */}
         <Route
           path="/analytics"
           element={
-            <RoleRoute
-              allowedRoles={[
-                "Faculty Coordinator",
-              ]}
-            >
+            <RoleRoute allowedRoles={["Faculty Coordinator"]}>
               <Layout>
                 <Analytics />
               </Layout>
@@ -356,11 +354,7 @@ function App() {
         <Route
           path="/settings"
           element={
-            <RoleRoute
-              allowedRoles={[
-                "Faculty Coordinator",
-              ]}
-            >
+            <RoleRoute allowedRoles={["Faculty Coordinator"]}>
               <Layout>
                 <Settings />
               </Layout>
@@ -368,8 +362,8 @@ function App() {
           }
         />
 
-        {/* FALLBACK */}
-        <Route path="*" element={<Navigate to="/register" />} />
+        {/* FALLBACK (IMPORTANT FIX) */}
+        <Route path="*" element={<Navigate to="/dashboard" />} />
 
       </Routes>
     </BrowserRouter>
