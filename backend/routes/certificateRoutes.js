@@ -1,111 +1,56 @@
 import express from "express";
-
 import {
-  createEvent,
-  getEvents,
-  getEventById,
-  updateEvent,
-  deleteEvent,
-  sendForApproval,
-  publishEvent,
-} from "../controllers/eventController.js";
+  generateCertificate,
+  getCertificates,
+  verifyCertificate,
+} from "../controllers/certificateController.js";
 
 import { protect } from "../middleware/authMiddleware.js";
 import { authorizeRoles } from "../middleware/authorizeRoles.js";
-import upload from "../utils/upload.js";
 
 const router = express.Router();
 
 /**
  * ==========================
- * ROLE DEFINITIONS
- * ==========================
- */
-const canManageEvents = [
-  "Faculty Coordinator",
-  "Student Coordinator",
-  "Tech Coordinator",
-];
-
-const canPublishEvents = [
-  "Faculty Coordinator",
-  "Student Coordinator",
-];
-
-/**
- * ==========================
- * GET ALL EVENTS (PUBLIC OK)
- * ==========================
- */
-router.get("/", getEvents);
-
-/**
- * ==========================
- * GET SINGLE EVENT (PUBLIC OK)
- * ==========================
- */
-router.get("/:id", getEventById);
-
-/**
- * ==========================
- * CREATE EVENT
+ * GENERATE CERTIFICATE
+ * Faculty + Student Coordinator
  * ==========================
  */
 router.post(
   "/",
   protect,
-  authorizeRoles(...canManageEvents),
-  upload.single("poster"),
-  createEvent
+  authorizeRoles(
+    "Faculty Coordinator",
+    "Student Coordinator"
+  ),
+  generateCertificate
 );
 
 /**
  * ==========================
- * UPDATE EVENT
+ * GET ALL CERTIFICATES
+ * Faculty + Student Coordinator
  * ==========================
  */
-router.put(
-  "/:id",
+router.get(
+  "/",
   protect,
-  authorizeRoles(...canManageEvents),
-  upload.single("poster"),
-  updateEvent
+  authorizeRoles(
+    "Faculty Coordinator",
+    "Student Coordinator"
+  ),
+  getCertificates
 );
 
 /**
  * ==========================
- * DELETE EVENT
+ * VERIFY CERTIFICATE
+ * PUBLIC
  * ==========================
  */
-router.delete(
-  "/:id",
-  protect,
-  authorizeRoles("Faculty Coordinator"),
-  deleteEvent
-);
-
-/**
- * ==========================
- * SEND FOR APPROVAL
- * ==========================
- */
-router.put(
-  "/approval/:id",
-  protect,
-  authorizeRoles(...canManageEvents),
-  sendForApproval
-);
-
-/**
- * ==========================
- * PUBLISH EVENT
- * ==========================
- */
-router.put(
-  "/publish/:id",
-  protect,
-  authorizeRoles(...canPublishEvents),
-  publishEvent
+router.get(
+  "/verify/:certificateId",
+  verifyCertificate
 );
 
 export default router;

@@ -1,11 +1,28 @@
-import React, { useState } from "react";
-import axios from "axios";
+import React, { useEffect, useState } from "react";
+import api from "../utils/api";
 
 const GenerateCertificate = () => {
   const [eventName, setEventName] = useState("");
-  const [userId, setUserId] = useState("");
+  const [users, setUsers] = useState([]);
+  const [selectedUser, setSelectedUser] = useState("");
   const [loading, setLoading] = useState(false);
   const [generatedCertificate, setGeneratedCertificate] = useState(null);
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const fetchUsers = async () => {
+    try {
+      const res = await api.get("/users");
+
+      if (res.data?.users) {
+        setUsers(res.data.users);
+      }
+    } catch (error) {
+      console.error("Error fetching users:", error);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -13,25 +30,15 @@ const GenerateCertificate = () => {
     try {
       setLoading(true);
 
-      const token = localStorage.getItem("token");
-
-      const res = await axios.post(
-        "http://localhost:5000/api/certificates",
-        {
-          eventName,
-          user: userId,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const res = await api.post("/certificates", {
+        eventName,
+        user: selectedUser,
+      });
 
       setGeneratedCertificate(res.data);
 
       setEventName("");
-      setUserId("");
+      setSelectedUser("");
     } catch (err) {
       console.error(err);
       alert("Failed to generate certificate");
@@ -69,17 +76,23 @@ const GenerateCertificate = () => {
 
           <div>
             <label className="block mb-2 text-gray-300">
-              User ID
+              Select User
             </label>
 
-            <input
-              type="text"
-              value={userId}
-              onChange={(e) => setUserId(e.target.value)}
-              placeholder="Enter User ID"
+            <select
+              value={selectedUser}
+              onChange={(e) => setSelectedUser(e.target.value)}
               className="w-full p-3 rounded-lg bg-gray-800 outline-none"
               required
-            />
+            >
+              <option value="">Choose a user</option>
+
+              {users.map((user) => (
+                <option key={user._id} value={user._id}>
+                  {user.name} ({user.role})
+                </option>
+              ))}
+            </select>
           </div>
 
           <button
@@ -110,7 +123,7 @@ const GenerateCertificate = () => {
 
               <p>
                 <strong>User:</strong>{" "}
-                {generatedCertificate.user}
+                {generatedCertificate.user?.name || "Generated"}
               </p>
             </div>
           </div>

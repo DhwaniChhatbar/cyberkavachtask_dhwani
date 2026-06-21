@@ -55,10 +55,10 @@ const certificateSchema = new mongoose.Schema(
       default: Date.now,
     },
 
-    // 🔒 Anti-tamper verification hash
+    // Anti-tamper verification hash
     hash: {
       type: String,
-      default: null,
+      required: true,
       index: true,
     },
   },
@@ -67,15 +67,31 @@ const certificateSchema = new mongoose.Schema(
   }
 );
 
-// Prevent duplicate certificates
+// Prevent duplicate individual certificates
 certificateSchema.index(
   {
     event: 1,
     user: 1,
+  },
+  {
+    unique: true,
+    partialFilterExpression: {
+      user: { $exists: true, $type: "objectId" },
+    },
+  }
+);
+
+// Prevent duplicate team certificates
+certificateSchema.index(
+  {
+    event: 1,
     team: 1,
   },
   {
     unique: true,
+    partialFilterExpression: {
+      team: { $exists: true, $type: "objectId" },
+    },
   }
 );
 
