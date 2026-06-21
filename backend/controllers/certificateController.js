@@ -8,6 +8,9 @@ import { generateCertificateId } from "../utils/generateCertificateId.js";
 // GENERATE CERTIFICATE
 // ==========================
 export const generateCertificate = async (req, res) => {
+  console.log("generateCertificate called");
+  console.log(req.body);
+
   try {
     const { eventName, user } = req.body;
 
@@ -28,10 +31,10 @@ export const generateCertificate = async (req, res) => {
       });
     }
 
-    // prevent duplicate certificate for same event
+    // prevent duplicate certificates
     const existingCertificate = await Certificate.findOne({
-      user,
-      eventName,
+      user: existingUser._id,
+      eventName: eventName.trim(),
     });
 
     if (existingCertificate) {
@@ -73,8 +76,8 @@ export const generateCertificate = async (req, res) => {
       .createHash("sha256")
       .update(
         certificateId +
-          existingUser._id.toString() +
-          eventName
+        existingUser._id.toString() +
+        eventName.trim()
       )
       .digest("hex");
 
@@ -91,6 +94,8 @@ export const generateCertificate = async (req, res) => {
       certificate,
     });
   } catch (err) {
+    console.error("CERTIFICATE ERROR:", err);
+
     return res.status(500).json({
       success: false,
       error: err.message,

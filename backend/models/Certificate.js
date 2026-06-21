@@ -9,12 +9,6 @@ const certificateSchema = new mongoose.Schema(
       index: true,
     },
 
-    event: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Event",
-      required: true,
-    },
-
     eventName: {
       type: String,
       required: true,
@@ -70,7 +64,7 @@ const certificateSchema = new mongoose.Schema(
 // Prevent duplicate individual certificates
 certificateSchema.index(
   {
-    event: 1,
+    eventName: 1,
     user: 1,
   },
   {
@@ -84,7 +78,7 @@ certificateSchema.index(
 // Prevent duplicate team certificates
 certificateSchema.index(
   {
-    event: 1,
+    eventName: 1,
     team: 1,
   },
   {
