@@ -25,18 +25,18 @@ const Dashboard = () => {
 
   const fetchUsers = async () => {
     try {
-      const res = await api.get("/users");
+      const res = await api.get("/users/count");
 
-      if (res.data?.users) {
-        setTotalUsers(res.data.users.length);
+      if (res.data?.success) {
+        setTotalUsers(res.data.count);
       }
     } catch (error) {
       console.error("Users fetch error:", error);
+      setTotalUsers("N/A");
     }
   };
 
   useEffect(() => {
-    // Load independently
     fetchLeaderboard();
     fetchUsers();
 
