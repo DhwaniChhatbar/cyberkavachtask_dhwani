@@ -166,15 +166,28 @@ const Sidebar = () => {
       ],
     },
 
-    // NEW: Publish Events
+    // Tech Coordinator
+    {
+      name: "Send For Approval",
+      icon: <FaCheckCircle />,
+      path: "/send-for-approval",
+      roles: ["Tech Coordinator"],
+    },
+
+    // Faculty Coordinator
+    {
+      name: "Approve Events",
+      icon: <FaCheckCircle />,
+      path: "/approve-events",
+      roles: ["Faculty Coordinator"],
+    },
+
+    // Student Coordinator
     {
       name: "Publish Events",
       icon: <FaCheckCircle />,
       path: "/publish-events",
-      roles: [
-        "Faculty Coordinator",
-        "Student Coordinator",
-      ],
+      roles: ["Student Coordinator"],
     },
 
     // Points
