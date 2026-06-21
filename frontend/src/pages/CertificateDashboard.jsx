@@ -61,8 +61,10 @@ const CertificateDashboard = () => {
         }
       );
 
-      setCertificates(res.data || []);
-      setFilteredCertificates(res.data || []);
+      const data = res.data?.certificates || [];
+
+      setCertificates(data);
+      setFilteredCertificates(data);
     } catch (err) {
       console.error("Error fetching certificates:", err);
       setCertificates([]);
@@ -72,7 +74,6 @@ const CertificateDashboard = () => {
     }
   };
 
-  // Stats
   const totalCertificates = certificates.length;
 
   const totalEvents = useMemo(() => {
@@ -146,7 +147,6 @@ const CertificateDashboard = () => {
         </select>
       </div>
 
-      {/* Data */}
       {loading ? (
         <div className="text-gray-400">
           Loading certificates...

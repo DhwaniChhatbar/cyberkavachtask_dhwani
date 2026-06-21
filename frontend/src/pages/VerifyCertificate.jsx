@@ -11,9 +11,9 @@ const VerifyCertificate = () => {
     e.preventDefault();
 
     try {
+      setLoading(true);
       setError("");
       setCertificate(null);
-      setLoading(true);
 
       const id = certificateId.trim();
 
@@ -26,14 +26,15 @@ const VerifyCertificate = () => {
         `http://localhost:5000/api/certificates/verify/${id}`
       );
 
-      if (!res.data) {
+      if (!res.data.success) {
         setError("Certificate not found");
         return;
       }
 
-      setCertificate(res.data);
+      setCertificate(res.data.certificate);
     } catch (err) {
       console.error(err);
+
       setError(
         err.response?.data?.message ||
           "Certificate not found or invalid"
@@ -72,16 +73,15 @@ const VerifyCertificate = () => {
           >
             {loading ? "Verifying..." : "Verify"}
           </button>
+
         </form>
 
-        {/* Error */}
         {error && (
           <div className="bg-red-600 mt-6 p-3 rounded-lg">
             {error}
           </div>
         )}
 
-        {/* Result */}
         {certificate && (
           <div className="bg-gray-800 mt-6 p-6 rounded-xl">
 
@@ -89,7 +89,7 @@ const VerifyCertificate = () => {
               Certificate Verified ✅
             </h2>
 
-            <div className="space-y-2">
+            <div className="space-y-3">
 
               <p>
                 <strong>Name:</strong>{" "}
@@ -98,7 +98,7 @@ const VerifyCertificate = () => {
 
               <p>
                 <strong>Event:</strong>{" "}
-                {certificate.eventName || "N/A"}
+                {certificate.eventName}
               </p>
 
               <p>
@@ -107,17 +107,22 @@ const VerifyCertificate = () => {
               </p>
 
               <p>
+                <strong>Issued By:</strong>{" "}
+                {certificate.issuedBy?.name || "N/A"}
+              </p>
+
+              <p>
                 <strong>Issued On:</strong>{" "}
-                {certificate.createdAt
-                  ? new Date(
-                      certificate.createdAt
-                    ).toLocaleDateString()
-                  : "N/A"}
+                {new Date(
+                  certificate.createdAt
+                ).toLocaleDateString()}
               </p>
 
             </div>
+
           </div>
         )}
+
       </div>
     </div>
   );

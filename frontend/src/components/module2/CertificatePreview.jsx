@@ -6,6 +6,8 @@ const CertificatePreview = ({
   eventName,
   certificateId,
 }) => {
+  const verifyUrl = `${window.location.origin}/verify-certificate/${certificateId}`;
+
   return (
     <div className="bg-white text-black rounded-2xl p-10 shadow-xl border-4 border-blue-600">
 
@@ -20,7 +22,7 @@ const CertificatePreview = ({
 
       {/* Student Name */}
       <div className="text-4xl font-bold text-center mt-6">
-        {name}
+        {name || "Participant"}
       </div>
 
       <div className="text-center mt-8 text-xl">
@@ -29,7 +31,7 @@ const CertificatePreview = ({
 
       {/* Event Name */}
       <div className="text-3xl font-bold text-center mt-4 text-green-700">
-        {eventName}
+        {eventName || "Event"}
       </div>
 
       {/* Date */}
@@ -39,13 +41,13 @@ const CertificatePreview = ({
 
       {/* Certificate ID */}
       <div className="text-center mt-3 text-gray-600">
-        Certificate ID: {certificateId}
+        Certificate ID: {certificateId || "N/A"}
       </div>
 
       {/* QR Code */}
       <div className="flex justify-center mt-8">
         <QRCodeSVG
-          value={`http://localhost:5173/verify-certificate/${certificateId}`}
+          value={verifyUrl}
           size={120}
         />
       </div>
@@ -56,15 +58,21 @@ const CertificatePreview = ({
 
       {/* Signature Section */}
       <div className="flex justify-between items-end mt-16">
+
         <div>
           <div className="border-t border-black w-40"></div>
-          <p className="mt-2 text-center">Organizer Signature</p>
+          <p className="mt-2 text-center">
+            Organizer Signature
+          </p>
         </div>
 
         <div>
           <div className="border-t border-black w-40"></div>
-          <p className="mt-2 text-center">Faculty Coordinator</p>
+          <p className="mt-2 text-center">
+            Faculty Coordinator
+          </p>
         </div>
+
       </div>
     </div>
   );

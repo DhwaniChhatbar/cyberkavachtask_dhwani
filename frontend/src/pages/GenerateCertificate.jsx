@@ -35,7 +35,8 @@ const GenerateCertificate = () => {
         user: selectedUser,
       });
 
-      setGeneratedCertificate(res.data);
+      // FIXED
+      setGeneratedCertificate(res.data.certificate);
 
       setEventName("");
       setSelectedUser("");
@@ -122,8 +123,13 @@ const GenerateCertificate = () => {
               </p>
 
               <p>
-                <strong>User:</strong>{" "}
-                {generatedCertificate.user?.name || "Generated"}
+                <strong>User ID:</strong>{" "}
+                {generatedCertificate.user}
+              </p>
+
+              <p>
+                <strong>Type:</strong>{" "}
+                {generatedCertificate.type}
               </p>
             </div>
           </div>
