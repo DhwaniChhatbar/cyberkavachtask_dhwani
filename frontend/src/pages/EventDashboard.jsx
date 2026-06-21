@@ -28,11 +28,14 @@ const EventDashboard = () => {
         }
       );
 
-      const eventData = res.data || [];
+      console.log("Events API Response:", res.data);
+
+      const eventData = Array.isArray(res.data)
+        ? res.data
+        : res.data.events || [];
 
       setEvents(eventData);
 
-      // total capacity of all events
       const capacity = eventData.reduce(
         (sum, event) => sum + (event.capacity || 0),
         0
@@ -57,7 +60,11 @@ const EventDashboard = () => {
         }
       );
 
-      const teams = res.data || [];
+      console.log("Teams API Response:", res.data);
+
+      const teams = Array.isArray(res.data)
+        ? res.data
+        : res.data.teams || [];
 
       const formatted = teams.map((team) => ({
         name: team.leaderName || "N/A",
@@ -71,18 +78,13 @@ const EventDashboard = () => {
     }
   };
 
-  const totalTeams = participants.length;
-
   return (
     <div className="min-h-screen bg-gray-950 text-white p-6">
-
       <h1 className="text-3xl font-bold mb-8">
         Event Dashboard
       </h1>
 
-      {/* Stats */}
       <div className="grid md:grid-cols-3 gap-5 mb-8">
-
         <AnalyticsCard
           title="Registrations"
           value={participants.length}
@@ -90,17 +92,15 @@ const EventDashboard = () => {
 
         <AnalyticsCard
           title="Teams"
-          value={totalTeams}
+          value={participants.length}
         />
 
         <AnalyticsCard
           title="Events"
           value={events.length}
         />
-
       </div>
 
-      {/* Capacity */}
       <div className="mb-8">
         <CapacityIndicator
           current={participants.length}
@@ -108,9 +108,7 @@ const EventDashboard = () => {
         />
       </div>
 
-      {/* Participant Table */}
       <ParticipantTable participants={participants} />
-
     </div>
   );
 };
