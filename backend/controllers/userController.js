@@ -3,21 +3,23 @@ import User from "../models/User.js";
 // 🔍 SEARCH USERS
 export const searchUsers = async (req, res) => {
   try {
-    const query = req.query.q;
+    const query = req.query.q || "";
 
-    if (!query) {
-      return res.status(400).json({
-        success: false,
-        message: "Search query is required",
-      });
+    let users;
+
+    if (query.trim() === "") {
+      // Return all users if no search query
+      users = await User.find()
+        .select("name email role isApproved")
+        .sort({ name: 1 });
+    } else {
+      users = await User.find({
+        $or: [
+          { name: { $regex: query, $options: "i" } },
+          { email: { $regex: query, $options: "i" } },
+        ],
+      }).select("name email role isApproved");
     }
-
-    const users = await User.find({
-      $or: [
-        { name: { $regex: query, $options: "i" } },
-        { email: { $regex: query, $options: "i" } },
-      ],
-    }).select("name email role isApproved");
 
     return res.json({
       success: true,
@@ -70,9 +72,8 @@ export const getUserCount = async (req, res) => {
 // 👤 GET USER BY ID
 export const getUserById = async (req, res) => {
   try {
-    const user = await User.findById(req.params.id).select(
-      "name email role isApproved createdAt"
-    );
+    const user = await User.findById(req.params.id)
+      .select("name email role isApproved createdAt");
 
     if (!user) {
       return res.status(404).json({
@@ -108,6 +109,7 @@ export const updateUserRole = async (req, res) => {
     }
 
     user.role = role;
+
     await user.save();
 
     return res.json({
@@ -136,6 +138,7 @@ export const approveUser = async (req, res) => {
     }
 
     user.isApproved = true;
+
     await user.save();
 
     return res.json({

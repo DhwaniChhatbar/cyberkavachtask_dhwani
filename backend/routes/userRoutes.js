@@ -24,6 +24,7 @@ const facultyOnly = ["Faculty Coordinator"];
 /**
  * ==========================
  * SEARCH USERS
+ * Accessible to all logged-in users
  * ==========================
  */
 router.get(
@@ -35,8 +36,9 @@ router.get(
 /**
  * ==========================
  * FAST USER COUNT
+ * Accessible to all logged-in users
+ * MUST come before "/:id"
  * ==========================
- * MUST be above "/:id"
  */
 router.get(
   "/count",
@@ -47,8 +49,8 @@ router.get(
 /**
  * ==========================
  * GET ALL USERS
- * ==========================
  * Faculty Coordinator only
+ * ==========================
  */
 router.get(
   "/",
@@ -60,6 +62,7 @@ router.get(
 /**
  * ==========================
  * GET USER BY ID
+ * Accessible to all logged-in users
  * ==========================
  */
 router.get(
@@ -71,8 +74,8 @@ router.get(
 /**
  * ==========================
  * UPDATE USER ROLE
- * ==========================
  * Faculty Coordinator only
+ * ==========================
  */
 router.put(
   "/:id/role",
@@ -84,8 +87,8 @@ router.put(
 /**
  * ==========================
  * APPROVE USER
- * ==========================
  * Faculty Coordinator only
+ * ==========================
  */
 router.put(
   "/:id/approve",
@@ -97,8 +100,8 @@ router.put(
 /**
  * ==========================
  * DELETE USER
- * ==========================
  * Faculty Coordinator only
+ * ==========================
  */
 router.delete(
   "/:id",
