@@ -53,6 +53,26 @@ export const getEvents = async (req, res) => {
 };
 
 // ==========================
+// GET PENDING EVENTS
+// ==========================
+export const getPendingEvents = async (req, res) => {
+  try {
+    const events = await Event.find({
+      status: { $ne: "Published" },
+    })
+      .populate("createdBy", "name email")
+      .populate("approvedBy", "name")
+      .sort({ createdAt: -1 });
+
+    return res.json(events);
+  } catch (err) {
+    return res.status(500).json({
+      error: err.message,
+    });
+  }
+};
+
+// ==========================
 // GET EVENT BY ID
 // ==========================
 export const getEventById = async (req, res) => {
@@ -131,7 +151,6 @@ export const deleteEvent = async (req, res) => {
 
 // ==========================
 // SEND FOR APPROVAL
-// Tech Coordinator → Faculty Coordinator
 // ==========================
 export const sendForApproval = async (req, res) => {
   try {
@@ -185,7 +204,9 @@ export const approveEvent = async (req, res) => {
       });
     }
 
+    event.status = "Approved";
     event.approvedBy = req.user.id;
+
     await event.save();
 
     return res.json({
@@ -220,7 +241,7 @@ export const publishEvent = async (req, res) => {
       });
     }
 
-    if (event.status !== "Pending Approval") {
+    if (event.status !== "Approved") {
       return res.status(400).json({
         message: "Event must be approved before publishing",
       });

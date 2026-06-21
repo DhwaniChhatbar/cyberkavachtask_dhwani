@@ -22,7 +22,6 @@ const Sidebar = () => {
   const role = user?.role;
 
   const menuItems = [
-    // Dashboard
     {
       name: "Dashboard",
       icon: <MdDashboard />,
@@ -37,7 +36,6 @@ const Sidebar = () => {
       ],
     },
 
-    // Leaderboard
     {
       name: "Leaderboard",
       icon: <FaTrophy />,
@@ -52,7 +50,6 @@ const Sidebar = () => {
       ],
     },
 
-    // Profile
     {
       name: "Profile",
       icon: <FaUser />,
@@ -67,7 +64,6 @@ const Sidebar = () => {
       ],
     },
 
-    // Requests
     {
       name: "Requests",
       icon: <FaClipboardList />,
@@ -170,7 +166,18 @@ const Sidebar = () => {
       ],
     },
 
-    // Student + Faculty
+    // NEW: Publish Events
+    {
+      name: "Publish Events",
+      icon: <FaCheckCircle />,
+      path: "/publish-events",
+      roles: [
+        "Faculty Coordinator",
+        "Student Coordinator",
+      ],
+    },
+
+    // Points
     {
       name: "Points History",
       icon: <FaHistory />,

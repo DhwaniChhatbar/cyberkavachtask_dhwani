@@ -122,6 +122,7 @@ const eventSchema = new mongoose.Schema(
       enum: [
         "Draft",
         "Pending Approval",
+        "Approved",
         "Published",
       ],
       default: "Draft",

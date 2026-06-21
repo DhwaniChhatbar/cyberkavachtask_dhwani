@@ -8,6 +8,7 @@ import {
   deleteEvent,
   sendForApproval,
   publishEvent,
+  getPendingEvents,
 } from "../controllers/eventController.js";
 
 import { protect } from "../middleware/authMiddleware.js";
@@ -38,6 +39,20 @@ const canPublishEvents = [
  * ==========================
  */
 router.get("/", getEvents);
+
+/**
+ * ==========================
+ * GET PENDING EVENTS
+ * Faculty Coordinator
+ * Student Coordinator
+ * ==========================
+ */
+router.get(
+  "/pending",
+  protect,
+  authorizeRoles(...canPublishEvents),
+  getPendingEvents
+);
 
 /**
  * ==========================
