@@ -36,9 +36,7 @@ const eventSchema = new mongoose.Schema(
     // ==========================
     // REGISTRATION
     // ==========================
-    registrationDeadline: {
-      type: Date,
-    },
+    registrationDeadline: Date,
 
     registrationLink: {
       type: String,
@@ -77,15 +75,8 @@ const eventSchema = new mongoose.Schema(
       default: "General",
     },
 
-    tags: [
-      {
-        type: String,
-      },
-    ],
+    tags: [{ type: String }],
 
-    // ==========================
-    // RULES & MEDIA
-    // ==========================
     rules: {
       type: String,
       default: "",
@@ -110,22 +101,37 @@ const eventSchema = new mongoose.Schema(
       ref: "User",
     },
 
-    approvalDate: {
-      type: Date,
+    publishedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
     },
 
+    approvalDate: Date,
+    publishDate: Date,
+
     // ==========================
-    // WORKFLOW
+    // WORKFLOW CONTROL (IMPORTANT)
     // ==========================
     status: {
       type: String,
       enum: [
-        "Draft",
-        "Pending Approval",
-        "Approved",
-        "Published",
+        "Draft",                  // Tech creating
+        "Pending Faculty Review", // sent by Tech
+        "Approved by Faculty",    // Faculty approved
+        "Pending Publish",        // sent to Student
+        "Published",              // LIVE
+        "Rejected",               // optional safety
       ],
       default: "Draft",
+    },
+
+    // ==========================
+    // ROLE TRACKING (STRICT FLOW)
+    // ==========================
+    workflow: {
+      submittedByTech: { type: Boolean, default: false },
+      facultyReviewed: { type: Boolean, default: false },
+      studentPublished: { type: Boolean, default: false },
     },
 
     isCompleted: {
@@ -134,7 +140,7 @@ const eventSchema = new mongoose.Schema(
     },
 
     // ==========================
-    // CERTIFICATE CONTROL
+    // CERTIFICATES
     // ==========================
     certificatesEnabled: {
       type: Boolean,

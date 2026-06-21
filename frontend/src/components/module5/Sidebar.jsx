@@ -18,8 +18,8 @@ import {
 } from "react-icons/fa";
 
 const Sidebar = () => {
-  const user = JSON.parse(localStorage.getItem("user"));
-  const role = user?.role;
+  const user = JSON.parse(localStorage.getItem("user") || "null");
+  const role = user?.role?.trim();
 
   const menuItems = [
     {
@@ -35,7 +35,6 @@ const Sidebar = () => {
         "Member",
       ],
     },
-
     {
       name: "Leaderboard",
       icon: <FaTrophy />,
@@ -49,7 +48,6 @@ const Sidebar = () => {
         "Member",
       ],
     },
-
     {
       name: "Profile",
       icon: <FaUser />,
@@ -63,7 +61,6 @@ const Sidebar = () => {
         "Member",
       ],
     },
-
     {
       name: "Requests",
       icon: <FaClipboardList />,
@@ -77,7 +74,6 @@ const Sidebar = () => {
         "Member",
       ],
     },
-
     {
       name: "Approvals",
       icon: <FaCheckCircle />,
@@ -86,11 +82,9 @@ const Sidebar = () => {
         "Faculty Coordinator",
         "Student Coordinator",
         "Tech Coordinator",
-        "Content Coordinator",
         "Social Media Coordinator",
       ],
     },
-
     {
       name: "Request History",
       icon: <FaHistory />,
@@ -104,7 +98,6 @@ const Sidebar = () => {
         "Member",
       ],
     },
-
     {
       name: "Notifications",
       icon: <FaBell />,
@@ -118,8 +111,6 @@ const Sidebar = () => {
         "Member",
       ],
     },
-
-    // Certificates
     {
       name: "Certificates",
       icon: <FaCertificate />,
@@ -131,18 +122,12 @@ const Sidebar = () => {
         "Member",
       ],
     },
-
     {
       name: "Generate Certificate",
       icon: <FaCertificate />,
       path: "/generate-certificate",
-      roles: [
-        "Faculty Coordinator",
-        "Student Coordinator",
-      ],
+      roles: ["Faculty Coordinator", "Student Coordinator"],
     },
-
-    // Events
     {
       name: "Events",
       icon: <FaCalendar />,
@@ -155,18 +140,13 @@ const Sidebar = () => {
       ],
     },
 
+    // ✅ ONLY TECH COORDINATOR
     {
       name: "Create Event",
       icon: <FaPlusCircle />,
       path: "/create-event",
-      roles: [
-        "Faculty Coordinator",
-        "Student Coordinator",
-        "Tech Coordinator",
-      ],
+      roles: ["Tech Coordinator"],
     },
-
-    // Tech Coordinator
     {
       name: "Send For Approval",
       icon: <FaCheckCircle />,
@@ -174,7 +154,7 @@ const Sidebar = () => {
       roles: ["Tech Coordinator"],
     },
 
-    // Faculty Coordinator
+    // ✅ ONLY FACULTY COORDINATOR
     {
       name: "Approve Events",
       icon: <FaCheckCircle />,
@@ -182,7 +162,7 @@ const Sidebar = () => {
       roles: ["Faculty Coordinator"],
     },
 
-    // Student Coordinator
+    // ✅ ONLY STUDENT COORDINATOR
     {
       name: "Publish Events",
       icon: <FaCheckCircle />,
@@ -190,32 +170,24 @@ const Sidebar = () => {
       roles: ["Student Coordinator"],
     },
 
-    // Points
     {
       name: "Points History",
       icon: <FaHistory />,
       path: "/points-history",
-      roles: [
-        "Faculty Coordinator",
-        "Student Coordinator",
-      ],
+      roles: ["Faculty Coordinator", "Student Coordinator"],
     },
-
-    // Faculty only
     {
       name: "Assign Points",
       icon: <FaAward />,
       path: "/assign-points",
       roles: ["Faculty Coordinator"],
     },
-
     {
       name: "Analytics",
       icon: <FaChartBar />,
       path: "/analytics",
       roles: ["Faculty Coordinator"],
     },
-
     {
       name: "Audit Logs",
       icon: <FaShieldAlt />,
