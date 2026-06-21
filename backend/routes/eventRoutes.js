@@ -34,14 +34,14 @@ const canPublishEvents = [
 
 /**
  * ==========================
- * GET ALL EVENTS (PUBLIC OK)
+ * GET ALL EVENTS
  * ==========================
  */
 router.get("/", getEvents);
 
 /**
  * ==========================
- * GET SINGLE EVENT (PUBLIC OK)
+ * GET SINGLE EVENT
  * ==========================
  */
 router.get("/:id", getEventById);
@@ -49,6 +49,9 @@ router.get("/:id", getEventById);
 /**
  * ==========================
  * CREATE EVENT
+ * Faculty Coordinator
+ * Student Coordinator
+ * Tech Coordinator
  * ==========================
  */
 router.post(
@@ -62,6 +65,9 @@ router.post(
 /**
  * ==========================
  * UPDATE EVENT
+ * Faculty Coordinator
+ * Student Coordinator
+ * Tech Coordinator
  * ==========================
  */
 router.put(
@@ -75,6 +81,7 @@ router.put(
 /**
  * ==========================
  * DELETE EVENT
+ * Faculty Coordinator only
  * ==========================
  */
 router.delete(
@@ -87,6 +94,9 @@ router.delete(
 /**
  * ==========================
  * SEND FOR APPROVAL
+ * Faculty Coordinator
+ * Student Coordinator
+ * Tech Coordinator
  * ==========================
  */
 router.put(
@@ -99,6 +109,8 @@ router.put(
 /**
  * ==========================
  * PUBLISH EVENT
+ * Faculty Coordinator
+ * Student Coordinator
  * ==========================
  */
 router.put(

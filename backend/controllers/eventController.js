@@ -131,6 +131,7 @@ export const deleteEvent = async (req, res) => {
 
 // ==========================
 // SEND FOR APPROVAL
+// Tech Coordinator → Faculty Coordinator
 // ==========================
 export const sendForApproval = async (req, res) => {
   try {
@@ -152,7 +153,46 @@ export const sendForApproval = async (req, res) => {
 
     await event.save();
 
-    return res.json(event);
+    return res.json({
+      success: true,
+      message: "Event sent for approval",
+      event,
+    });
+  } catch (err) {
+    return res.status(500).json({
+      error: err.message,
+    });
+  }
+};
+
+// ==========================
+// APPROVE EVENT
+// Faculty Coordinator
+// ==========================
+export const approveEvent = async (req, res) => {
+  try {
+    const event = await Event.findById(req.params.id);
+
+    if (!event) {
+      return res.status(404).json({
+        message: "Event not found",
+      });
+    }
+
+    if (event.status !== "Pending Approval") {
+      return res.status(400).json({
+        message: "Event must be pending approval",
+      });
+    }
+
+    event.approvedBy = req.user.id;
+    await event.save();
+
+    return res.json({
+      success: true,
+      message: "Event approved successfully",
+      event,
+    });
   } catch (err) {
     return res.status(500).json({
       error: err.message,
@@ -162,6 +202,7 @@ export const sendForApproval = async (req, res) => {
 
 // ==========================
 // PUBLISH EVENT
+// Student Coordinator
 // ==========================
 export const publishEvent = async (req, res) => {
   try {
@@ -173,20 +214,20 @@ export const publishEvent = async (req, res) => {
       });
     }
 
-    if (
-      req.user.role !== "Student Coordinator" &&
-      req.user.role !== "Faculty Coordinator"
-    ) {
+    if (req.user.role !== "Student Coordinator") {
       return res.status(403).json({
-        message: "Not authorized to publish events",
+        message: "Only Student Coordinator can publish events",
+      });
+    }
+
+    if (event.status !== "Pending Approval") {
+      return res.status(400).json({
+        message: "Event must be approved before publishing",
       });
     }
 
     event.status = "Published";
-    event.approvedBy = req.user.id;
     event.approvalDate = new Date();
-
-    // enable certificate generation for this event
     event.certificatesEnabled = true;
 
     await event.save();
@@ -194,6 +235,35 @@ export const publishEvent = async (req, res) => {
     return res.json({
       success: true,
       message: "Event published successfully",
+      event,
+    });
+  } catch (err) {
+    return res.status(500).json({
+      error: err.message,
+    });
+  }
+};
+
+// ==========================
+// COMPLETE EVENT
+// ==========================
+export const completeEvent = async (req, res) => {
+  try {
+    const event = await Event.findById(req.params.id);
+
+    if (!event) {
+      return res.status(404).json({
+        message: "Event not found",
+      });
+    }
+
+    event.isCompleted = true;
+
+    await event.save();
+
+    return res.json({
+      success: true,
+      message: "Event marked as completed",
       event,
     });
   } catch (err) {
