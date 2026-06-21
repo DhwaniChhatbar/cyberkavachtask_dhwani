@@ -131,6 +131,14 @@ const eventSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+
+    // ==========================
+    // CERTIFICATE CONTROL
+    // ==========================
+    certificatesEnabled: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,

@@ -6,7 +6,9 @@ const CertificatePreview = ({
   eventName,
   certificateId,
 }) => {
-  const verifyUrl = `${window.location.origin}/verify-certificate/${certificateId}`;
+  const verifyUrl = certificateId
+    ? `${window.location.origin}/verify-certificate/${certificateId}`
+    : "";
 
   return (
     <div className="bg-white text-black rounded-2xl p-10 shadow-xl border-4 border-blue-600">
@@ -20,7 +22,7 @@ const CertificatePreview = ({
         This certificate is proudly awarded to
       </div>
 
-      {/* Student Name */}
+      {/* Participant Name */}
       <div className="text-4xl font-bold text-center mt-6">
         {name || "Participant"}
       </div>
@@ -36,7 +38,12 @@ const CertificatePreview = ({
 
       {/* Date */}
       <div className="text-center mt-8 text-gray-600">
-        Issued on: {new Date().toLocaleDateString()}
+        Issued on:{" "}
+        {new Date().toLocaleDateString("en-IN", {
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+        })}
       </div>
 
       {/* Certificate ID */}
@@ -45,18 +52,22 @@ const CertificatePreview = ({
       </div>
 
       {/* QR Code */}
-      <div className="flex justify-center mt-8">
-        <QRCodeSVG
-          value={verifyUrl}
-          size={120}
-        />
-      </div>
+      {certificateId && (
+        <>
+          <div className="flex justify-center mt-8">
+            <QRCodeSVG
+              value={verifyUrl}
+              size={120}
+            />
+          </div>
 
-      <div className="text-center text-sm text-gray-500 mt-3">
-        Scan to verify certificate
-      </div>
+          <div className="text-center text-sm text-gray-500 mt-3">
+            Scan to verify certificate
+          </div>
+        </>
+      )}
 
-      {/* Signature Section */}
+      {/* Signatures */}
       <div className="flex justify-between items-end mt-16">
 
         <div>
@@ -74,6 +85,12 @@ const CertificatePreview = ({
         </div>
 
       </div>
+
+      {/* Footer */}
+      <div className="text-center mt-12 text-sm text-gray-500">
+        This certificate is digitally verifiable and issued through CyberKavach Event Management System.
+      </div>
+
     </div>
   );
 };

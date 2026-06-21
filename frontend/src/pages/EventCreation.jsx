@@ -1,27 +1,31 @@
 import React from "react";
-import axios from "axios";
+import api from "../utils/api";
 import EventForm from "../components/module3/EventForm";
 
 const CreateEvent = () => {
   const handleCreateEvent = async (formData) => {
     try {
-      const token = localStorage.getItem("token");
-
-      const res = await axios.post(
-        "http://localhost:5000/api/events",
+      const res = await api.post(
+        "/events",
         formData,
         {
           headers: {
-            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
           },
         }
       );
 
       alert("Event created successfully");
+
       console.log(res.data);
     } catch (error) {
       console.error("Error creating event:", error);
-      alert("Failed to create event");
+
+      alert(
+        error.response?.data?.message ||
+          error.response?.data?.error ||
+          "Failed to create event"
+      );
     }
   };
 

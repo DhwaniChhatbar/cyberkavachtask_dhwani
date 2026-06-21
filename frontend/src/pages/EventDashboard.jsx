@@ -8,8 +8,8 @@ import ParticipantTable from "../components/module3/ParticipantTable";
 const EventDashboard = () => {
   const [events, setEvents] = useState([]);
   const [participants, setParticipants] = useState([]);
+  const [totalCapacity, setTotalCapacity] = useState(100);
 
-  // Fetch events
   useEffect(() => {
     fetchEvents();
     fetchParticipants();
@@ -17,26 +17,57 @@ const EventDashboard = () => {
 
   const fetchEvents = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/events");
-      setEvents(res.data || []);
+      const token = localStorage.getItem("token");
+
+      const res = await axios.get(
+        "http://localhost:5000/api/events",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const eventData = res.data || [];
+
+      setEvents(eventData);
+
+      // total capacity of all events
+      const capacity = eventData.reduce(
+        (sum, event) => sum + (event.capacity || 0),
+        0
+      );
+
+      setTotalCapacity(capacity || 100);
     } catch (err) {
-      console.error(err);
+      console.error("Error fetching events:", err);
     }
   };
 
-  // 🔥 placeholder (replace with real API later if needed)
   const fetchParticipants = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/teams");
-      const formatted = (res.data || []).map((t) => ({
-        name: t.leaderName || "N/A",
-        email: t.leaderEmail || "N/A",
-        team: t.teamId,
+      const token = localStorage.getItem("token");
+
+      const res = await axios.get(
+        "http://localhost:5000/api/teams",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const teams = res.data || [];
+
+      const formatted = teams.map((team) => ({
+        name: team.leaderName || "N/A",
+        email: team.leaderEmail || "N/A",
+        team: team.teamId || "N/A",
       }));
 
       setParticipants(formatted);
     } catch (err) {
-      console.error(err);
+      console.error("Error fetching teams:", err);
     }
   };
 
@@ -49,7 +80,7 @@ const EventDashboard = () => {
         Event Dashboard
       </h1>
 
-      {/* SIMPLE STATS */}
+      {/* Stats */}
       <div className="grid md:grid-cols-3 gap-5 mb-8">
 
         <AnalyticsCard
@@ -69,15 +100,15 @@ const EventDashboard = () => {
 
       </div>
 
-      {/* CAPACITY */}
+      {/* Capacity */}
       <div className="mb-8">
         <CapacityIndicator
           current={participants.length}
-          total={100}
+          total={totalCapacity}
         />
       </div>
 
-      {/* TABLE */}
+      {/* Participant Table */}
       <ParticipantTable participants={participants} />
 
     </div>

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
+import VerifyResultCard from "../components/module2/VerifyResultCard";
 
 const VerifyCertificate = () => {
   const [certificateId, setCertificateId] = useState("");
@@ -10,17 +11,17 @@ const VerifyCertificate = () => {
   const handleVerify = async (e) => {
     e.preventDefault();
 
+    const id = certificateId.trim();
+
+    if (!id) {
+      setError("Please enter a certificate ID");
+      return;
+    }
+
     try {
       setLoading(true);
       setError("");
       setCertificate(null);
-
-      const id = certificateId.trim();
-
-      if (!id) {
-        setError("Please enter a certificate ID");
-        return;
-      }
 
       const res = await axios.get(
         `http://localhost:5000/api/certificates/verify/${id}`
@@ -67,7 +68,7 @@ const VerifyCertificate = () => {
             disabled={loading}
             className={`w-full p-3 rounded-lg ${
               loading
-                ? "bg-gray-600"
+                ? "bg-gray-600 cursor-not-allowed"
                 : "bg-blue-600 hover:bg-blue-700"
             }`}
           >
@@ -83,43 +84,8 @@ const VerifyCertificate = () => {
         )}
 
         {certificate && (
-          <div className="bg-gray-800 mt-6 p-6 rounded-xl">
-
-            <h2 className="text-2xl font-bold mb-4 text-green-400">
-              Certificate Verified ✅
-            </h2>
-
-            <div className="space-y-3">
-
-              <p>
-                <strong>Name:</strong>{" "}
-                {certificate.user?.name || "N/A"}
-              </p>
-
-              <p>
-                <strong>Event:</strong>{" "}
-                {certificate.eventName}
-              </p>
-
-              <p>
-                <strong>Certificate ID:</strong>{" "}
-                {certificate.certificateId}
-              </p>
-
-              <p>
-                <strong>Issued By:</strong>{" "}
-                {certificate.issuedBy?.name || "N/A"}
-              </p>
-
-              <p>
-                <strong>Issued On:</strong>{" "}
-                {new Date(
-                  certificate.createdAt
-                ).toLocaleDateString()}
-              </p>
-
-            </div>
-
+          <div className="mt-6">
+            <VerifyResultCard certificate={certificate} />
           </div>
         )}
 

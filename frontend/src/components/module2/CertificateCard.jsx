@@ -43,7 +43,11 @@ const CertificateCard = ({ certificate }) => {
         certificate.user?.name || "",
         certificate.eventName || "",
         certificate.issuedBy?.name || "",
-        new Date(certificate.createdAt).toLocaleDateString(),
+        certificate.createdAt
+          ? new Date(
+              certificate.createdAt
+            ).toLocaleDateString()
+          : "",
       ],
     ];
 
@@ -72,7 +76,7 @@ const CertificateCard = ({ certificate }) => {
   return (
     <div className="bg-gray-900 rounded-2xl p-5 shadow-lg border border-gray-800">
 
-      {/* Certificate Preview */}
+      {/* Certificate */}
       <div
         id={`certificate-${certificate._id}`}
         className="bg-white text-black p-10 rounded-xl border-8 border-blue-600"
@@ -110,11 +114,18 @@ const CertificateCard = ({ certificate }) => {
               <strong>Date Issued:</strong>
             </p>
             <p>
-              {new Date(
-                certificate.createdAt
-              ).toLocaleDateString()}
+              {certificate.createdAt
+                ? new Date(
+                    certificate.createdAt
+                  ).toLocaleDateString()
+                : "N/A"}
             </p>
           </div>
+        </div>
+
+        <div className="mt-10 text-right text-sm text-gray-600">
+          Issued by:{" "}
+          {certificate.issuedBy?.name || "Faculty Coordinator"}
         </div>
       </div>
 

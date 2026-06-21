@@ -22,12 +22,15 @@ export const createEvent = async (req, res) => {
       poster: req.file ? req.file.filename : "",
       status: "Draft",
       registrationCount: 0,
+      certificatesEnabled: false,
       registrationLink: `http://localhost:5173/register-event/${Date.now()}`,
     });
 
     return res.status(201).json(event);
   } catch (err) {
-    return res.status(500).json({ error: err.message });
+    return res.status(500).json({
+      error: err.message,
+    });
   }
 };
 
@@ -43,7 +46,9 @@ export const getEvents = async (req, res) => {
 
     return res.json(events);
   } catch (err) {
-    return res.status(500).json({ error: err.message });
+    return res.status(500).json({
+      error: err.message,
+    });
   }
 };
 
@@ -64,7 +69,9 @@ export const getEventById = async (req, res) => {
 
     return res.json(event);
   } catch (err) {
-    return res.status(500).json({ error: err.message });
+    return res.status(500).json({
+      error: err.message,
+    });
   }
 };
 
@@ -82,13 +89,18 @@ export const updateEvent = async (req, res) => {
     }
 
     Object.assign(event, req.body);
-    event.updatedBy = req.user.id;
+
+    if (req.file) {
+      event.poster = req.file.filename;
+    }
 
     await event.save();
 
     return res.json(event);
   } catch (err) {
-    return res.status(500).json({ error: err.message });
+    return res.status(500).json({
+      error: err.message,
+    });
   }
 };
 
@@ -111,7 +123,9 @@ export const deleteEvent = async (req, res) => {
       message: "Event deleted successfully",
     });
   } catch (err) {
-    return res.status(500).json({ error: err.message });
+    return res.status(500).json({
+      error: err.message,
+    });
   }
 };
 
@@ -135,11 +149,14 @@ export const sendForApproval = async (req, res) => {
     }
 
     event.status = "Pending Approval";
+
     await event.save();
 
     return res.json(event);
   } catch (err) {
-    return res.status(500).json({ error: err.message });
+    return res.status(500).json({
+      error: err.message,
+    });
   }
 };
 
@@ -156,15 +173,21 @@ export const publishEvent = async (req, res) => {
       });
     }
 
-    if (req.user.role !== "Student Coordinator") {
+    if (
+      req.user.role !== "Student Coordinator" &&
+      req.user.role !== "Faculty Coordinator"
+    ) {
       return res.status(403).json({
-        message: "Only Student Coordinator can publish events",
+        message: "Not authorized to publish events",
       });
     }
 
     event.status = "Published";
     event.approvedBy = req.user.id;
     event.approvalDate = new Date();
+
+    // enable certificate generation for this event
+    event.certificatesEnabled = true;
 
     await event.save();
 
@@ -174,6 +197,8 @@ export const publishEvent = async (req, res) => {
       event,
     });
   } catch (err) {
-    return res.status(500).json({ error: err.message });
+    return res.status(500).json({
+      error: err.message,
+    });
   }
 };
