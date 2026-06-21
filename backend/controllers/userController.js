@@ -7,6 +7,7 @@ export const searchUsers = async (req, res) => {
 
     if (!query) {
       return res.status(400).json({
+        success: false,
         message: "Search query is required",
       });
     }

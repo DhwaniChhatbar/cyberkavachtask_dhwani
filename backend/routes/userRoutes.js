@@ -34,6 +34,18 @@ router.get(
 
 /**
  * ==========================
+ * FAST USER COUNT
+ * ==========================
+ * MUST be above "/:id"
+ */
+router.get(
+  "/count",
+  protect,
+  getUserCount
+);
+
+/**
+ * ==========================
  * GET ALL USERS
  * ==========================
  * Faculty Coordinator only
@@ -43,17 +55,6 @@ router.get(
   protect,
   authorizeRoles(...facultyOnly),
   getAllUsers
-);
-
-/**
- * ==========================
- * FAST USER COUNT
- * ==========================
- */
-router.get(
-  "/count",
-  protect,
-  getUserCount
 );
 
 /**
