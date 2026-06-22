@@ -16,7 +16,6 @@ leaderName,
 leaderEmail,
 } = req.body;
 
-```
 const existingTeam = await Team.findOne({
   teamName,
   event,
@@ -93,7 +92,6 @@ res.status(201).json({
   message: "Team created successfully",
   team,
 });
-```
 
 } catch (err) {
 res.status(500).json({
@@ -114,9 +112,7 @@ const teams = await Team.find()
 .populate("members", "name email")
 .sort({ createdAt: -1 });
 
-```
 res.json(teams);
-```
 
 } catch (err) {
 res.status(500).json({
@@ -135,7 +131,6 @@ const team = await Team.findById(req.params.id)
 .populate("leader", "name email")
 .populate("members", "name email");
 
-```
 if (!team) {
   return res.status(404).json({
     message: "Team not found",
@@ -143,7 +138,6 @@ if (!team) {
 }
 
 res.json(team);
-```
 
 } catch (err) {
 res.status(500).json({
@@ -163,7 +157,6 @@ req.body,
 { new: true }
 );
 
-```
 if (!team) {
   return res.status(404).json({
     message: "Team not found",
@@ -171,7 +164,6 @@ if (!team) {
 }
 
 res.json(team);
-```
 
 } catch (err) {
 res.status(500).json({
@@ -187,7 +179,6 @@ export const deleteTeam = async (req, res) => {
 try {
 const team = await Team.findById(req.params.id);
 
-```
 if (!team) {
   return res.status(404).json({
     message: "Team not found",
@@ -200,7 +191,6 @@ res.json({
   success: true,
   message: "Team deleted successfully",
 });
-```
 
 } catch (err) {
 res.status(500).json({
