@@ -24,11 +24,16 @@ const EventDashboard = () => {
     try {
       const token = localStorage.getItem("token");
 
+      console.log("API_URL =", API_URL);
+      console.log("Fetching:", `${API_URL}/api/events`);
+
       const res = await axios.get(`${API_URL}/api/events`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
+
+      console.log("Events API Response:", res.data);
 
       const eventData = Array.isArray(res.data)
         ? res.data
@@ -51,11 +56,15 @@ const EventDashboard = () => {
     try {
       const token = localStorage.getItem("token");
 
+      console.log("Fetching:", `${API_URL}/api/teams`);
+
       const res = await axios.get(`${API_URL}/api/teams`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
+
+      console.log("Teams API Response:", res.data);
 
       const teams = Array.isArray(res.data)
         ? res.data
