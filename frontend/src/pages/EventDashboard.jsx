@@ -5,7 +5,12 @@ import AnalyticsCard from "../components/module3/AnalyticsCard";
 import CapacityIndicator from "../components/module3/CapacityIndicator";
 import ParticipantTable from "../components/module3/ParticipantTable";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 const EventDashboard = () => {
+  const user = JSON.parse(localStorage.getItem("user") || "null");
+  const role = user?.role?.trim();
+
   const [events, setEvents] = useState([]);
   const [participants, setParticipants] = useState([]);
   const [totalCapacity, setTotalCapacity] = useState(100);
@@ -19,16 +24,11 @@ const EventDashboard = () => {
     try {
       const token = localStorage.getItem("token");
 
-      const res = await axios.get(
-        "http://localhost:5000/api/events",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      console.log("Events API Response:", res.data);
+      const res = await axios.get(`${API_URL}/api/events`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       const eventData = Array.isArray(res.data)
         ? res.data
@@ -51,16 +51,11 @@ const EventDashboard = () => {
     try {
       const token = localStorage.getItem("token");
 
-      const res = await axios.get(
-        "http://localhost:5000/api/teams",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      console.log("Teams API Response:", res.data);
+      const res = await axios.get(`${API_URL}/api/teams`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       const teams = Array.isArray(res.data)
         ? res.data
@@ -80,9 +75,34 @@ const EventDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-950 text-white p-6">
-      <h1 className="text-3xl font-bold mb-8">
-        Event Dashboard
-      </h1>
+      <h1 className="text-3xl font-bold mb-8">Event Dashboard</h1>
+
+      {/* Role Actions */}
+      <div className="flex flex-wrap gap-4 mb-8">
+        {role === "Tech Coordinator" && (
+          <>
+            <button className="bg-blue-600 px-5 py-2 rounded-lg hover:bg-blue-700">
+              Create Event
+            </button>
+
+            <button className="bg-yellow-600 px-5 py-2 rounded-lg hover:bg-yellow-700">
+              Send For Approval
+            </button>
+          </>
+        )}
+
+        {role === "Faculty Coordinator" && (
+          <button className="bg-green-600 px-5 py-2 rounded-lg hover:bg-green-700">
+            Approve Pending Events
+          </button>
+        )}
+
+        {role === "Student Coordinator" && (
+          <button className="bg-purple-600 px-5 py-2 rounded-lg hover:bg-purple-700">
+            Publish Approved Events
+          </button>
+        )}
+      </div>
 
       <div className="grid md:grid-cols-3 gap-5 mb-8">
         <AnalyticsCard

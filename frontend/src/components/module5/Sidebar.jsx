@@ -1,5 +1,5 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { MdDashboard } from "react-icons/md";
 import {
   FaAward,
@@ -18,7 +18,16 @@ import {
 } from "react-icons/fa";
 
 const Sidebar = () => {
-  const user = JSON.parse(localStorage.getItem("user") || "null");
+  const navigate = useNavigate();
+
+  let user = null;
+
+  try {
+    user = JSON.parse(localStorage.getItem("user"));
+  } catch {
+    user = null;
+  }
+
   const role = user?.role?.trim();
 
   const menuItems = [
@@ -138,6 +147,7 @@ const Sidebar = () => {
       roles: ["Faculty Coordinator", "Student Coordinator"],
     },
 
+    // EVENTS
     {
       name: "Events",
       icon: <FaCalendar />,
@@ -150,7 +160,7 @@ const Sidebar = () => {
       ],
     },
 
-    // ✅ FIXED: ONLY TECH COORDINATOR
+    // ONLY TECH COORDINATOR
     {
       name: "Create Event",
       icon: <FaPlusCircle />,
@@ -165,22 +175,7 @@ const Sidebar = () => {
       roles: ["Tech Coordinator"],
     },
 
-    // ✅ FIXED: ONLY FACULTY COORDINATOR
-    {
-      name: "Approve Events",
-      icon: <FaCheckCircle />,
-      path: "/approve-events",
-      roles: ["Faculty Coordinator"],
-    },
-
-    // ✅ FIXED: ONLY STUDENT COORDINATOR
-    {
-      name: "Publish Events",
-      icon: <FaCheckCircle />,
-      path: "/publish-events",
-      roles: ["Student Coordinator"],
-    },
-
+    // POINTS
     {
       name: "Points History",
       icon: <FaHistory />,
@@ -195,6 +190,7 @@ const Sidebar = () => {
       roles: ["Faculty Coordinator"],
     },
 
+    // ADMIN
     {
       name: "Analytics",
       icon: <FaChartBar />,
@@ -236,7 +232,7 @@ const Sidebar = () => {
             onClick={() => {
               localStorage.removeItem("token");
               localStorage.removeItem("user");
-              window.location.href = "/login";
+              navigate("/login");
             }}
           >
             <FaSignOutAlt />
