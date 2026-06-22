@@ -7,6 +7,7 @@ import {
   updateEvent,
   deleteEvent,
   sendForApproval,
+  approveEvent,
   publishEvent,
   getPendingEvents,
 } from "../controllers/eventController.js";
@@ -19,20 +20,15 @@ const router = express.Router();
 
 /**
  * ==========================
- * ROLE DEFINITIONS (STRICT FLOW)
+ * ROLE DEFINITIONS
  * ==========================
  */
-
-// Only Tech Coordinator can create & submit
 const techOnly = ["Tech Coordinator"];
 
-// Faculty only approves
 const facultyOnly = ["Faculty Coordinator"];
 
-// Student only publishes
 const studentOnly = ["Student Coordinator"];
 
-// For viewing/managing (safe read access)
 const allCoordinators = [
   "Faculty Coordinator",
   "Student Coordinator",
@@ -42,21 +38,27 @@ const allCoordinators = [
 /**
  * ==========================
  * GET ALL EVENTS
- * (AUTH REQUIRED — prevent data leak)
  * ==========================
  */
-router.get("/", protect, authorizeRoles(...allCoordinators), getEvents);
+router.get(
+  "/",
+  protect,
+  authorizeRoles(...allCoordinators),
+  getEvents
+);
 
 /**
  * ==========================
  * GET PENDING EVENTS
- * Faculty + Student only (as per your UI)
  * ==========================
  */
 router.get(
   "/pending",
   protect,
-  authorizeRoles("Faculty Coordinator", "Student Coordinator"),
+  authorizeRoles(
+    "Faculty Coordinator",
+    "Student Coordinator"
+  ),
   getPendingEvents
 );
 
@@ -74,7 +76,7 @@ router.get(
 
 /**
  * ==========================
- * CREATE EVENT (TECH ONLY)
+ * CREATE EVENT
  * ==========================
  */
 router.post(
@@ -87,7 +89,7 @@ router.post(
 
 /**
  * ==========================
- * UPDATE EVENT (TECH ONLY + SAFE)
+ * UPDATE EVENT
  * ==========================
  */
 router.put(
@@ -100,7 +102,7 @@ router.put(
 
 /**
  * ==========================
- * DELETE EVENT (FACULTY ONLY - SAFE CONTROL)
+ * DELETE EVENT
  * ==========================
  */
 router.delete(
@@ -112,7 +114,8 @@ router.delete(
 
 /**
  * ==========================
- * SEND FOR APPROVAL (TECH ONLY)
+ * SEND FOR APPROVAL
+ * Draft → Pending Faculty Review
  * ==========================
  */
 router.put(
@@ -124,7 +127,21 @@ router.put(
 
 /**
  * ==========================
- * PUBLISH EVENT (STUDENT ONLY)
+ * APPROVE EVENT
+ * Pending Faculty Review → Approved by Faculty
+ * ==========================
+ */
+router.put(
+  "/approve/:id",
+  protect,
+  authorizeRoles(...facultyOnly),
+  approveEvent
+);
+
+/**
+ * ==========================
+ * PUBLISH EVENT
+ * Approved by Faculty → Published
  * ==========================
  */
 router.put(
