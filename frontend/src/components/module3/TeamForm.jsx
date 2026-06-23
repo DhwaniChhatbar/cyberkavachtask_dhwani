@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 
 const emptyPerson = {
   fullName: "",
@@ -8,22 +8,27 @@ const emptyPerson = {
   institute: "",
 };
 
-const TeamForm = ({ onSubmit, initialTeamName = "" }) => {
+const TeamForm = ({
+  onSubmit,
+  initialTeamName = "",
+  teamSize = 4, // IMPORTANT: pass from Event
+}) => {
   const [teamName, setTeamName] = useState(initialTeamName);
 
-  // Leader details
   const [leaderDetails, setLeaderDetails] = useState({
     ...emptyPerson,
   });
 
-  // Team members
   const [members, setMembers] = useState([{ ...emptyPerson }]);
-
   const [previousEvent, setPreviousEvent] = useState("");
 
-  // ==========================
-  // LEADER CHANGE
-  // ==========================
+  // TOTAL = leader + members
+  const totalPeople = 1 + members.length;
+
+  const remainingSlots = useMemo(() => {
+    return Math.max(teamSize - totalPeople, 0);
+  }, [teamSize, totalPeople]);
+
   const handleLeaderChange = (e) => {
     setLeaderDetails({
       ...leaderDetails,
@@ -31,233 +36,115 @@ const TeamForm = ({ onSubmit, initialTeamName = "" }) => {
     });
   };
 
-  // ==========================
-  // MEMBER CHANGE
-  // ==========================
   const handleMemberChange = (index, e) => {
-    const updatedMembers = [...members];
-
-    updatedMembers[index] = {
-      ...updatedMembers[index],
-      [e.target.name]: e.target.value,
-    };
-
-    setMembers(updatedMembers);
+    const updated = [...members];
+    updated[index][e.target.name] = e.target.value;
+    setMembers(updated);
   };
 
   // ==========================
-  // ADD MEMBER
+  // ADD MEMBER (LIMIT FIXED)
   // ==========================
   const addMember = () => {
-    setMembers([
-      ...members,
-      {
-        ...emptyPerson,
-      },
-    ]);
+    if (totalPeople >= teamSize) return; // 🚨 HARD LIMIT
+
+    setMembers([...members, { ...emptyPerson }]);
   };
 
-  // ==========================
-  // REMOVE MEMBER
-  // ==========================
   const removeMember = (index) => {
-    const updatedMembers = members.filter(
-      (_, i) => i !== index
-    );
-
-    setMembers(updatedMembers);
+    setMembers(members.filter((_, i) => i !== index));
   };
 
-  // ==========================
-  // SUBMIT
-  // ==========================
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    // remove completely empty member cards
     const filteredMembers = members.filter(
-      (member) =>
-        member.fullName.trim() ||
-        member.email.trim() ||
-        member.collegeId.trim() ||
-        member.department.trim() ||
-        member.institute.trim()
+      (m) =>
+        m.fullName.trim() ||
+        m.email.trim() ||
+        m.collegeId.trim() ||
+        m.department.trim() ||
+        m.institute.trim()
     );
 
-    const payload = {
+    onSubmit({
       teamName,
       leaderDetails,
       members: filteredMembers,
       previousEvent,
-    };
-
-    if (onSubmit) {
-      onSubmit(payload);
-    }
-
-    // reset form
-    setTeamName("");
-    setLeaderDetails({
-      ...emptyPerson,
     });
 
-    setMembers([
-      {
-        ...emptyPerson,
-      },
-    ]);
-
+    setTeamName("");
+    setLeaderDetails({ ...emptyPerson });
+    setMembers([{ ...emptyPerson }]);
     setPreviousEvent("");
   };
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="bg-gray-900 p-6 rounded-2xl space-y-6"
-    >
+    <form className="bg-gray-900 p-6 rounded-2xl space-y-6" onSubmit={handleSubmit}>
+      
       {/* TEAM NAME */}
       <input
         type="text"
         placeholder="Team Name"
         value={teamName}
         onChange={(e) => setTeamName(e.target.value)}
-        className="w-full p-3 bg-gray-800 rounded-lg outline-none"
+        className="w-full p-3 bg-gray-800 rounded-lg"
         required
       />
 
-      {/* LEADER DETAILS */}
-      <div className="space-y-3">
-        <h2 className="text-xl font-bold text-white">
+      {/* LEADER */}
+      <div>
+        <h2 className="text-white font-bold mb-2">
           Leader Details
         </h2>
 
-        <input
-          type="text"
-          name="fullName"
-          placeholder="Leader Full Name"
-          value={leaderDetails.fullName}
-          onChange={handleLeaderChange}
-          className="w-full p-3 bg-gray-800 rounded-lg"
-          required
-        />
-
-        <input
-          type="email"
-          name="email"
-          placeholder="Leader Email"
-          value={leaderDetails.email}
-          onChange={handleLeaderChange}
-          className="w-full p-3 bg-gray-800 rounded-lg"
-          required
-        />
-
-        <input
-          type="text"
-          name="collegeId"
-          placeholder="Leader College ID"
-          value={leaderDetails.collegeId}
-          onChange={handleLeaderChange}
-          className="w-full p-3 bg-gray-800 rounded-lg"
-          required
-        />
-
-        <input
-          type="text"
-          name="department"
-          placeholder="Leader Department"
-          value={leaderDetails.department}
-          onChange={handleLeaderChange}
-          className="w-full p-3 bg-gray-800 rounded-lg"
-          required
-        />
-
-        <input
-          type="text"
-          name="institute"
-          placeholder="Leader Institute"
-          value={leaderDetails.institute}
-          onChange={handleLeaderChange}
-          className="w-full p-3 bg-gray-800 rounded-lg"
-          required
-        />
+        <input name="fullName" placeholder="Leader Full Name" value={leaderDetails.fullName} onChange={handleLeaderChange} className="w-full p-3 bg-gray-800 rounded-lg mb-2" />
+        <input name="email" placeholder="Leader Email" value={leaderDetails.email} onChange={handleLeaderChange} className="w-full p-3 bg-gray-800 rounded-lg mb-2" />
+        <input name="collegeId" placeholder="Leader College ID" value={leaderDetails.collegeId} onChange={handleLeaderChange} className="w-full p-3 bg-gray-800 rounded-lg mb-2" />
+        <input name="department" placeholder="Leader Department" value={leaderDetails.department} onChange={handleLeaderChange} className="w-full p-3 bg-gray-800 rounded-lg mb-2" />
+        <input name="institute" placeholder="Leader Institute" value={leaderDetails.institute} onChange={handleLeaderChange} className="w-full p-3 bg-gray-800 rounded-lg" />
       </div>
 
       {/* MEMBERS */}
-      <div className="space-y-4">
-        <h2 className="text-xl font-bold text-white">
+      <div>
+        <h2 className="text-white font-bold mb-2">
           Team Members
         </h2>
 
-        {members.map((member, index) => (
-          <div
-            key={index}
-            className="bg-gray-800 rounded-xl p-4 space-y-3"
-          >
-            <h3 className="font-semibold text-gray-300">
-              Member {index + 1}
-            </h3>
+        <p className="text-sm text-gray-400 mb-3">
+          Remaining slots: {remainingSlots}
+        </p>
 
-            <input
-              type="text"
-              name="fullName"
-              placeholder="Full Name"
-              value={member.fullName}
-              onChange={(e) => handleMemberChange(index, e)}
-              className="w-full p-3 bg-gray-700 rounded-lg"
-            />
-
-            <input
-              type="email"
-              name="email"
-              placeholder="Email"
-              value={member.email}
-              onChange={(e) => handleMemberChange(index, e)}
-              className="w-full p-3 bg-gray-700 rounded-lg"
-            />
-
-            <input
-              type="text"
-              name="collegeId"
-              placeholder="College ID"
-              value={member.collegeId}
-              onChange={(e) => handleMemberChange(index, e)}
-              className="w-full p-3 bg-gray-700 rounded-lg"
-            />
-
-            <input
-              type="text"
-              name="department"
-              placeholder="Department"
-              value={member.department}
-              onChange={(e) => handleMemberChange(index, e)}
-              className="w-full p-3 bg-gray-700 rounded-lg"
-            />
-
-            <input
-              type="text"
-              name="institute"
-              placeholder="Institute"
-              value={member.institute}
-              onChange={(e) => handleMemberChange(index, e)}
-              className="w-full p-3 bg-gray-700 rounded-lg"
-            />
+        {members.map((m, i) => (
+          <div key={i} className="bg-gray-800 p-4 rounded-xl mb-3">
+            
+            <input name="fullName" placeholder="Full Name" value={m.fullName} onChange={(e) => handleMemberChange(i, e)} className="w-full p-2 bg-gray-700 rounded mb-2" />
+            <input name="email" placeholder="Email" value={m.email} onChange={(e) => handleMemberChange(i, e)} className="w-full p-2 bg-gray-700 rounded mb-2" />
+            <input name="collegeId" placeholder="College ID" value={m.collegeId} onChange={(e) => handleMemberChange(i, e)} className="w-full p-2 bg-gray-700 rounded" />
 
             {members.length > 1 && (
               <button
                 type="button"
-                onClick={() => removeMember(index)}
-                className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg"
+                onClick={() => removeMember(i)}
+                className="text-red-400 mt-2"
               >
-                Remove Member
+                Remove
               </button>
             )}
           </div>
         ))}
 
+        {/* ADD BUTTON (LIMIT CONTROLLED) */}
         <button
           type="button"
           onClick={addMember}
-          className="bg-green-600 hover:bg-green-700 px-5 py-3 rounded-xl"
+          disabled={totalPeople >= teamSize}
+          className={`px-4 py-2 rounded ${
+            totalPeople >= teamSize
+              ? "bg-gray-600 cursor-not-allowed"
+              : "bg-green-600 hover:bg-green-700"
+          }`}
         >
           + Add Member
         </button>
@@ -266,7 +153,7 @@ const TeamForm = ({ onSubmit, initialTeamName = "" }) => {
       {/* PREVIOUS EVENT */}
       <input
         type="text"
-        placeholder="Previous Event (Optional)"
+        placeholder="Previous Event"
         value={previousEvent}
         onChange={(e) => setPreviousEvent(e.target.value)}
         className="w-full p-3 bg-gray-800 rounded-lg"
@@ -275,7 +162,7 @@ const TeamForm = ({ onSubmit, initialTeamName = "" }) => {
       {/* SUBMIT */}
       <button
         type="submit"
-        className="w-full bg-blue-600 hover:bg-blue-700 p-3 rounded-xl font-semibold"
+        className="w-full bg-blue-600 hover:bg-blue-700 p-3 rounded-xl"
       >
         Register Team
       </button>
