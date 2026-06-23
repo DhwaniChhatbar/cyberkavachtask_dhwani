@@ -7,6 +7,10 @@ import Layout from "./components/module5/Layout";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 
+// MODULE 4
+import AttendanceDashboard from "./pages/AttendanceDashboard";
+import AttendanceReport from "./pages/AttendanceReport";
+
 // MODULE 5
 import Dashboard from "./pages/Dashboard";
 import AssignPoints from "./pages/AssignPoints";
@@ -339,6 +343,39 @@ function App() {
           }
         />
 
+        {/* MODULE 4 */}
+
+        <Route
+          path="/attendance"
+          element={
+            <RoleRoute
+              allowedRoles={[
+                "Faculty Coordinator",
+                "Student Coordinator",
+              ]}
+            >
+              <Layout>
+                <AttendanceDashboard />
+              </Layout>
+            </RoleRoute>
+          }
+        />
+
+        <Route
+          path="/attendance-report"
+          element={
+            <RoleRoute
+              allowedRoles={[
+                "Faculty Coordinator",
+                "Student Coordinator",
+              ]}
+            >
+              <Layout>
+                <AttendanceReport />
+              </Layout>
+            </RoleRoute>
+          }
+        />
         {/* MODULE 6 */}
         <Route
           path="/analytics"

@@ -15,6 +15,7 @@ import {
   FaShieldAlt,
   FaCheckCircle,
   FaPlusCircle,
+  FaUserCheck,
 } from "react-icons/fa";
 
 const Sidebar = () => {
@@ -147,7 +148,6 @@ const Sidebar = () => {
       roles: ["Faculty Coordinator", "Student Coordinator"],
     },
 
-    // EVENTS
     {
       name: "Events",
       icon: <FaCalendar />,
@@ -160,7 +160,13 @@ const Sidebar = () => {
       ],
     },
 
-    // ONLY TECH COORDINATOR
+    {
+      name: "Attendance",
+      icon: <FaUserCheck />,
+      path: "/attendance",
+      roles: ["Faculty Coordinator", "Student Coordinator","Tech Coordinator",]
+    },
+
     {
       name: "Create Event",
       icon: <FaPlusCircle />,
@@ -175,7 +181,6 @@ const Sidebar = () => {
       roles: ["Tech Coordinator"],
     },
 
-    // POINTS
     {
       name: "Points History",
       icon: <FaHistory />,
@@ -190,7 +195,6 @@ const Sidebar = () => {
       roles: ["Faculty Coordinator"],
     },
 
-    // ADMIN
     {
       name: "Analytics",
       icon: <FaChartBar />,
