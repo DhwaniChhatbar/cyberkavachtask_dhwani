@@ -346,47 +346,54 @@ function App() {
 
         {/* MODULE 4 */}
 
-        <Route
-          path="/attendance"
-          element={
-            <RoleRoute
-              allowedRoles={[
-                "Faculty Coordinator",
-                "Student Coordinator",
-              ]}
-            >
-              <Layout>
-                <AttendanceDashboard />
-              </Layout>
-            </RoleRoute>
-          }
-        />
+<Route
+  path="/attendance"
+  element={
+    <RoleRoute
+      allowedRoles={[
+        "Faculty Coordinator",
+        "Student Coordinator",
+        "Tech Coordinator",
+      ]}
+    >
+      <Layout>
+        <AttendanceDashboard />
+      </Layout>
+    </RoleRoute>
+  }
+/>
 
-        <Route
-          path="/attendance-report"
-          element={
-            <RoleRoute
-              allowedRoles={[
-                "Faculty Coordinator",
-                "Student Coordinator",
-              ]}
-            >
-              <Layout>
-                <AttendanceReport />
-              </Layout>
-            </RoleRoute>
-          }
-        />
-        <Route
-          path="/my-attendance"
-          element={
-            <RoleRoute allowedRoles={["Member"]}>
-              <Layout>
-                <MyAttendance />
-              </Layout>
-            </RoleRoute>
-          }
-        />
+<Route
+  path="/attendance-report"
+  element={
+    <RoleRoute
+      allowedRoles={[
+        "Faculty Coordinator",
+        "Student Coordinator",
+        "Tech Coordinator",
+      ]}
+    >
+      <Layout>
+        <AttendanceReport />
+      </Layout>
+    </RoleRoute>
+  }
+/>
+
+<Route
+  path="/my-attendance"
+  element={
+    <RoleRoute
+      allowedRoles={[
+        "Member",
+      ]}
+    >
+      <Layout>
+        <MyAttendance />
+      </Layout>
+    </RoleRoute>
+  }
+/>
         {/* MODULE 6 */}
         <Route
           path="/analytics"
