@@ -153,7 +153,10 @@ export const updateEvent = async (req, res) => {
     const event = await Event.findById(req.params.id);
     if (!event) return res.status(404).json({ message: "Event not found" });
 
-    if (event.status === "Faculty Approved" || event.status === "Published") {
+    if (
+      event.status === "Faculty Approved" ||
+      event.status === "Published"
+    ) {
       return res.status(400).json({
         message: "Cannot edit after approval stage",
       });
@@ -265,28 +268,6 @@ export const deleteEvent = async (req, res) => {
     return res.json({
       success: true,
       message: "Event deleted successfully",
-    });
-  } catch (err) {
-    return res.status(500).json({ error: err.message });
-  }
-};
-
-// ==========================
-// COMPLETE EVENT
-// ==========================
-export const completeEvent = async (req, res) => {
-  try {
-    const event = await Event.findById(req.params.id);
-    if (!event) return res.status(404).json({ message: "Event not found" });
-
-    event.isCompleted = true;
-
-    await event.save();
-
-    return res.json({
-      success: true,
-      message: "Event marked as completed",
-      event,
     });
   } catch (err) {
     return res.status(500).json({ error: err.message });

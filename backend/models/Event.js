@@ -156,14 +156,6 @@ const eventSchema = new mongoose.Schema(
     },
 
     // ==========================
-    // EVENT COMPLETION
-    // ==========================
-    isCompleted: {
-      type: Boolean,
-      default: false,
-    },
-
-    // ==========================
     // CERTIFICATES
     // ==========================
     certificatesEnabled: {

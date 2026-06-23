@@ -48,7 +48,6 @@ router.get(
 /**
  * ==========================
  * GET PENDING EVENTS
- * (IMPORTANT: keep BEFORE /:id safety-wise)
  * ==========================
  */
 router.get(
@@ -135,7 +134,6 @@ router.delete(
 /**
  * ==========================
  * GET SINGLE EVENT
- * (KEEP LAST to avoid route conflicts)
  * ==========================
  */
 router.get(
