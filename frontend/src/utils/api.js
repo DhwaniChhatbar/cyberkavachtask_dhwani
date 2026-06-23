@@ -28,34 +28,34 @@ api.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`;
     }
 
+    // 🔥 DEBUG (REMOVE LATER)
+    console.log("➡️ API REQUEST:", config.method?.toUpperCase(), config.url);
+
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
 // ==========================
 // RESPONSE INTERCEPTOR
 // ==========================
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // 🔥 DEBUG (REMOVE LATER)
+    console.log("⬅️ API RESPONSE:", response.status, response.config.url);
+
+    return response;
+  },
   (error) => {
-    // Optional: handle global errors here
-    if (error.response?.status === 401) {
-      console.warn("Unauthorized - token may be invalid");
-
-      // Optional future use:
-      // localStorage.removeItem("token");
-      // localStorage.removeItem("user");
-      // window.location.href = "/login";
-    }
-
     console.error(
-      "API Error:",
+      "❌ API ERROR:",
       error.response?.status,
       error.response?.data || error.message
     );
+
+    if (error.response?.status === 401) {
+      console.warn("Unauthorized - token invalid or expired");
+    }
 
     return Promise.reject(error);
   }

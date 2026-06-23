@@ -29,7 +29,7 @@ export const createEvent = async (req, res) => {
       ...req.body,
       createdBy: req.user.id,
       poster: req.file ? req.file.filename : "",
-      status: "DRAFT",
+      status: "Draft",
       registrationCount: 0,
       certificatesEnabled: false,
       registrationLink: "",
@@ -52,23 +52,22 @@ export const sendForApproval = async (req, res) => {
     }
 
     const event = await Event.findById(req.params.id);
-
     if (!event) return res.status(404).json({ message: "Event not found" });
 
-    if (event.status !== "DRAFT") {
+    if (event.status !== "Draft") {
       return res.status(400).json({
-        message: "Only draft events can be sent for approval",
+        message: "Only Draft events can be sent for approval",
       });
     }
 
-    event.status = "PENDING_FACULTY";
+    event.status = "Pending Faculty Review";
     event.approvalStage = "FACULTY_REVIEW";
 
     await event.save();
 
     return res.json({
       success: true,
-      message: "Sent to Faculty Coordinator",
+      message: "Event sent for faculty approval",
       event,
     });
   } catch (err) {
@@ -86,16 +85,15 @@ export const approveEvent = async (req, res) => {
     }
 
     const event = await Event.findById(req.params.id);
-
     if (!event) return res.status(404).json({ message: "Event not found" });
 
-    if (event.status !== "PENDING_FACULTY") {
+    if (event.status !== "Pending Faculty Review") {
       return res.status(400).json({
         message: "Event not in faculty review stage",
       });
     }
 
-    event.status = "FACULTY_APPROVED";
+    event.status = "Faculty Approved";
     event.approvedBy = req.user.id;
     event.approvalStage = "STUDENT_PUBLISH";
 
@@ -103,7 +101,7 @@ export const approveEvent = async (req, res) => {
 
     return res.json({
       success: true,
-      message: "Approved by Faculty",
+      message: "Event approved by faculty",
       event,
     });
   } catch (err) {
@@ -121,16 +119,15 @@ export const publishEvent = async (req, res) => {
     }
 
     const event = await Event.findById(req.params.id);
-
     if (!event) return res.status(404).json({ message: "Event not found" });
 
-    if (event.status !== "FACULTY_APPROVED") {
+    if (event.status !== "Faculty Approved") {
       return res.status(400).json({
         message: "Faculty approval required first",
       });
     }
 
-    event.status = "PUBLISHED";
+    event.status = "Published";
     event.publishDate = new Date();
     event.publishedBy = req.user.id;
     event.certificatesEnabled = true;
@@ -149,15 +146,14 @@ export const publishEvent = async (req, res) => {
 };
 
 // ==========================
-// UPDATE EVENT (BLOCK AFTER APPROVAL)
+// UPDATE EVENT
 // ==========================
 export const updateEvent = async (req, res) => {
   try {
     const event = await Event.findById(req.params.id);
-
     if (!event) return res.status(404).json({ message: "Event not found" });
 
-    if (["FACULTY_APPROVED", "PUBLISHED"].includes(event.status)) {
+    if (event.status === "Faculty Approved" || event.status === "Published") {
       return res.status(400).json({
         message: "Cannot edit after approval stage",
       });
@@ -194,7 +190,7 @@ export const getEvents = async (req, res) => {
     ];
 
     if (isRole(req.user, publicRoles)) {
-      filter = { status: "PUBLISHED" };
+      filter = { status: "Published" };
     }
 
     const events = await Event.find(filter)
@@ -210,12 +206,14 @@ export const getEvents = async (req, res) => {
 };
 
 // ==========================
-// GET PENDING EVENTS (FIXED)
+// GET PENDING EVENTS
 // ==========================
 export const getPendingEvents = async (req, res) => {
   try {
     const events = await Event.find({
-      status: { $in: ["DRAFT", "PENDING_FACULTY", "FACULTY_APPROVED"] },
+      status: {
+        $in: ["Draft", "Pending Faculty Review", "Faculty Approved"],
+      },
     })
       .populate("createdBy", "name email")
       .populate("approvedBy", "name")
@@ -254,10 +252,9 @@ export const getEventById = async (req, res) => {
 export const deleteEvent = async (req, res) => {
   try {
     const event = await Event.findById(req.params.id);
-
     if (!event) return res.status(404).json({ message: "Event not found" });
 
-    if (event.status === "PUBLISHED") {
+    if (event.status === "Published") {
       return res.status(400).json({
         message: "Cannot delete published event",
       });
@@ -280,7 +277,6 @@ export const deleteEvent = async (req, res) => {
 export const completeEvent = async (req, res) => {
   try {
     const event = await Event.findById(req.params.id);
-
     if (!event) return res.status(404).json({ message: "Event not found" });
 
     event.isCompleted = true;

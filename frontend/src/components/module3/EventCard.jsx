@@ -4,6 +4,8 @@ import { useNavigate } from "react-router-dom";
 const EventCard = ({ event }) => {
   const navigate = useNavigate();
 
+  const status = event.status || "Draft";
+
   return (
     <div className="bg-gray-900 rounded-2xl overflow-hidden shadow-lg border border-gray-800">
       {/* Poster */}
@@ -17,13 +19,9 @@ const EventCard = ({ event }) => {
       />
 
       <div className="p-5">
-        <h2 className="text-2xl font-bold text-white">
-          {event.name}
-        </h2>
+        <h2 className="text-2xl font-bold text-white">{event.name}</h2>
 
-        <p className="text-gray-400 mt-2">
-          {event.description}
-        </p>
+        <p className="text-gray-400 mt-2">{event.description}</p>
 
         <div className="mt-4 space-y-2 text-sm text-gray-300">
           <p>
@@ -40,36 +38,31 @@ const EventCard = ({ event }) => {
           <p>
             ⏳ Registration Deadline:{" "}
             {event.registrationDeadline
-              ? new Date(
-                  event.registrationDeadline
-                ).toLocaleDateString()
+              ? new Date(event.registrationDeadline).toLocaleDateString()
               : "N/A"}
           </p>
 
-          <p>
-            👤 Registrations:{" "}
-            {event.registrationCount || 0}
-          </p>
+          <p>👤 Registrations: {event.registrationCount || 0}</p>
         </div>
 
         {/* Status */}
         <div className="mt-5 flex items-center justify-between">
           <span
             className={`px-3 py-1 rounded-full text-sm ${
-              event.status === "Published"
+              status === "Published"
                 ? "bg-green-600"
-                : event.status === "Approved by Faculty"
+                : status === "Faculty Approved"
                 ? "bg-blue-600"
-                : event.status === "Pending Faculty Review"
+                : status === "Pending Faculty Review"
                 ? "bg-yellow-600"
                 : "bg-gray-700"
             }`}
           >
-            {event.status || "Draft"}
+            {status}
           </span>
 
           {/* Register button only for published events */}
-          {event.status === "Published" && (
+          {status === "Published" && (
             <button
               onClick={() =>
                 navigate(`/register-team/${event._id}`)

@@ -93,13 +93,13 @@ const EventDashboard = () => {
   };
 
   // ==========================
-  // STATUS CONSTANTS (IMPORTANT FIX)
+  // STATUS (MATCH BACKEND EXACTLY)
   // ==========================
   const STATUS = {
-    DRAFT: "DRAFT",
-    PENDING_FACULTY: "PENDING_FACULTY",
-    FACULTY_APPROVED: "FACULTY_APPROVED",
-    PUBLISHED: "PUBLISHED",
+    DRAFT: "Draft",
+    PENDING: "Pending Faculty Review",
+    APPROVED: "Faculty Approved",
+    PUBLISHED: "Published",
   };
 
   return (
@@ -134,7 +134,7 @@ const EventDashboard = () => {
               <EventCard event={event} />
 
               <div className="mt-3 flex gap-3 flex-wrap">
-                {/* TECH COORDINATOR → SEND FOR APPROVAL */}
+                {/* TECH COORDINATOR */}
                 {role === "Tech Coordinator" &&
                   event.status === STATUS.DRAFT && (
                     <button
@@ -145,9 +145,9 @@ const EventDashboard = () => {
                     </button>
                   )}
 
-                {/* FACULTY → APPROVE */}
+                {/* FACULTY COORDINATOR */}
                 {role === "Faculty Coordinator" &&
-                  event.status === STATUS.PENDING_FACULTY && (
+                  event.status === STATUS.PENDING && (
                     <button
                       onClick={() => handleApprove(event._id)}
                       className="bg-green-600 px-4 py-2 rounded-lg hover:bg-green-700"
@@ -156,9 +156,9 @@ const EventDashboard = () => {
                     </button>
                   )}
 
-                {/* STUDENT → PUBLISH */}
+                {/* STUDENT COORDINATOR */}
                 {role === "Student Coordinator" &&
-                  event.status === STATUS.FACULTY_APPROVED && (
+                  event.status === STATUS.APPROVED && (
                     <button
                       onClick={() => handlePublish(event._id)}
                       className="bg-purple-600 px-4 py-2 rounded-lg hover:bg-purple-700"
