@@ -283,7 +283,7 @@ function App() {
         />
 
         <Route
-          path="/team-registration"
+          path="/register-team/:eventId"
           element={
             <PrivateRoute>
               <Layout>

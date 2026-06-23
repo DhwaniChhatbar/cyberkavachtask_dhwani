@@ -29,7 +29,7 @@ export const createEvent = async (req, res) => {
       status: "Draft",
       registrationCount: 0,
       certificatesEnabled: false,
-      registrationLink: `http://localhost:5173/register-event/${Date.now()}`,
+      registrationLink: "",
     });
 
     return res.status(201).json(event);
@@ -39,8 +39,7 @@ export const createEvent = async (req, res) => {
 };
 
 // ==========================
-// SEND FOR APPROVAL (TECH ONLY)
-// Draft → Pending Faculty Review
+// SEND FOR APPROVAL
 // ==========================
 export const sendForApproval = async (req, res) => {
   try {
@@ -77,8 +76,7 @@ export const sendForApproval = async (req, res) => {
 };
 
 // ==========================
-// APPROVE EVENT (FACULTY ONLY)
-// Pending Faculty Review → Approved
+// APPROVE EVENT
 // ==========================
 export const approveEvent = async (req, res) => {
   try {
@@ -116,8 +114,7 @@ export const approveEvent = async (req, res) => {
 };
 
 // ==========================
-// PUBLISH EVENT (STUDENT ONLY)
-// Approved → Published
+// PUBLISH EVENT
 // ==========================
 export const publishEvent = async (req, res) => {
   try {
@@ -157,7 +154,7 @@ export const publishEvent = async (req, res) => {
 };
 
 // ==========================
-// UPDATE EVENT (LOCKED LOGIC)
+// UPDATE EVENT
 // ==========================
 export const updateEvent = async (req, res) => {
   try {
@@ -167,7 +164,6 @@ export const updateEvent = async (req, res) => {
       return res.status(404).json({ message: "Event not found" });
     }
 
-    // ❌ LOCK AFTER APPROVAL STARTS
     if (
       event.status === "Approved by Faculty" ||
       event.status === "Published"
@@ -192,13 +188,24 @@ export const updateEvent = async (req, res) => {
 };
 
 // ==========================
-// OTHER FUNCTIONS (UNCHANGED BUT SAFE)
+// GET EVENTS
 // ==========================
 export const getEvents = async (req, res) => {
   try {
-    const events = await Event.find()
+    let filter = {};
+
+    if (
+      req.user.role === "Member" ||
+      req.user.role === "Content Coordinator" ||
+      req.user.role === "Social Media Coordinator"
+    ) {
+      filter = { status: "Published" };
+    }
+
+    const events = await Event.find(filter)
       .populate("createdBy", "name email")
       .populate("approvedBy", "name")
+      .populate("publishedBy", "name")
       .sort({ createdAt: -1 });
 
     return res.json(events);
@@ -207,6 +214,9 @@ export const getEvents = async (req, res) => {
   }
 };
 
+// ==========================
+// GET PENDING EVENTS
+// ==========================
 export const getPendingEvents = async (req, res) => {
   try {
     const events = await Event.find({
@@ -222,28 +232,41 @@ export const getPendingEvents = async (req, res) => {
   }
 };
 
+// ==========================
+// GET EVENT BY ID
+// ==========================
 export const getEventById = async (req, res) => {
   try {
     const event = await Event.findById(req.params.id)
       .populate("createdBy", "name email")
-      .populate("approvedBy", "name");
+      .populate("approvedBy", "name")
+      .populate("publishedBy", "name");
 
     if (!event) {
-      return res.status(404).json({ message: "Event not found" });
+      return res.status(404).json({
+        message: "Event not found",
+      });
     }
 
     return res.json(event);
   } catch (err) {
-    return res.status(500).json({ error: err.message });
+    return res.status(500).json({
+      error: err.message,
+    });
   }
 };
 
+// ==========================
+// DELETE EVENT
+// ==========================
 export const deleteEvent = async (req, res) => {
   try {
     const event = await Event.findById(req.params.id);
 
     if (!event) {
-      return res.status(404).json({ message: "Event not found" });
+      return res.status(404).json({
+        message: "Event not found",
+      });
     }
 
     if (event.status === "Published") {
@@ -254,18 +277,27 @@ export const deleteEvent = async (req, res) => {
 
     await event.deleteOne();
 
-    return res.json({ message: "Event deleted successfully" });
+    return res.json({
+      message: "Event deleted successfully",
+    });
   } catch (err) {
-    return res.status(500).json({ error: err.message });
+    return res.status(500).json({
+      error: err.message,
+    });
   }
 };
 
+// ==========================
+// COMPLETE EVENT
+// ==========================
 export const completeEvent = async (req, res) => {
   try {
     const event = await Event.findById(req.params.id);
 
     if (!event) {
-      return res.status(404).json({ message: "Event not found" });
+      return res.status(404).json({
+        message: "Event not found",
+      });
     }
 
     event.isCompleted = true;
@@ -278,6 +310,8 @@ export const completeEvent = async (req, res) => {
       event,
     });
   } catch (err) {
-    return res.status(500).json({ error: err.message });
+    return res.status(500).json({
+      error: err.message,
+    });
   }
 };
