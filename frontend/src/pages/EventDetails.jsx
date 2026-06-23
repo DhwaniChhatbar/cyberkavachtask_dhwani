@@ -18,7 +18,6 @@ const EventDetails = () => {
       setLoading(true);
 
       const res = await api.get(`/events/${id}`);
-
       setEvent(res.data);
     } catch (err) {
       console.error("Error fetching event:", err);
@@ -48,15 +47,10 @@ const EventDetails = () => {
 
   return (
     <div className="min-h-screen bg-gray-950 text-white p-6">
-      <EventBanner
-        poster={event.poster}
-        name={event.name}
-      />
+      <EventBanner poster={event.poster} name={event.name} />
 
       <div className="mt-8 bg-gray-900 rounded-2xl p-8">
-        <h1 className="text-4xl font-bold mb-4">
-          {event.name}
-        </h1>
+        <h1 className="text-4xl font-bold mb-4">{event.name}</h1>
 
         <p className="text-gray-400 mb-8">
           {event.description || "No description available"}
@@ -66,9 +60,7 @@ const EventDetails = () => {
           <div className="space-y-4">
             <p>
               📅 <span className="font-semibold">Date:</span>{" "}
-              {event.date
-                ? new Date(event.date).toLocaleDateString()
-                : "N/A"}
+              {event.date ? new Date(event.date).toLocaleDateString() : "N/A"}
             </p>
 
             <p>
@@ -83,7 +75,7 @@ const EventDetails = () => {
 
             <p>
               👥 <span className="font-semibold">Team Size:</span>{" "}
-              {event.teamSize}
+              {event.teamSize ?? 1}
             </p>
 
             <p>
@@ -109,9 +101,7 @@ const EventDetails = () => {
                 Registration Deadline:
               </span>{" "}
               {event.registrationDeadline
-                ? new Date(
-                    event.registrationDeadline
-                  ).toLocaleDateString()
+                ? new Date(event.registrationDeadline).toLocaleDateString()
                 : "N/A"}
             </p>
 
@@ -136,8 +126,7 @@ const EventDetails = () => {
             </p>
 
             <p>
-              🎓{" "}
-              <span className="font-semibold">
+              🎓 <span className="font-semibold">
                 Certificates Enabled:
               </span>{" "}
               {event.certificatesEnabled ? "Yes" : "No"}
@@ -152,9 +141,7 @@ const EventDetails = () => {
 
         {event.tags?.length > 0 && (
           <div className="mt-8">
-            <h2 className="text-xl font-semibold mb-4">
-              Tags
-            </h2>
+            <h2 className="text-xl font-semibold mb-4">Tags</h2>
 
             <div className="flex flex-wrap gap-3">
               {event.tags.map((tag, index) => (
@@ -181,20 +168,14 @@ const EventDetails = () => {
           </div>
 
           <div className="bg-gray-800 p-5 rounded-xl">
-            <div className="text-gray-400 text-sm">
-              Workflow Status
-            </div>
-
+            <div className="text-gray-400 text-sm">Workflow Status</div>
             <div className="text-2xl font-bold text-green-400 mt-2">
               {event.status}
             </div>
           </div>
 
           <div className="bg-gray-800 p-5 rounded-xl">
-            <div className="text-gray-400 text-sm">
-              Created Date
-            </div>
-
+            <div className="text-gray-400 text-sm">Created Date</div>
             <div className="text-xl font-bold mt-2">
               {new Date(event.createdAt).toLocaleDateString()}
             </div>

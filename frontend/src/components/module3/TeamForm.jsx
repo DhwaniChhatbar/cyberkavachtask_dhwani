@@ -11,7 +11,7 @@ const emptyPerson = {
 const TeamForm = ({
   onSubmit,
   initialTeamName = "",
-  teamSize = 4,
+  teamSize = 1,
 }) => {
   const [teamName, setTeamName] = useState(initialTeamName);
 
@@ -41,12 +41,8 @@ const TeamForm = ({
     setMembers(updated);
   };
 
-  // ==========================
-  // ADD MEMBER (STRICT LIMIT)
-  // ==========================
   const addMember = () => {
     if (totalPeople >= teamSize) return;
-
     setMembers([...members, { ...emptyPerson }]);
   };
 
@@ -54,9 +50,6 @@ const TeamForm = ({
     setMembers(members.filter((_, i) => i !== index));
   };
 
-  // ==========================
-  // VALIDATION HELPERS
-  // ==========================
   const isValidPerson = (p) =>
     p.fullName &&
     p.email &&
@@ -97,7 +90,6 @@ const TeamForm = ({
       className="bg-gray-900 p-6 rounded-2xl space-y-6"
       onSubmit={handleSubmit}
     >
-      {/* TEAM NAME */}
       <input
         type="text"
         placeholder="Team Name"
@@ -107,7 +99,6 @@ const TeamForm = ({
         required
       />
 
-      {/* LEADER */}
       <div>
         <h2 className="text-white font-bold mb-2">
           Leader Details
@@ -159,7 +150,6 @@ const TeamForm = ({
         />
       </div>
 
-      {/* MEMBERS */}
       <div>
         <h2 className="text-white font-bold mb-2">
           Team Members
@@ -170,10 +160,7 @@ const TeamForm = ({
         </p>
 
         {members.map((m, i) => (
-          <div
-            key={i}
-            className="bg-gray-800 p-4 rounded-xl mb-3"
-          >
+          <div key={i} className="bg-gray-800 p-4 rounded-xl mb-3">
             <input
               name="fullName"
               placeholder="Full Name *"
@@ -231,7 +218,6 @@ const TeamForm = ({
           </div>
         ))}
 
-        {/* ADD MEMBER */}
         <button
           type="button"
           onClick={addMember}
@@ -246,7 +232,6 @@ const TeamForm = ({
         </button>
       </div>
 
-      {/* PREVIOUS EVENT */}
       <input
         type="text"
         placeholder="Previous Event"
@@ -255,7 +240,6 @@ const TeamForm = ({
         className="w-full p-3 bg-gray-800 rounded-lg"
       />
 
-      {/* SUBMIT */}
       <button
         type="submit"
         className="w-full bg-blue-600 hover:bg-blue-700 p-3 rounded-xl"
