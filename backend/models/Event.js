@@ -110,23 +110,22 @@ const eventSchema = new mongoose.Schema(
     publishDate: Date,
 
     // ==========================
-    // WORKFLOW CONTROL (IMPORTANT)
+    // WORKFLOW STATUS (FIXED CLEAN FLOW)
     // ==========================
     status: {
       type: String,
       enum: [
-        "Draft",                  // Tech creating
-        "Pending Faculty Review", // sent by Tech
-        "Approved by Faculty",    // Faculty approved
-        "Pending Publish",        // sent to Student
-        "Published",              // LIVE
-        "Rejected",               // optional safety
+        "Draft",
+        "Pending Faculty Review",
+        "Faculty Approved",
+        "Published",
+        "Rejected",
       ],
       default: "Draft",
     },
 
     // ==========================
-    // ROLE TRACKING (STRICT FLOW)
+    // WORKFLOW FLAGS (OPTIONAL BUT SAFE)
     // ==========================
     workflow: {
       submittedByTech: { type: Boolean, default: false },

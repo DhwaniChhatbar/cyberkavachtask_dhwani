@@ -8,8 +8,8 @@ export const authorizeRoles = (...allowedRoles) => {
         });
       }
 
-      // 2. Check role exists
-      const userRole = req.user.role;
+      // 2. Safe role extraction (FIXED EDGE CASE)
+      const userRole = (req.user.role || "").trim();
 
       if (!userRole) {
         return res.status(403).json({
@@ -24,7 +24,6 @@ export const authorizeRoles = (...allowedRoles) => {
         });
       }
 
-      // 4. Allow access
       next();
     } catch (error) {
       return res.status(500).json({
