@@ -46,7 +46,7 @@ const eventSchema = new mongoose.Schema(
       trim: true,
     },
 
-    // 🔥 TEAM SIZE CONTROL (IMPORTANT FIX)
+    // 🔥 TEAM SIZE CONTROL
     teamSize: {
       type: Number,
       default: 1,
@@ -54,7 +54,6 @@ const eventSchema = new mongoose.Schema(
       max: 20,
     },
 
-    // Registration capacity
     capacity: {
       type: Number,
       required: true,
@@ -184,8 +183,5 @@ eventSchema.index({ status: 1 });
 eventSchema.index({ date: 1 });
 eventSchema.index({ createdBy: 1 });
 eventSchema.index({ category: 1 });
-
-// 🔥 IMPORTANT: prevent duplicate index warnings
-eventSchema.index({ _id: 1 });
 
 export default mongoose.model("Event", eventSchema);
