@@ -4,6 +4,7 @@ import api from "../utils/api";
 import AnalyticsCard from "../components/module3/AnalyticsCard";
 import CapacityIndicator from "../components/module3/CapacityIndicator";
 import ParticipantTable from "../components/module3/ParticipantTable";
+import EventCard from "../components/module3/EventCard";
 
 const EventDashboard = () => {
   const user = JSON.parse(localStorage.getItem("user") || "null");
@@ -88,12 +89,25 @@ const EventDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-950 text-white p-6">
-      <h1 className="text-3xl font-bold mb-8">Event Dashboard</h1>
+      <h1 className="text-3xl font-bold mb-8">
+        Event Dashboard
+      </h1>
 
       <div className="grid md:grid-cols-3 gap-5 mb-8">
-        <AnalyticsCard title="Registrations" value={participants.length} />
-        <AnalyticsCard title="Teams" value={participants.length} />
-        <AnalyticsCard title="Events" value={events.length} />
+        <AnalyticsCard
+          title="Registrations"
+          value={participants.length}
+        />
+
+        <AnalyticsCard
+          title="Teams"
+          value={participants.length}
+        />
+
+        <AnalyticsCard
+          title="Events"
+          value={events.length}
+        />
       </div>
 
       <div className="mb-8">
@@ -103,23 +117,18 @@ const EventDashboard = () => {
         />
       </div>
 
-      <div className="bg-gray-900 rounded-xl p-6 mb-8">
-        <h2 className="text-2xl font-semibold mb-5">Events</h2>
+      {/* Event Cards */}
+      <div className="mb-10">
+        <h2 className="text-2xl font-bold mb-6">
+          Events
+        </h2>
 
-        <div className="space-y-4">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {events.map((event) => (
-            <div
-              key={event._id}
-              className="bg-gray-800 rounded-xl p-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4"
-            >
-              <div>
-                <h3 className="text-xl font-bold">{event.name}</h3>
-                <p className="text-gray-400">
-                  Status: {event.status}
-                </p>
-              </div>
+            <div key={event._id}>
+              <EventCard event={event} />
 
-              <div className="flex gap-3 flex-wrap">
+              <div className="mt-3 flex gap-3 flex-wrap">
                 {role === "Tech Coordinator" &&
                   event.status === "Draft" && (
                     <button
