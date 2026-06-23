@@ -23,16 +23,24 @@ const router = express.Router();
  * ROLE DEFINITIONS
  * ==========================
  */
+
+// Tech Coordinator only
 const techOnly = ["Tech Coordinator"];
 
+// Faculty Coordinator only
 const facultyOnly = ["Faculty Coordinator"];
 
+// Student Coordinator only
 const studentOnly = ["Student Coordinator"];
 
-const allCoordinators = [
+// Everyone who can view events
+const allUsers = [
   "Faculty Coordinator",
   "Student Coordinator",
   "Tech Coordinator",
+  "Content Coordinator",
+  "Social Media Coordinator",
+  "Member",
 ];
 
 /**
@@ -43,13 +51,14 @@ const allCoordinators = [
 router.get(
   "/",
   protect,
-  authorizeRoles(...allCoordinators),
+  authorizeRoles(...allUsers),
   getEvents
 );
 
 /**
  * ==========================
  * GET PENDING EVENTS
+ * Faculty + Student only
  * ==========================
  */
 router.get(
@@ -70,13 +79,14 @@ router.get(
 router.get(
   "/:id",
   protect,
-  authorizeRoles(...allCoordinators),
+  authorizeRoles(...allUsers),
   getEventById
 );
 
 /**
  * ==========================
  * CREATE EVENT
+ * Tech Coordinator only
  * ==========================
  */
 router.post(
@@ -90,6 +100,7 @@ router.post(
 /**
  * ==========================
  * UPDATE EVENT
+ * Tech Coordinator only
  * ==========================
  */
 router.put(
@@ -103,6 +114,7 @@ router.put(
 /**
  * ==========================
  * DELETE EVENT
+ * Faculty Coordinator only
  * ==========================
  */
 router.delete(
@@ -116,6 +128,7 @@ router.delete(
  * ==========================
  * SEND FOR APPROVAL
  * Draft → Pending Faculty Review
+ * Tech Coordinator only
  * ==========================
  */
 router.put(
@@ -129,6 +142,7 @@ router.put(
  * ==========================
  * APPROVE EVENT
  * Pending Faculty Review → Approved by Faculty
+ * Faculty Coordinator only
  * ==========================
  */
 router.put(
@@ -142,6 +156,7 @@ router.put(
  * ==========================
  * PUBLISH EVENT
  * Approved by Faculty → Published
+ * Student Coordinator only
  * ==========================
  */
 router.put(
