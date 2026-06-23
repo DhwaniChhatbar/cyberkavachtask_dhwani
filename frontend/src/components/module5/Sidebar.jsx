@@ -163,8 +163,16 @@ const Sidebar = () => {
     {
       name: "Attendance",
       icon: <FaUserCheck />,
-      path: "/attendance",
-      roles: ["Faculty Coordinator", "Student Coordinator","Tech Coordinator",]
+      path:
+        role === "Member"
+          ? "/my-attendance"
+          : "/attendance",
+      roles: [
+        "Faculty Coordinator",
+        "Student Coordinator",
+        "Tech Coordinator",
+        "Member",
+      ],
     },
 
     {

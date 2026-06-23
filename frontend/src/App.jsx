@@ -10,6 +10,7 @@ import Register from "./pages/Register";
 // MODULE 4
 import AttendanceDashboard from "./pages/AttendanceDashboard";
 import AttendanceReport from "./pages/AttendanceReport";
+import MyAttendance from "./pages/MyAttendance";
 
 // MODULE 5
 import Dashboard from "./pages/Dashboard";
@@ -372,6 +373,16 @@ function App() {
             >
               <Layout>
                 <AttendanceReport />
+              </Layout>
+            </RoleRoute>
+          }
+        />
+        <Route
+          path="/my-attendance"
+          element={
+            <RoleRoute allowedRoles={["Member"]}>
+              <Layout>
+                <MyAttendance />
               </Layout>
             </RoleRoute>
           }
