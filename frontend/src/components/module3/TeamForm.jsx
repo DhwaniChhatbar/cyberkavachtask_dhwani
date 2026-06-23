@@ -1,253 +1,260 @@
 import React, { useState, useMemo } from "react";
 
 const emptyPerson = {
-  fullName: "",
-  email: "",
-  collegeId: "",
-  department: "",
-  institute: "",
+fullName: "",
+email: "",
+collegeId: "",
+department: "",
+institute: "",
 };
 
 const TeamForm = ({
-  onSubmit,
-  initialTeamName = "",
-  teamSize = 1,
+onSubmit,
+initialTeamName = "",
+teamSize = 1,
 }) => {
-  const [teamName, setTeamName] = useState(initialTeamName);
+const [teamName, setTeamName] = useState(initialTeamName);
 
-  const [leaderDetails, setLeaderDetails] = useState({
-    ...emptyPerson,
-  });
+const [leaderDetails, setLeaderDetails] = useState({
+...emptyPerson,
+});
 
-  const [members, setMembers] = useState([{ ...emptyPerson }]);
-  const [previousEvent, setPreviousEvent] = useState("");
+// IMPORTANT:
+// members contains ONLY extra members (leader is separate)
+const [members, setMembers] = useState([]);
 
-  const totalPeople = 1 + members.length;
+const [previousEvent, setPreviousEvent] = useState("");
 
-  const remainingSlots = useMemo(() => {
-    return Math.max(teamSize - totalPeople, 0);
-  }, [teamSize, totalPeople]);
+const maxMembersAllowed = Math.max(teamSize - 1, 0);
 
-  const handleLeaderChange = (e) => {
-    setLeaderDetails({
-      ...leaderDetails,
-      [e.target.name]: e.target.value,
-    });
-  };
+const remainingSlots = useMemo(() => {
+return Math.max(maxMembersAllowed - members.length, 0);
+}, [members.length, maxMembersAllowed]);
 
-  const handleMemberChange = (index, e) => {
-    const updated = [...members];
-    updated[index][e.target.name] = e.target.value;
-    setMembers(updated);
-  };
+const handleLeaderChange = (e) => {
+setLeaderDetails({
+...leaderDetails,
+[e.target.name]: e.target.value,
+});
+};
 
-  const addMember = () => {
-    if (totalPeople >= teamSize) return;
-    setMembers([...members, { ...emptyPerson }]);
-  };
+const handleMemberChange = (index, e) => {
+const updated = [...members];
+updated[index][e.target.name] = e.target.value;
+setMembers(updated);
+};
 
-  const removeMember = (index) => {
-    setMembers(members.filter((_, i) => i !== index));
-  };
+const addMember = () => {
+if (members.length >= maxMembersAllowed) return;
 
-  const isValidPerson = (p) =>
-    p.fullName &&
-    p.email &&
-    p.collegeId &&
-    p.department &&
-    p.institute;
+setMembers([...members, { ...emptyPerson }]);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+};
 
-    if (!isValidPerson(leaderDetails)) {
-      alert("Please fill all leader details");
-      return;
-    }
+const removeMember = (index) => {
+setMembers(members.filter((_, i) => i !== index));
+};
 
-    const filteredMembers = members.filter(isValidPerson);
+const isValidPerson = (p) =>
+p.fullName &&
+p.email &&
+p.collegeId &&
+p.department &&
+p.institute;
 
-    if (1 + filteredMembers.length > teamSize) {
-      alert("Team size exceeded");
-      return;
-    }
+const handleSubmit = (e) => {
+e.preventDefault();
 
-    onSubmit({
-      teamName,
-      leaderDetails,
-      members: filteredMembers,
-      previousEvent,
-    });
+if (!isValidPerson(leaderDetails)) {
+  alert("Please fill all leader details");
+  return;
+}
 
-    setTeamName("");
-    setLeaderDetails({ ...emptyPerson });
-    setMembers([{ ...emptyPerson }]);
-    setPreviousEvent("");
-  };
+const filteredMembers = members.filter(isValidPerson);
 
-  return (
-    <form
-      className="bg-gray-900 p-6 rounded-2xl space-y-6"
-      onSubmit={handleSubmit}
-    >
-      <input
-        type="text"
-        placeholder="Team Name"
-        value={teamName}
-        onChange={(e) => setTeamName(e.target.value)}
-        className="w-full p-3 bg-gray-800 rounded-lg"
-        required
-      />
+if (1 + filteredMembers.length > teamSize) {
+  alert(`Team size exceeded. Maximum total people allowed is ${teamSize}`);
+  return;
+}
 
-      <div>
-        <h2 className="text-white font-bold mb-2">
-          Leader Details
-        </h2>
+onSubmit({
+  teamName,
+  leaderDetails,
+  members: filteredMembers,
+  previousEvent,
+});
 
+setTeamName("");
+setLeaderDetails({ ...emptyPerson });
+setMembers([]);
+setPreviousEvent("");
+
+};
+
+return ( <form
+   className="bg-gray-900 p-6 rounded-2xl space-y-6"
+   onSubmit={handleSubmit}
+ >
+<input
+type="text"
+placeholder="Team Name"
+value={teamName}
+onChange={(e) => setTeamName(e.target.value)}
+className="w-full p-3 bg-gray-800 rounded-lg"
+required
+/>
+
+  <div>
+    <h2 className="text-white font-bold mb-2">
+      Leader Details
+    </h2>
+
+    <input
+      name="fullName"
+      placeholder="Leader Full Name *"
+      value={leaderDetails.fullName}
+      onChange={handleLeaderChange}
+      className="w-full p-3 bg-gray-800 rounded-lg mb-2"
+      required
+    />
+
+    <input
+      name="email"
+      type="email"
+      placeholder="Leader Email *"
+      value={leaderDetails.email}
+      onChange={handleLeaderChange}
+      className="w-full p-3 bg-gray-800 rounded-lg mb-2"
+      required
+    />
+
+    <input
+      name="collegeId"
+      placeholder="Leader College ID *"
+      value={leaderDetails.collegeId}
+      onChange={handleLeaderChange}
+      className="w-full p-3 bg-gray-800 rounded-lg mb-2"
+      required
+    />
+
+    <input
+      name="department"
+      placeholder="Leader Department *"
+      value={leaderDetails.department}
+      onChange={handleLeaderChange}
+      className="w-full p-3 bg-gray-800 rounded-lg mb-2"
+      required
+    />
+
+    <input
+      name="institute"
+      placeholder="Leader Institute *"
+      value={leaderDetails.institute}
+      onChange={handleLeaderChange}
+      className="w-full p-3 bg-gray-800 rounded-lg"
+      required
+    />
+  </div>
+
+  <div>
+    <h2 className="text-white font-bold mb-2">
+      Team Members
+    </h2>
+
+    <p className="text-sm text-gray-400 mb-3">
+      Remaining slots: {remainingSlots}
+    </p>
+
+    {members.map((m, i) => (
+      <div key={i} className="bg-gray-800 p-4 rounded-xl mb-3">
         <input
           name="fullName"
-          placeholder="Leader Full Name *"
-          value={leaderDetails.fullName}
-          onChange={handleLeaderChange}
-          className="w-full p-3 bg-gray-800 rounded-lg mb-2"
+          placeholder="Full Name *"
+          value={m.fullName}
+          onChange={(e) => handleMemberChange(i, e)}
+          className="w-full p-2 bg-gray-700 rounded mb-2"
           required
         />
 
         <input
           name="email"
-          placeholder="Leader Email *"
-          value={leaderDetails.email}
-          onChange={handleLeaderChange}
-          className="w-full p-3 bg-gray-800 rounded-lg mb-2"
+          type="email"
+          placeholder="Email *"
+          value={m.email}
+          onChange={(e) => handleMemberChange(i, e)}
+          className="w-full p-2 bg-gray-700 rounded mb-2"
           required
         />
 
         <input
           name="collegeId"
-          placeholder="Leader College ID *"
-          value={leaderDetails.collegeId}
-          onChange={handleLeaderChange}
-          className="w-full p-3 bg-gray-800 rounded-lg mb-2"
+          placeholder="College ID *"
+          value={m.collegeId}
+          onChange={(e) => handleMemberChange(i, e)}
+          className="w-full p-2 bg-gray-700 rounded mb-2"
           required
         />
 
         <input
           name="department"
-          placeholder="Leader Department *"
-          value={leaderDetails.department}
-          onChange={handleLeaderChange}
-          className="w-full p-3 bg-gray-800 rounded-lg mb-2"
+          placeholder="Department *"
+          value={m.department}
+          onChange={(e) => handleMemberChange(i, e)}
+          className="w-full p-2 bg-gray-700 rounded mb-2"
           required
         />
 
         <input
           name="institute"
-          placeholder="Leader Institute *"
-          value={leaderDetails.institute}
-          onChange={handleLeaderChange}
-          className="w-full p-3 bg-gray-800 rounded-lg"
+          placeholder="Institute *"
+          value={m.institute}
+          onChange={(e) => handleMemberChange(i, e)}
+          className="w-full p-2 bg-gray-700 rounded"
           required
         />
-      </div>
-
-      <div>
-        <h2 className="text-white font-bold mb-2">
-          Team Members
-        </h2>
-
-        <p className="text-sm text-gray-400 mb-3">
-          Remaining slots: {remainingSlots}
-        </p>
-
-        {members.map((m, i) => (
-          <div key={i} className="bg-gray-800 p-4 rounded-xl mb-3">
-            <input
-              name="fullName"
-              placeholder="Full Name *"
-              value={m.fullName}
-              onChange={(e) => handleMemberChange(i, e)}
-              className="w-full p-2 bg-gray-700 rounded mb-2"
-              required
-            />
-
-            <input
-              name="email"
-              placeholder="Email *"
-              value={m.email}
-              onChange={(e) => handleMemberChange(i, e)}
-              className="w-full p-2 bg-gray-700 rounded mb-2"
-              required
-            />
-
-            <input
-              name="collegeId"
-              placeholder="College ID *"
-              value={m.collegeId}
-              onChange={(e) => handleMemberChange(i, e)}
-              className="w-full p-2 bg-gray-700 rounded mb-2"
-              required
-            />
-
-            <input
-              name="department"
-              placeholder="Department *"
-              value={m.department}
-              onChange={(e) => handleMemberChange(i, e)}
-              className="w-full p-2 bg-gray-700 rounded mb-2"
-              required
-            />
-
-            <input
-              name="institute"
-              placeholder="Institute *"
-              value={m.institute}
-              onChange={(e) => handleMemberChange(i, e)}
-              className="w-full p-2 bg-gray-700 rounded"
-              required
-            />
-
-            {members.length > 1 && (
-              <button
-                type="button"
-                onClick={() => removeMember(i)}
-                className="text-red-400 mt-2"
-              >
-                Remove
-              </button>
-            )}
-          </div>
-        ))}
 
         <button
           type="button"
-          onClick={addMember}
-          disabled={totalPeople >= teamSize}
-          className={`px-4 py-2 rounded ${
-            totalPeople >= teamSize
-              ? "bg-gray-600 cursor-not-allowed"
-              : "bg-green-600 hover:bg-green-700"
-          }`}
+          onClick={() => removeMember(i)}
+          className="text-red-400 mt-2"
         >
-          + Add Member
+          Remove
         </button>
       </div>
+    ))}
 
-      <input
-        type="text"
-        placeholder="Previous Event"
-        value={previousEvent}
-        onChange={(e) => setPreviousEvent(e.target.value)}
-        className="w-full p-3 bg-gray-800 rounded-lg"
-      />
-
+    {maxMembersAllowed > 0 && (
       <button
-        type="submit"
-        className="w-full bg-blue-600 hover:bg-blue-700 p-3 rounded-xl"
+        type="button"
+        onClick={addMember}
+        disabled={members.length >= maxMembersAllowed}
+        className={`px-4 py-2 rounded ${
+          members.length >= maxMembersAllowed
+            ? "bg-gray-600 cursor-not-allowed"
+            : "bg-green-600 hover:bg-green-700"
+        }`}
       >
-        Register Team
+        + Add Member
       </button>
-    </form>
-  );
+    )}
+  </div>
+
+  <input
+    type="text"
+    placeholder="Previous Event"
+    value={previousEvent}
+    onChange={(e) => setPreviousEvent(e.target.value)}
+    className="w-full p-3 bg-gray-800 rounded-lg"
+  />
+
+  <button
+    type="submit"
+    className="w-full bg-blue-600 hover:bg-blue-700 p-3 rounded-xl"
+  >
+    Register Team
+  </button>
+</form>
+);
 };
 
 export default TeamForm;
