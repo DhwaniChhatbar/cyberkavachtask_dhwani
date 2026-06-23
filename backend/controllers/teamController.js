@@ -23,6 +23,29 @@ export const createTeam = async (req, res) => {
       });
     }
 
+    const eventDoc = await Event.findById(event);
+
+    if (!eventDoc) {
+      return res.status(404).json({
+        success: false,
+        message: "Event not found",
+      });
+    }
+
+    if (eventDoc.status !== "Published") {
+      return res.status(400).json({
+        success: false,
+        message: "Registrations are not open for this event",
+      });
+    }
+
+    if (eventDoc.registrationCount >= eventDoc.capacity) {
+      return res.status(400).json({
+        success: false,
+        message: "Event capacity is full",
+      });
+    }
+
     const existingTeam = await Team.findOne({
       teamName,
       event,
@@ -35,41 +58,29 @@ export const createTeam = async (req, res) => {
       });
     }
 
-    const eventDoc = await Event.findById(event);
-
-    if (!eventDoc) {
-      return res.status(404).json({
-        success: false,
-        message: "Event not found",
-      });
-    }
-
     const teamId = "TEAM-" + Date.now();
 
     const team = await Team.create({
       teamName,
       teamId,
       event,
-      leader: req.user ? req.user.id : null,
+      leader: req.user.id,
       leaderName,
       leaderEmail,
       members: members || [],
       previousEvent: previousEvent || "",
-      status: "Pending",
+      status: "Approved",
     });
 
-    // increase registration count
     eventDoc.registrationCount += 1;
     await eventDoc.save();
 
-    // socket event
     const io = req.app.get("io");
 
     if (io) {
       io.emit("team-created", team);
     }
 
-    // email (non-blocking)
     if (leaderEmail) {
       try {
         const message = `
@@ -83,7 +94,7 @@ Team Name : ${teamName}
 Team ID : ${teamId}
 Event : ${eventDoc.name}
 
-Status : Pending
+Status : Registered
 
 Thank you for participating!
 `;
@@ -100,7 +111,7 @@ Thank you for participating!
 
     return res.status(201).json({
       success: true,
-      message: "Team created successfully",
+      message: "Team registered successfully",
       team,
     });
   } catch (err) {
@@ -121,7 +132,6 @@ export const getTeams = async (req, res) => {
     const teams = await Team.find()
       .populate("event")
       .populate("leader", "name email")
-      .populate("members", "name email")
       .sort({ createdAt: -1 });
 
     return res.json(teams);
@@ -139,8 +149,7 @@ export const getTeamById = async (req, res) => {
   try {
     const team = await Team.findById(req.params.id)
       .populate("event")
-      .populate("leader", "name email")
-      .populate("members", "name email");
+      .populate("leader", "name email");
 
     if (!team) {
       return res.status(404).json({
@@ -192,6 +201,13 @@ export const deleteTeam = async (req, res) => {
       return res.status(404).json({
         message: "Team not found",
       });
+    }
+
+    const eventDoc = await Event.findById(team.event);
+
+    if (eventDoc && eventDoc.registrationCount > 0) {
+      eventDoc.registrationCount -= 1;
+      await eventDoc.save();
     }
 
     await team.deleteOne();

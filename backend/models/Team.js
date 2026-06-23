@@ -81,7 +81,7 @@ const teamSchema = new mongoose.Schema(
     status: {
       type: String,
       enum: ["Pending", "Approved", "Rejected"],
-      default: "Pending",
+      default: "Approved",
     },
 
     // ==========================
@@ -90,11 +90,13 @@ const teamSchema = new mongoose.Schema(
     points: {
       type: Number,
       default: 0,
+      min: 0,
     },
 
     badgesEarned: {
       type: Number,
       default: 0,
+      min: 0,
     },
   },
   {
