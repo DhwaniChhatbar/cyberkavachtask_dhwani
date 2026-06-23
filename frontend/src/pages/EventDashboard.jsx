@@ -25,7 +25,7 @@ const EventDashboard = () => {
 
       const eventData = Array.isArray(res.data)
         ? res.data
-        : res.data.events || [];
+        : [];
 
       setEvents(eventData);
 
@@ -36,7 +36,7 @@ const EventDashboard = () => {
 
       setTotalCapacity(capacity || 100);
     } catch (err) {
-      console.error("Error fetching events:", err);
+      console.error(err);
     }
   };
 
@@ -46,7 +46,7 @@ const EventDashboard = () => {
 
       const teams = Array.isArray(res.data)
         ? res.data
-        : res.data.teams || [];
+        : [];
 
       const formatted = teams.map((team) => ({
         name: team.leaderName || "N/A",
@@ -56,7 +56,7 @@ const EventDashboard = () => {
 
       setParticipants(formatted);
     } catch (err) {
-      console.error("Error fetching teams:", err);
+      console.error(err);
     }
   };
 
@@ -117,7 +117,6 @@ const EventDashboard = () => {
         />
       </div>
 
-      {/* Event Cards */}
       <div className="mb-10">
         <h2 className="text-2xl font-bold mb-6">
           Events
@@ -129,6 +128,7 @@ const EventDashboard = () => {
               <EventCard event={event} />
 
               <div className="mt-3 flex gap-3 flex-wrap">
+
                 {role === "Tech Coordinator" &&
                   event.status === "Draft" && (
                     <button
@@ -164,6 +164,7 @@ const EventDashboard = () => {
                       Publish Event
                     </button>
                   )}
+
               </div>
             </div>
           ))}
