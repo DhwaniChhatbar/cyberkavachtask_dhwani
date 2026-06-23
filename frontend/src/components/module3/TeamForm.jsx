@@ -11,7 +11,7 @@ const emptyPerson = {
 const TeamForm = ({
   onSubmit,
   initialTeamName = "",
-  teamSize = 4, // IMPORTANT: pass from Event
+  teamSize = 4,
 }) => {
   const [teamName, setTeamName] = useState(initialTeamName);
 
@@ -22,7 +22,6 @@ const TeamForm = ({
   const [members, setMembers] = useState([{ ...emptyPerson }]);
   const [previousEvent, setPreviousEvent] = useState("");
 
-  // TOTAL = leader + members
   const totalPeople = 1 + members.length;
 
   const remainingSlots = useMemo(() => {
@@ -43,10 +42,10 @@ const TeamForm = ({
   };
 
   // ==========================
-  // ADD MEMBER (LIMIT FIXED)
+  // ADD MEMBER (STRICT LIMIT)
   // ==========================
   const addMember = () => {
-    if (totalPeople >= teamSize) return; // 🚨 HARD LIMIT
+    if (totalPeople >= teamSize) return;
 
     setMembers([...members, { ...emptyPerson }]);
   };
@@ -55,17 +54,30 @@ const TeamForm = ({
     setMembers(members.filter((_, i) => i !== index));
   };
 
+  // ==========================
+  // VALIDATION HELPERS
+  // ==========================
+  const isValidPerson = (p) =>
+    p.fullName &&
+    p.email &&
+    p.collegeId &&
+    p.department &&
+    p.institute;
+
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    const filteredMembers = members.filter(
-      (m) =>
-        m.fullName.trim() ||
-        m.email.trim() ||
-        m.collegeId.trim() ||
-        m.department.trim() ||
-        m.institute.trim()
-    );
+    if (!isValidPerson(leaderDetails)) {
+      alert("Please fill all leader details");
+      return;
+    }
+
+    const filteredMembers = members.filter(isValidPerson);
+
+    if (1 + filteredMembers.length > teamSize) {
+      alert("Team size exceeded");
+      return;
+    }
 
     onSubmit({
       teamName,
@@ -81,8 +93,10 @@ const TeamForm = ({
   };
 
   return (
-    <form className="bg-gray-900 p-6 rounded-2xl space-y-6" onSubmit={handleSubmit}>
-      
+    <form
+      className="bg-gray-900 p-6 rounded-2xl space-y-6"
+      onSubmit={handleSubmit}
+    >
       {/* TEAM NAME */}
       <input
         type="text"
@@ -99,11 +113,50 @@ const TeamForm = ({
           Leader Details
         </h2>
 
-        <input name="fullName" placeholder="Leader Full Name" value={leaderDetails.fullName} onChange={handleLeaderChange} className="w-full p-3 bg-gray-800 rounded-lg mb-2" />
-        <input name="email" placeholder="Leader Email" value={leaderDetails.email} onChange={handleLeaderChange} className="w-full p-3 bg-gray-800 rounded-lg mb-2" />
-        <input name="collegeId" placeholder="Leader College ID" value={leaderDetails.collegeId} onChange={handleLeaderChange} className="w-full p-3 bg-gray-800 rounded-lg mb-2" />
-        <input name="department" placeholder="Leader Department" value={leaderDetails.department} onChange={handleLeaderChange} className="w-full p-3 bg-gray-800 rounded-lg mb-2" />
-        <input name="institute" placeholder="Leader Institute" value={leaderDetails.institute} onChange={handleLeaderChange} className="w-full p-3 bg-gray-800 rounded-lg" />
+        <input
+          name="fullName"
+          placeholder="Leader Full Name *"
+          value={leaderDetails.fullName}
+          onChange={handleLeaderChange}
+          className="w-full p-3 bg-gray-800 rounded-lg mb-2"
+          required
+        />
+
+        <input
+          name="email"
+          placeholder="Leader Email *"
+          value={leaderDetails.email}
+          onChange={handleLeaderChange}
+          className="w-full p-3 bg-gray-800 rounded-lg mb-2"
+          required
+        />
+
+        <input
+          name="collegeId"
+          placeholder="Leader College ID *"
+          value={leaderDetails.collegeId}
+          onChange={handleLeaderChange}
+          className="w-full p-3 bg-gray-800 rounded-lg mb-2"
+          required
+        />
+
+        <input
+          name="department"
+          placeholder="Leader Department *"
+          value={leaderDetails.department}
+          onChange={handleLeaderChange}
+          className="w-full p-3 bg-gray-800 rounded-lg mb-2"
+          required
+        />
+
+        <input
+          name="institute"
+          placeholder="Leader Institute *"
+          value={leaderDetails.institute}
+          onChange={handleLeaderChange}
+          className="w-full p-3 bg-gray-800 rounded-lg"
+          required
+        />
       </div>
 
       {/* MEMBERS */}
@@ -117,11 +170,54 @@ const TeamForm = ({
         </p>
 
         {members.map((m, i) => (
-          <div key={i} className="bg-gray-800 p-4 rounded-xl mb-3">
-            
-            <input name="fullName" placeholder="Full Name" value={m.fullName} onChange={(e) => handleMemberChange(i, e)} className="w-full p-2 bg-gray-700 rounded mb-2" />
-            <input name="email" placeholder="Email" value={m.email} onChange={(e) => handleMemberChange(i, e)} className="w-full p-2 bg-gray-700 rounded mb-2" />
-            <input name="collegeId" placeholder="College ID" value={m.collegeId} onChange={(e) => handleMemberChange(i, e)} className="w-full p-2 bg-gray-700 rounded" />
+          <div
+            key={i}
+            className="bg-gray-800 p-4 rounded-xl mb-3"
+          >
+            <input
+              name="fullName"
+              placeholder="Full Name *"
+              value={m.fullName}
+              onChange={(e) => handleMemberChange(i, e)}
+              className="w-full p-2 bg-gray-700 rounded mb-2"
+              required
+            />
+
+            <input
+              name="email"
+              placeholder="Email *"
+              value={m.email}
+              onChange={(e) => handleMemberChange(i, e)}
+              className="w-full p-2 bg-gray-700 rounded mb-2"
+              required
+            />
+
+            <input
+              name="collegeId"
+              placeholder="College ID *"
+              value={m.collegeId}
+              onChange={(e) => handleMemberChange(i, e)}
+              className="w-full p-2 bg-gray-700 rounded mb-2"
+              required
+            />
+
+            <input
+              name="department"
+              placeholder="Department *"
+              value={m.department}
+              onChange={(e) => handleMemberChange(i, e)}
+              className="w-full p-2 bg-gray-700 rounded mb-2"
+              required
+            />
+
+            <input
+              name="institute"
+              placeholder="Institute *"
+              value={m.institute}
+              onChange={(e) => handleMemberChange(i, e)}
+              className="w-full p-2 bg-gray-700 rounded"
+              required
+            />
 
             {members.length > 1 && (
               <button
@@ -135,7 +231,7 @@ const TeamForm = ({
           </div>
         ))}
 
-        {/* ADD BUTTON (LIMIT CONTROLLED) */}
+        {/* ADD MEMBER */}
         <button
           type="button"
           onClick={addMember}
