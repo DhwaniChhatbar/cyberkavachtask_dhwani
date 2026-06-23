@@ -20,20 +20,10 @@ const router = express.Router();
 
 /**
  * ==========================
- * ROLE DEFINITIONS
+ * ROLE GROUPS
  * ==========================
  */
 
-// Tech Coordinator only
-const techOnly = ["Tech Coordinator"];
-
-// Faculty Coordinator only
-const facultyOnly = ["Faculty Coordinator"];
-
-// Student Coordinator only
-const studentOnly = ["Student Coordinator"];
-
-// Everyone who can view events
 const allUsers = [
   "Faculty Coordinator",
   "Student Coordinator",
@@ -58,55 +48,74 @@ router.get(
 /**
  * ==========================
  * GET PENDING EVENTS
- * Faculty + Student only
+ * (IMPORTANT: keep BEFORE /:id safety-wise)
  * ==========================
  */
 router.get(
   "/pending",
   protect,
-  authorizeRoles(
-    "Faculty Coordinator",
-    "Student Coordinator"
-  ),
+  authorizeRoles("Faculty Coordinator", "Student Coordinator"),
   getPendingEvents
 );
 
 /**
  * ==========================
- * GET SINGLE EVENT
- * ==========================
- */
-router.get(
-  "/:id",
-  protect,
-  authorizeRoles(...allUsers),
-  getEventById
-);
-
-/**
- * ==========================
  * CREATE EVENT
- * Tech Coordinator only
  * ==========================
  */
 router.post(
   "/",
   protect,
-  authorizeRoles(...techOnly),
+  authorizeRoles("Tech Coordinator"),
   upload.single("poster"),
   createEvent
 );
 
 /**
  * ==========================
+ * SEND FOR APPROVAL
+ * ==========================
+ */
+router.put(
+  "/approval/:id",
+  protect,
+  authorizeRoles("Tech Coordinator"),
+  sendForApproval
+);
+
+/**
+ * ==========================
+ * APPROVE EVENT
+ * ==========================
+ */
+router.put(
+  "/approve/:id",
+  protect,
+  authorizeRoles("Faculty Coordinator"),
+  approveEvent
+);
+
+/**
+ * ==========================
+ * PUBLISH EVENT
+ * ==========================
+ */
+router.put(
+  "/publish/:id",
+  protect,
+  authorizeRoles("Student Coordinator"),
+  publishEvent
+);
+
+/**
+ * ==========================
  * UPDATE EVENT
- * Tech Coordinator only
  * ==========================
  */
 router.put(
   "/:id",
   protect,
-  authorizeRoles(...techOnly),
+  authorizeRoles("Tech Coordinator"),
   upload.single("poster"),
   updateEvent
 );
@@ -114,56 +123,26 @@ router.put(
 /**
  * ==========================
  * DELETE EVENT
- * Faculty Coordinator only
  * ==========================
  */
 router.delete(
   "/:id",
   protect,
-  authorizeRoles(...facultyOnly),
+  authorizeRoles("Faculty Coordinator"),
   deleteEvent
 );
 
 /**
  * ==========================
- * SEND FOR APPROVAL
- * Draft → Pending Faculty Review
- * Tech Coordinator only
+ * GET SINGLE EVENT
+ * (KEEP LAST to avoid route conflicts)
  * ==========================
  */
-router.put(
-  "/approval/:id",
+router.get(
+  "/:id",
   protect,
-  authorizeRoles(...techOnly),
-  sendForApproval
-);
-
-/**
- * ==========================
- * APPROVE EVENT
- * Pending Faculty Review → Approved by Faculty
- * Faculty Coordinator only
- * ==========================
- */
-router.put(
-  "/approve/:id",
-  protect,
-  authorizeRoles(...facultyOnly),
-  approveEvent
-);
-
-/**
- * ==========================
- * PUBLISH EVENT
- * Approved by Faculty → Published
- * Student Coordinator only
- * ==========================
- */
-router.put(
-  "/publish/:id",
-  protect,
-  authorizeRoles(...studentOnly),
-  publishEvent
+  authorizeRoles(...allUsers),
+  getEventById
 );
 
 export default router;
