@@ -46,20 +46,21 @@ const eventSchema = new mongoose.Schema(
       trim: true,
     },
 
+    // 🔥 TEAM SIZE CONTROL (IMPORTANT FIX)
     teamSize: {
       type: Number,
       default: 1,
       min: 1,
+      max: 20,
     },
 
-    // Registration capacity must be entered manually
+    // Registration capacity
     capacity: {
       type: Number,
       required: true,
       min: 1,
     },
 
-    // Number of registered teams
     registrationCount: {
       type: Number,
       default: 0,
@@ -120,7 +121,6 @@ const eventSchema = new mongoose.Schema(
     },
 
     approvalDate: Date,
-
     publishDate: Date,
 
     // ==========================
@@ -146,12 +146,10 @@ const eventSchema = new mongoose.Schema(
         type: Boolean,
         default: false,
       },
-
       facultyReviewed: {
         type: Boolean,
         default: false,
       },
-
       studentPublished: {
         type: Boolean,
         default: false,
@@ -186,5 +184,8 @@ eventSchema.index({ status: 1 });
 eventSchema.index({ date: 1 });
 eventSchema.index({ createdBy: 1 });
 eventSchema.index({ category: 1 });
+
+// 🔥 IMPORTANT: prevent duplicate index warnings
+eventSchema.index({ _id: 1 });
 
 export default mongoose.model("Event", eventSchema);

@@ -1,6 +1,7 @@
 import React from "react";
 
 const TeamMemberList = ({ members = [] }) => {
+  // only non-leader members
   const displayMembers = members.filter(
     (member) => !member?.isLeader
   );
@@ -40,12 +41,6 @@ const TeamMemberList = ({ members = [] }) => {
             <div className="text-gray-400">
               🏫 {member?.institute || "N/A"}
             </div>
-
-            {member?.isLeader && (
-              <div className="text-green-400 font-medium">
-                Team Leader
-              </div>
-            )}
           </div>
         ))
       )}

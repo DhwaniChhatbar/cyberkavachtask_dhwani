@@ -16,7 +16,7 @@ export const createTeam = async (req, res) => {
     } = req.body;
 
     // ==========================
-    // VALIDATION
+    // BASIC VALIDATION
     // ==========================
     if (!teamName || !event) {
       return res.status(400).json({
@@ -58,6 +58,21 @@ export const createTeam = async (req, res) => {
       });
     }
 
+    // ==========================
+    // TEAM SIZE RULE (IMPORTANT FIX)
+    // leader + members must not exceed event.teamSize
+    // ==========================
+    const maxMembersAllowed = Number(eventDoc.teamSize || 1);
+
+    const totalRequested = 1 + (members?.length || 0);
+
+    if (totalRequested > maxMembersAllowed) {
+      return res.status(400).json({
+        success: false,
+        message: `Maximum team size allowed is ${maxMembersAllowed}. You tried to add ${totalRequested}.`,
+      });
+    }
+
     if (eventDoc.registrationCount >= eventDoc.capacity) {
       return res.status(400).json({
         success: false,
@@ -86,19 +101,39 @@ export const createTeam = async (req, res) => {
     const teamId = "TEAM-" + Date.now();
 
     // ==========================
-    // LEADER AS MEMBER
+    // LEADER AS STRICT LEADER OBJECT
     // ==========================
+    const leader = {
+      user: req.user.id,
+      fullName: leaderDetails.fullName,
+      email: leaderDetails.email,
+      collegeId: leaderDetails.collegeId,
+      department: leaderDetails.department,
+      institute: leaderDetails.institute,
+      isLeader: true,
+    };
+
+    // ==========================
+    // FINAL MEMBERS (LIMITED)
+    // ==========================
+    const safeMembers = Array.isArray(members) ? members : [];
+
+    const allowedMembers = safeMembers.slice(
+      0,
+      maxMembersAllowed - 1
+    );
+
     const finalMembers = [
-      {
-        user: req.user.id,
-        fullName: leaderDetails.fullName,
-        email: leaderDetails.email,
-        collegeId: leaderDetails.collegeId,
-        department: leaderDetails.department,
-        institute: leaderDetails.institute,
-        isLeader: true,
-      },
-      ...(Array.isArray(members) ? members : []),
+      leader,
+      ...allowedMembers.map((m) => ({
+        user: m.user || null,
+        fullName: m.fullName,
+        email: m.email,
+        collegeId: m.collegeId,
+        department: m.department,
+        institute: m.institute,
+        isLeader: false,
+      })),
     ];
 
     // ==========================
@@ -109,7 +144,7 @@ export const createTeam = async (req, res) => {
       teamId,
       event,
       leader: req.user.id,
-      leaderDetails,
+      leaderDetails: leader,
       members: finalMembers,
       previousEvent: previousEvent || "",
       status: "Approved",
@@ -135,23 +170,26 @@ export const createTeam = async (req, res) => {
     // ==========================
     try {
       const message = `
-Hello ${leaderDetails.fullName}
+Hello ${leader.fullName}
 
 Your team has been registered successfully.
 
 TEAM DETAILS
 
-Team Name : ${teamName}
-Team ID : ${teamId}
-Event : ${eventDoc.name}
+Team Name: ${teamName}
+Team ID: ${teamId}
+Event: ${eventDoc.name}
 
-Status : Registered
+Team Size Limit: ${maxMembersAllowed}
+Members Added: ${finalMembers.length}
+
+Status: Registered
 
 Thank you for participating!
 `;
 
       await sendEmail(
-        leaderDetails.email,
+        leader.email,
         "Team Registration Successful 🎉",
         message
       );
@@ -223,9 +261,7 @@ export const updateTeam = async (req, res) => {
     const team = await Team.findByIdAndUpdate(
       req.params.id,
       req.body,
-      {
-        new: true,
-      }
+      { new: true }
     );
 
     if (!team) {

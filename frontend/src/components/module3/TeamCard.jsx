@@ -4,6 +4,7 @@ import TeamQRCode from "./TeamQRCode";
 const TeamCard = ({ team }) => {
   return (
     <div className="bg-gray-900 p-5 rounded-2xl border border-gray-800 shadow-lg">
+
       {/* HEADER */}
       <div className="flex justify-between items-start">
         <div>
@@ -33,75 +34,72 @@ const TeamCard = ({ team }) => {
         </span>
       </div>
 
-      {/* LEADER SECTION */}
+      {/* =========================
+          LEADER SECTION (FIXED)
+      ========================= */}
       {team.leaderDetails && (
         <div className="mt-5 bg-gray-800 rounded-xl p-4">
+
           <h3 className="font-semibold text-white mb-3">
             👤 Team Leader
           </h3>
 
           <div className="space-y-1 text-sm text-gray-300">
+
             <p>
-              <span className="text-white font-medium">
-                Name:
-              </span>{" "}
-              {team.leaderDetails.fullName}
+              <span className="text-white font-medium">Name:</span>{" "}
+              {team.leaderDetails.fullName || "N/A"}
             </p>
 
             <p>
-              <span className="text-white font-medium">
-                Email:
-              </span>{" "}
-              {team.leaderDetails.email}
+              <span className="text-white font-medium">Email:</span>{" "}
+              {team.leaderDetails.email || "N/A"}
             </p>
 
             <p>
-              <span className="text-white font-medium">
-                College ID:
-              </span>{" "}
-              {team.leaderDetails.collegeId}
+              <span className="text-white font-medium">College ID:</span>{" "}
+              {team.leaderDetails.collegeId || "N/A"}
             </p>
 
             <p>
-              <span className="text-white font-medium">
-                Department:
-              </span>{" "}
-              {team.leaderDetails.department}
+              <span className="text-white font-medium">Department:</span>{" "}
+              {team.leaderDetails.department || "N/A"}
             </p>
 
             <p>
-              <span className="text-white font-medium">
-                Institute:
-              </span>{" "}
-              {team.leaderDetails.institute}
+              <span className="text-white font-medium">Institute:</span>{" "}
+              {team.leaderDetails.institute || "N/A"}
             </p>
+
           </div>
         </div>
       )}
 
-      {/* MEMBERS SECTION */}
+      {/* =========================
+          MEMBERS SECTION (FIXED)
+      ========================= */}
       <div className="mt-5">
+
         <h3 className="font-semibold mb-3 text-white">
           Team Members
         </h3>
 
-        {team.members?.filter((member) => !member.isLeader).length >
-        0 ? (
+        {team.members?.filter((m) => !m.isLeader).length > 0 ? (
           team.members
-            .filter((member) => !member.isLeader)
+            .filter((m) => !m.isLeader)
             .map((member, index) => (
               <div
                 key={index}
                 className="bg-gray-800 p-4 rounded-xl mb-3 text-sm text-gray-300"
               >
                 <p className="text-white font-medium mb-1">
-                  {member.fullName}
+                  {member.fullName || "N/A"}
                 </p>
 
-                <p>📧 {member.email}</p>
-                <p>🆔 {member.collegeId}</p>
-                <p>🎓 {member.department}</p>
-                <p>🏫 {member.institute}</p>
+                <p>📧 {member.email || "N/A"}</p>
+                <p>🆔 {member.collegeId || "N/A"}</p>
+                <p>🎓 {member.department || "N/A"}</p>
+                <p>🏫 {member.institute || "N/A"}</p>
               </div>
             ))
         ) : (
@@ -128,6 +126,7 @@ const TeamCard = ({ team }) => {
           teamName={team.teamName}
         />
       </div>
+
     </div>
   );
 };
