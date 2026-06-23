@@ -1,5 +1,86 @@
 import mongoose from "mongoose";
 
+const memberSchema = new mongoose.Schema(
+  {
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
+
+    fullName: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
+    email: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
+    collegeId: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
+    department: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
+    institute: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
+    isLeader: {
+      type: Boolean,
+      default: false,
+    },
+  },
+  { _id: false }
+);
+
+const leaderSchema = new mongoose.Schema(
+  {
+    fullName: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
+    email: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
+    collegeId: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
+    department: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
+    institute: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+  },
+  { _id: false }
+);
+
 const teamSchema = new mongoose.Schema(
   {
     // ==========================
@@ -28,7 +109,7 @@ const teamSchema = new mongoose.Schema(
     },
 
     // ==========================
-    // TEAM LEADER
+    // LEADER USER REFERENCE
     // ==========================
     leader: {
       type: mongoose.Schema.Types.ObjectId,
@@ -36,27 +117,21 @@ const teamSchema = new mongoose.Schema(
       required: true,
     },
 
-    leaderName: {
-      type: String,
-      default: "",
-      trim: true,
-    },
-
-    leaderEmail: {
-      type: String,
-      default: "",
-      trim: true,
+    // ==========================
+    // LEADER DETAILS
+    // ==========================
+    leaderDetails: {
+      type: leaderSchema,
+      required: true,
     },
 
     // ==========================
-    // MEMBERS
+    // TEAM MEMBERS
     // ==========================
-    members: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-      },
-    ],
+    members: {
+      type: [memberSchema],
+      default: [],
+    },
 
     // ==========================
     // OPTIONAL HISTORY
@@ -109,5 +184,6 @@ const teamSchema = new mongoose.Schema(
 // ==========================
 teamSchema.index({ event: 1 });
 teamSchema.index({ leader: 1 });
+teamSchema.index({ teamId: 1 });
 
 export default mongoose.model("Team", teamSchema);

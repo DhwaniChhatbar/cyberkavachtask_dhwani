@@ -10,12 +10,14 @@ export const createTeam = async (req, res) => {
     const {
       teamName,
       event,
-      members,
+      leaderDetails,
+      members = [],
       previousEvent,
-      leaderName,
-      leaderEmail,
     } = req.body;
 
+    // ==========================
+    // VALIDATION
+    // ==========================
     if (!teamName || !event) {
       return res.status(400).json({
         success: false,
@@ -23,6 +25,23 @@ export const createTeam = async (req, res) => {
       });
     }
 
+    if (
+      !leaderDetails ||
+      !leaderDetails.fullName ||
+      !leaderDetails.email ||
+      !leaderDetails.collegeId ||
+      !leaderDetails.department ||
+      !leaderDetails.institute
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Complete leader details are required",
+      });
+    }
+
+    // ==========================
+    // FIND EVENT
+    // ==========================
     const eventDoc = await Event.findById(event);
 
     if (!eventDoc) {
@@ -46,6 +65,9 @@ export const createTeam = async (req, res) => {
       });
     }
 
+    // ==========================
+    // CHECK DUPLICATE TEAM
+    // ==========================
     const existingTeam = await Team.findOne({
       teamName,
       event,
@@ -58,33 +80,62 @@ export const createTeam = async (req, res) => {
       });
     }
 
+    // ==========================
+    // TEAM ID
+    // ==========================
     const teamId = "TEAM-" + Date.now();
 
+    // ==========================
+    // LEADER AS MEMBER
+    // ==========================
+    const finalMembers = [
+      {
+        user: req.user.id,
+        fullName: leaderDetails.fullName,
+        email: leaderDetails.email,
+        collegeId: leaderDetails.collegeId,
+        department: leaderDetails.department,
+        institute: leaderDetails.institute,
+        isLeader: true,
+      },
+      ...(Array.isArray(members) ? members : []),
+    ];
+
+    // ==========================
+    // CREATE TEAM
+    // ==========================
     const team = await Team.create({
       teamName,
       teamId,
       event,
       leader: req.user.id,
-      leaderName,
-      leaderEmail,
-      members: members || [],
+      leaderDetails,
+      members: finalMembers,
       previousEvent: previousEvent || "",
       status: "Approved",
     });
 
+    // ==========================
+    // UPDATE EVENT REGISTRATION COUNT
+    // ==========================
     eventDoc.registrationCount += 1;
     await eventDoc.save();
 
+    // ==========================
+    // SOCKET EVENT
+    // ==========================
     const io = req.app.get("io");
 
     if (io) {
       io.emit("team-created", team);
     }
 
-    if (leaderEmail) {
-      try {
-        const message = `
-Hello ${leaderName}
+    // ==========================
+    // EMAIL
+    // ==========================
+    try {
+      const message = `
+Hello ${leaderDetails.fullName}
 
 Your team has been registered successfully.
 
@@ -99,14 +150,13 @@ Status : Registered
 Thank you for participating!
 `;
 
-        await sendEmail(
-          leaderEmail,
-          "Team Registration Successful 🎉",
-          message
-        );
-      } catch (emailErr) {
-        console.log("Email error:", emailErr.message);
-      }
+      await sendEmail(
+        leaderDetails.email,
+        "Team Registration Successful 🎉",
+        message
+      );
+    } catch (emailErr) {
+      console.log("Email error:", emailErr.message);
     }
 
     return res.status(201).json({
@@ -173,7 +223,9 @@ export const updateTeam = async (req, res) => {
     const team = await Team.findByIdAndUpdate(
       req.params.id,
       req.body,
-      { new: true }
+      {
+        new: true,
+      }
     );
 
     if (!team) {

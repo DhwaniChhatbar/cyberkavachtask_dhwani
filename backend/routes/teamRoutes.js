@@ -15,28 +15,20 @@ const router = express.Router();
 
 /**
  * ==========================
- * CREATE TEAM
- * Members + Coordinators
+ * CREATE TEAM (REGISTRATION)
+ * ONLY LOGGED-IN USERS (ANY ROLE)
  * ==========================
  */
 router.post(
   "/",
   protect,
-  authorizeRoles(
-    "Member",
-    "Tech Coordinator",
-    "Faculty Coordinator",
-    "Student Coordinator",
-    "Content Coordinator",
-    "Social Media Coordinator"
-  ),
   createTeam
 );
 
 /**
  * ==========================
  * GET ALL TEAMS
- * Protected
+ * COORDINATORS + MEMBERS
  * ==========================
  */
 router.get(
@@ -56,7 +48,6 @@ router.get(
 /**
  * ==========================
  * GET TEAM BY ID
- * Protected
  * ==========================
  */
 router.get(
@@ -76,14 +67,13 @@ router.get(
 /**
  * ==========================
  * UPDATE TEAM
- * Leader/Coordinators
+ * ONLY COORDINATORS + TECH CONTROL
  * ==========================
  */
 router.put(
   "/:id",
   protect,
   authorizeRoles(
-    "Member",
     "Tech Coordinator",
     "Faculty Coordinator",
     "Student Coordinator"
@@ -94,7 +84,7 @@ router.put(
 /**
  * ==========================
  * DELETE TEAM
- * Coordinators Only
+ * ONLY ADMIN COORDINATORS
  * ==========================
  */
 router.delete(

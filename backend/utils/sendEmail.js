@@ -1,34 +1,52 @@
 import nodemailer from "nodemailer";
 
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+});
+
 const sendEmail = async (
   to,
   subject,
-  text,
+  text = "",
   html = ""
 ) => {
   try {
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-      },
-    });
+    if (!to) {
+      throw new Error("Recipient email is required");
+    }
 
-    await transporter.sendMail({
-      from: process.env.EMAIL_USER,
+    const mailOptions = {
+      from: `"Campus Event Management System" <${process.env.EMAIL_USER}>`,
       to,
       subject,
       text,
       html,
-    });
+    };
 
-    console.log("Email sent successfully");
-  } catch (error) {
+    const info = await transporter.sendMail(mailOptions);
+
     console.log(
-      "Email error:",
+      `Email sent successfully: ${info.messageId}`
+    );
+
+    return {
+      success: true,
+      messageId: info.messageId,
+    };
+  } catch (error) {
+    console.error(
+      "Email sending failed:",
       error.message
     );
+
+    return {
+      success: false,
+      error: error.message,
+    };
   }
 };
 

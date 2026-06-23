@@ -1,11 +1,14 @@
 import React from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import api from "../utils/api";
 import TeamForm from "../components/module3/TeamForm";
 
 const TeamRegistration = () => {
   const { eventId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const initialData = location.state || {};
 
   const handleCreateTeam = async (data) => {
     try {
@@ -15,14 +18,17 @@ const TeamRegistration = () => {
       }
 
       const payload = {
-        ...data,
+        teamName: data.teamName,
+        leaderDetails: data.leaderDetails,
+        members: data.members,
+        previousEvent: data.previousEvent,
         event: eventId,
       };
 
       const res = await api.post("/teams", payload);
 
       alert(
-        res.data?.message || "Team created successfully"
+        res.data?.message || "Team registered successfully"
       );
 
       navigate("/my-teams");
@@ -31,8 +37,8 @@ const TeamRegistration = () => {
 
       alert(
         err.response?.data?.message ||
-        err.response?.data?.error ||
-        "Failed to create team"
+          err.response?.data?.error ||
+          "Failed to create team"
       );
     }
   };
@@ -43,7 +49,21 @@ const TeamRegistration = () => {
         Team Registration
       </h1>
 
-      <TeamForm onSubmit={handleCreateTeam} />
+      <TeamForm
+        onSubmit={handleCreateTeam}
+        initialTeamName={initialData.teamName || ""}
+        initialLeaderDetails={
+          initialData.leaderDetails || {
+            fullName: "",
+            email: "",
+            collegeId: "",
+            department: "",
+            institute: "",
+          }
+        }
+        initialMembers={initialData.members || []}
+        initialPreviousEvent={initialData.previousEvent || ""}
+      />
     </div>
   );
 };

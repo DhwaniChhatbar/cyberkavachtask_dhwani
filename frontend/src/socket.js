@@ -1,9 +1,10 @@
 import { io } from "socket.io-client";
 
 // ==========================
-// SOCKET BASE URL
+// SOCKET BASE URL (SAFE)
 // ==========================
-const SOCKET_URL = import.meta.env.VITE_SOCKET_URL;
+const SOCKET_URL =
+  import.meta.env.VITE_SOCKET_URL || "http://localhost:5000";
 
 // ==========================
 // SINGLE SOCKET INSTANCE
@@ -29,6 +30,14 @@ socket.on("connect", () => {
   console.log("🟢 Socket Connected:", socket.id);
 });
 
+// IMPORTANT: auto re-join rooms after reconnect
+socket.on("connect", () => {
+  const userId = localStorage.getItem("userId");
+  if (userId) {
+    socket.emit("join", userId);
+  }
+});
+
 socket.on("disconnect", (reason) => {
   console.log("🔴 Socket Disconnected:", reason);
 });
@@ -40,6 +49,7 @@ socket.on("disconnect", (reason) => {
 // Join user room
 export const joinUserRoom = (userId) => {
   if (userId) {
+    localStorage.setItem("userId", userId);
     socket.emit("join", userId);
   }
 };

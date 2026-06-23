@@ -4,24 +4,34 @@ import { useNavigate } from "react-router-dom";
 const EventCard = ({ event }) => {
   const navigate = useNavigate();
 
+  if (!event) return null;
+
   const status = event.status || "Draft";
+
+  const posterSrc =
+    event.poster && event.poster.startsWith("http")
+      ? event.poster
+      : event.poster
+      ? `${import.meta.env.VITE_API_URL}/${event.poster}`
+      : "https://via.placeholder.com/600x300?text=Event+Poster";
 
   return (
     <div className="bg-gray-900 rounded-2xl overflow-hidden shadow-lg border border-gray-800">
       {/* Poster */}
       <img
-        src={
-          event.poster ||
-          "https://via.placeholder.com/600x300?text=Event+Poster"
-        }
-        alt={event.name}
+        src={posterSrc}
+        alt={event.name || "Event"}
         className="w-full h-48 object-cover"
       />
 
       <div className="p-5">
-        <h2 className="text-2xl font-bold text-white">{event.name}</h2>
+        <h2 className="text-2xl font-bold text-white">
+          {event.name || "Untitled Event"}
+        </h2>
 
-        <p className="text-gray-400 mt-2">{event.description}</p>
+        <p className="text-gray-400 mt-2">
+          {event.description || "No description available"}
+        </p>
 
         <div className="mt-4 space-y-2 text-sm text-gray-300">
           <p>
@@ -61,7 +71,6 @@ const EventCard = ({ event }) => {
             {status}
           </span>
 
-          {/* Register button only for published events */}
           {status === "Published" && (
             <button
               onClick={() =>

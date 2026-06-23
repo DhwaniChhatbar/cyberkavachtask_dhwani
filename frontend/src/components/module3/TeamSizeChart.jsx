@@ -17,13 +17,23 @@ const COLORS = [
 ];
 
 const TeamSizeChart = ({ data = [] }) => {
+  // sanitize data to avoid crashes
+  const safeData = Array.isArray(data)
+    ? data
+        .filter((item) => item && typeof item === "object")
+        .map((item) => ({
+          name: item.name || "Unknown",
+          value: Number(item.value) || 0,
+        }))
+    : [];
+
   return (
     <div className="bg-gray-900 p-6 rounded-2xl">
       <h2 className="text-xl font-bold mb-6">
         Team Size Distribution
       </h2>
 
-      {data.length === 0 ? (
+      {safeData.length === 0 ? (
         <div className="text-gray-400 text-center py-10">
           No team data available
         </div>
@@ -31,15 +41,15 @@ const TeamSizeChart = ({ data = [] }) => {
         <ResponsiveContainer width="100%" height={300}>
           <PieChart>
             <Pie
-              data={data}
+              data={safeData}
               dataKey="value"
               nameKey="name"
               outerRadius={100}
               label
             >
-              {data.map((entry, index) => (
+              {safeData.map((entry, index) => (
                 <Cell
-                  key={index}
+                  key={`cell-${index}`}
                   fill={COLORS[index % COLORS.length]}
                 />
               ))}

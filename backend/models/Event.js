@@ -36,11 +36,14 @@ const eventSchema = new mongoose.Schema(
     // ==========================
     // REGISTRATION
     // ==========================
-    registrationDeadline: Date,
+    registrationDeadline: {
+      type: Date,
+    },
 
     registrationLink: {
       type: String,
       default: "",
+      trim: true,
     },
 
     teamSize: {
@@ -49,12 +52,14 @@ const eventSchema = new mongoose.Schema(
       min: 1,
     },
 
+    // Registration capacity must be entered manually
     capacity: {
       type: Number,
-      default: 100,
+      required: true,
       min: 1,
     },
 
+    // Number of registered teams
     registrationCount: {
       type: Number,
       default: 0,
@@ -73,18 +78,26 @@ const eventSchema = new mongoose.Schema(
     category: {
       type: String,
       default: "General",
+      trim: true,
     },
 
-    tags: [{ type: String }],
+    tags: [
+      {
+        type: String,
+        trim: true,
+      },
+    ],
 
     rules: {
       type: String,
       default: "",
+      trim: true,
     },
 
     poster: {
       type: String,
       default: "",
+      trim: true,
     },
 
     // ==========================
@@ -107,10 +120,11 @@ const eventSchema = new mongoose.Schema(
     },
 
     approvalDate: Date,
+
     publishDate: Date,
 
     // ==========================
-    // WORKFLOW STATUS (FIXED CLEAN FLOW)
+    // WORKFLOW STATUS
     // ==========================
     status: {
       type: String,
@@ -125,14 +139,28 @@ const eventSchema = new mongoose.Schema(
     },
 
     // ==========================
-    // WORKFLOW FLAGS (OPTIONAL BUT SAFE)
+    // WORKFLOW FLAGS
     // ==========================
     workflow: {
-      submittedByTech: { type: Boolean, default: false },
-      facultyReviewed: { type: Boolean, default: false },
-      studentPublished: { type: Boolean, default: false },
+      submittedByTech: {
+        type: Boolean,
+        default: false,
+      },
+
+      facultyReviewed: {
+        type: Boolean,
+        default: false,
+      },
+
+      studentPublished: {
+        type: Boolean,
+        default: false,
+      },
     },
 
+    // ==========================
+    // EVENT COMPLETION
+    // ==========================
     isCompleted: {
       type: Boolean,
       default: false,
@@ -157,5 +185,6 @@ const eventSchema = new mongoose.Schema(
 eventSchema.index({ status: 1 });
 eventSchema.index({ date: 1 });
 eventSchema.index({ createdBy: 1 });
+eventSchema.index({ category: 1 });
 
 export default mongoose.model("Event", eventSchema);

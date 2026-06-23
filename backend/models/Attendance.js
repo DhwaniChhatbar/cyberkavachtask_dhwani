@@ -13,7 +13,7 @@ const attendanceSchema = new mongoose.Schema(
     },
 
     // ==========================
-    // TEAM / MEMBER
+    // TEAM
     // ==========================
     team: {
       type: mongoose.Schema.Types.ObjectId,
@@ -21,10 +21,53 @@ const attendanceSchema = new mongoose.Schema(
       default: null,
     },
 
+    // ==========================
+    // USER REFERENCE
+    // ==========================
     member: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       default: null,
+    },
+
+    // ==========================
+    // SNAPSHOT DETAILS
+    // ==========================
+    participantDetails: {
+      fullName: {
+        type: String,
+        required: true,
+        trim: true,
+      },
+
+      email: {
+        type: String,
+        required: true,
+        trim: true,
+      },
+
+      collegeId: {
+        type: String,
+        required: true,
+        trim: true,
+      },
+
+      department: {
+        type: String,
+        required: true,
+        trim: true,
+      },
+
+      institute: {
+        type: String,
+        required: true,
+        trim: true,
+      },
+
+      isLeader: {
+        type: Boolean,
+        default: false,
+      },
     },
 
     // ==========================
@@ -66,7 +109,7 @@ const attendanceSchema = new mongoose.Schema(
     },
 
     // ==========================
-    // MODULE 2 (CERTIFICATE)
+    // MODULE 2 (CERTIFICATES)
     // ==========================
     certificateGenerated: {
       type: Boolean,
@@ -74,7 +117,7 @@ const attendanceSchema = new mongoose.Schema(
     },
 
     // ==========================
-    // MODULE 5 (POINTS SYSTEM)
+    // MODULE 5 (POINTS)
     // ==========================
     pointsAwarded: {
       type: Boolean,
@@ -92,20 +135,25 @@ const attendanceSchema = new mongoose.Schema(
 );
 
 // ==========================
-// INDEX (PREVENT DUPLICATES)
+// INDEXES
 // ==========================
 attendanceSchema.index(
   { event: 1, team: 1, member: 1 },
   { unique: true }
 );
 
+attendanceSchema.index({ event: 1 });
+attendanceSchema.index({ team: 1 });
+attendanceSchema.index({ member: 1 });
+
 // ==========================
-// VALIDATION RULE
+// VALIDATION
 // ==========================
 attendanceSchema.pre("save", function (next) {
   if (!this.team && !this.member) {
     return next(new Error("Either team or member is required"));
   }
+
   next();
 });
 

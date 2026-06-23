@@ -18,9 +18,6 @@ import analyticsRoutes from "./routes/analyticsRoutes.js";
 import auditRoutes from "./routes/auditRoutes.js";
 import settingRoutes from "./routes/settingRoutes.js";
 
-// SOCKET EVENTS (CENTRALIZED)
-import { SOCKET_EVENTS } from "./utils/socketEvents.js";
-
 dotenv.config();
 
 const app = express();
@@ -38,6 +35,26 @@ export const io = new Server(server, {
 });
 
 // ==========================
+// SOCKET EVENTS (SAFE FALLBACK)
+// ==========================
+const SOCKET_EVENTS = {
+  JOIN: "join",
+  JOIN_EVENT: "join-event",
+  LEAVE_EVENT: "leave-event",
+
+  // attendance
+  ATTENDANCE_CHECKIN: "attendance:checkin",
+  ATTENDANCE_CHECKOUT: "attendance:checkout",
+  ATTENDANCE_COMPLETED: "attendance:completed",
+
+  // teams
+  TEAM_CREATED: "team-created",
+
+  // points
+  POINTS_UPDATE: "points:update",
+};
+
+// ==========================
 // USER SOCKET MAP
 // ==========================
 const userSocketMap = new Map();
@@ -48,37 +65,23 @@ const userSocketMap = new Map();
 io.on("connection", (socket) => {
   console.log("🟢 User Connected:", socket.id);
 
-  // ======================
   // JOIN USER ROOM
-  // ======================
   socket.on(SOCKET_EVENTS.JOIN, (userId) => {
     socket.join(userId);
     userSocketMap.set(userId, socket.id);
-    console.log(`User joined room: ${userId}`);
   });
 
-  // ======================
   // JOIN EVENT ROOM
-  // ======================
   socket.on(SOCKET_EVENTS.JOIN_EVENT, (eventId) => {
     socket.join(eventId);
-    console.log(`Joined event room: ${eventId}`);
   });
 
-  // ======================
   // LEAVE EVENT ROOM
-  // ======================
   socket.on(SOCKET_EVENTS.LEAVE_EVENT, (eventId) => {
     socket.leave(eventId);
-    console.log(`Left event room: ${eventId}`);
   });
 
-  // ======================
-  // DISCONNECT
-  // ======================
   socket.on("disconnect", () => {
-    console.log("🔴 User Disconnected:", socket.id);
-
     for (const [userId, socketId] of userSocketMap.entries()) {
       if (socketId === socket.id) {
         userSocketMap.delete(userId);

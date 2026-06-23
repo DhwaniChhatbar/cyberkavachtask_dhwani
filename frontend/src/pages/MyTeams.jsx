@@ -51,12 +51,17 @@ const MyTeams = () => {
       state: {
         teamName: team.teamName,
         previousEvent: team.previousEvent,
+        leaderDetails: team.leaderDetails,
         members:
-          team.members?.map((member) =>
-            typeof member === "object"
-              ? member.name
-              : member
-          ) || [],
+          team.members
+            ?.filter((member) => !member.isLeader)
+            .map((member) => ({
+              fullName: member.fullName,
+              email: member.email,
+              collegeId: member.collegeId,
+              department: member.department,
+              institute: member.institute,
+            })) || [],
       },
     });
   };
@@ -66,16 +71,21 @@ const MyTeams = () => {
       TeamName: team.teamName,
       TeamID: team.teamId,
       Event: team.event?.name || "N/A",
-      Leader: team.leaderName,
-      Email: team.leaderEmail,
+
+      LeaderName: team.leaderDetails?.fullName || "",
+      LeaderEmail: team.leaderDetails?.email || "",
+      LeaderCollegeID: team.leaderDetails?.collegeId || "",
+      LeaderDepartment: team.leaderDetails?.department || "",
+      LeaderInstitute: team.leaderDetails?.institute || "",
+
       Members:
         team.members
-          ?.map((member) =>
-            typeof member === "object"
-              ? member.name
-              : member
+          ?.map(
+            (member) =>
+              `${member.fullName} (${member.email})`
           )
           .join(", ") || "",
+
       Status: team.status,
       CreatedAt: team.createdAt,
     }));

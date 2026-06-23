@@ -23,7 +23,7 @@ import userBadgeRoutes from "./routes/userBadgeRoutes.js";
 import analyticsRoutes from "./routes/analyticsRoutes.js";
 import settingRoutes from "./routes/settingRoutes.js";
 
-// ✅ FIX: ADD THIS
+// POINTS
 import pointsRoutes from "./routes/pointsRoutes.js";
 
 dotenv.config();
@@ -56,18 +56,37 @@ export const io = new Server(server, {
   },
 });
 
+// ==========================
+// MINIMAL ADD: SOCKET EVENTS MAP
+// ==========================
+const SOCKET_EVENTS = {
+  JOIN: "join",
+  JOIN_EVENT: "join-event",
+  LEAVE_EVENT: "leave-event",
+
+  ATTENDANCE_CHECKIN: "attendance:checkin",
+  ATTENDANCE_CHECKOUT: "attendance:checkout",
+  ATTENDANCE_COMPLETED: "attendance:completed",
+
+  TEAM_CREATED: "team-created",
+  POINTS_UPDATE: "points:update",
+};
+
+// ==========================
+// SOCKET HANDLER
+// ==========================
 io.on("connection", (socket) => {
   console.log("🟢 User Connected:", socket.id);
 
-  socket.on("join", (userId) => {
+  socket.on(SOCKET_EVENTS.JOIN, (userId) => {
     socket.join(userId);
   });
 
-  socket.on("join-event", (eventId) => {
+  socket.on(SOCKET_EVENTS.JOIN_EVENT, (eventId) => {
     socket.join(eventId);
   });
 
-  socket.on("leave-event", (eventId) => {
+  socket.on(SOCKET_EVENTS.LEAVE_EVENT, (eventId) => {
     socket.leave(eventId);
   });
 
@@ -100,7 +119,7 @@ app.use("/api/attendance", attendanceRoutes);
 app.use("/api/leaderboard", leaderboardRoutes);
 app.use("/api/user-badges", userBadgeRoutes);
 
-// ✅ FIX: POINTS ROUTES ADDED HERE
+// POINTS
 app.use("/api/points", pointsRoutes);
 
 // MODULE 6

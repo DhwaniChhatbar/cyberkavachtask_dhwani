@@ -1,82 +1,121 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import AttendanceStats from "../components/module4/AttendanceStats";
 import AttendanceTable from "../components/module4/AttendanceTable";
 import socket from "../socket";
+import api from "../utils/api";
 
 const AttendanceDashboard = () => {
+  // ⚠️ later replace with dynamic eventId from route
   const eventId = "event123";
 
   const [stats, setStats] = useState({
-    checkedIn: 20,
-    checkedOut: 5,
-    pending: 10,
-    total: 35,
+    checkedIn: 0,
+    checkedOut: 0,
+    pending: 0,
+    total: 0,
   });
 
+  const [attendanceData, setAttendanceData] = useState([]);
   const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(true);
 
-  const [attendanceData, setAttendanceData] = useState([
-    {
-      name: "Cyber Warriors",
-      checkIn: "10:00 AM",
-      checkOut: "-",
-      status: "checked-in",
-    },
-    {
-      name: "Code Titans",
-      checkIn: "10:15 AM",
-      checkOut: "4:00 PM",
-      status: "checked-out",
-    },
-  ]);
+  // ==========================
+  // FETCH STATS
+  // ==========================
+  const fetchStats = async () => {
+    try {
+      const res = await api.get(`/attendance/dashboard/${eventId}`);
 
+      setStats({
+        checkedIn: res.data.checkedIn || 0,
+        checkedOut: res.data.checkedOut || 0,
+        pending: res.data.pending || 0,
+        total: res.data.total || 0,
+      });
+    } catch (err) {
+      console.error("Stats error:", err);
+    }
+  };
+
+  // ==========================
+  // FETCH ATTENDANCE LIST
+  // ==========================
+  const fetchAttendance = async () => {
+    try {
+      const res = await api.get(`/attendance/event/${eventId}`);
+
+      const formatted = (res.data || []).map((item) => ({
+        name: item.team?.teamName || item.member?.name || "Unknown",
+        email: item.member?.email || "-",
+        checkIn: item.checkInTime
+          ? new Date(item.checkInTime).toLocaleString()
+          : "-",
+        checkOut: item.checkOutTime
+          ? new Date(item.checkOutTime).toLocaleString()
+          : "-",
+        status: item.status,
+      }));
+
+      setAttendanceData(formatted);
+    } catch (err) {
+      console.error("Attendance error:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ==========================
+  // SOCKET HANDLING
+  // ==========================
   useEffect(() => {
     socket.emit("join-event", eventId);
 
-    socket.on("checkin", (attendance) => {
-      setStats((prev) => ({
-        ...prev,
-        checkedIn: prev.checkedIn + 1,
-      }));
+    const refresh = () => {
+      fetchStats();
+      fetchAttendance();
+    };
 
-      setAttendanceData((prev) => [
-        ...prev,
-        {
-          name: attendance.team || attendance.member || "New Entry",
-          checkIn: new Date().toLocaleTimeString(),
-          checkOut: "-",
-          status: "checked-in",
-        },
-      ]);
-    });
-
-    socket.on("checkout", () => {
-      setStats((prev) => ({
-        ...prev,
-        checkedOut: prev.checkedOut + 1,
-      }));
-    });
+    socket.on("attendance:checkin", refresh);
+    socket.on("attendance:checkout", refresh);
+    socket.on("attendance:completed", refresh);
 
     return () => {
-      socket.off("checkin");
-      socket.off("checkout");
+      socket.off("attendance:checkin", refresh);
+      socket.off("attendance:checkout", refresh);
+      socket.off("attendance:completed", refresh);
     };
   }, []);
 
-  const attendanceRate =
-    stats.total > 0
-      ? Math.round(
-          ((stats.checkedIn + stats.checkedOut) / stats.total) * 100
-        )
-      : 0;
+  // initial load
+  useEffect(() => {
+    fetchStats();
+    fetchAttendance();
+  }, []);
 
-  const filteredData = attendanceData.filter((item) =>
-    item.name.toLowerCase().includes(search.toLowerCase())
-  );
+  // ==========================
+  // ATTENDANCE RATE
+  // ==========================
+  const attendanceRate = useMemo(() => {
+    if (!stats.total) return 0;
+    return Math.round(
+      ((stats.checkedIn + stats.checkedOut) / stats.total) * 100
+    );
+  }, [stats]);
+
+  // ==========================
+  // SEARCH FILTER
+  // ==========================
+  const filteredData = useMemo(() => {
+    return attendanceData.filter((item) =>
+      item.name.toLowerCase().includes(search.toLowerCase())
+    );
+  }, [attendanceData, search]);
 
   return (
     <div className="min-h-screen bg-gray-950 p-6">
-      <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-6 gap-4">
+
+      {/* HEADER */}
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-6">
         <h1 className="text-3xl font-bold text-white">
           Attendance Dashboard
         </h1>
@@ -84,41 +123,47 @@ const AttendanceDashboard = () => {
         <button
           onClick={() =>
             window.open(
-              `http://localhost:5000/api/attendance/report/${eventId}`
+              `${import.meta.env.VITE_API_URL}/api/attendance/report/${eventId}`,
+              "_blank"
             )
           }
-          className="bg-green-600 hover:bg-green-700 px-5 py-3 rounded-xl text-white font-semibold shadow-lg transition"
+          className="bg-green-600 hover:bg-green-700 px-5 py-3 rounded-xl text-white font-semibold"
         >
-          📥 Download CSV Report
+          📥 Download CSV
         </button>
       </div>
 
-      <AttendanceStats
-        checkedIn={stats.checkedIn}
-        checkedOut={stats.checkedOut}
-        pending={stats.pending}
-        total={stats.total}
-      />
+      {/* STATS */}
+      <AttendanceStats {...stats} />
 
-      <div className="bg-gray-900 rounded-xl p-4 mt-6 mb-6">
-        <h2 className="text-white text-xl font-semibold mb-2">
+      {/* RATE */}
+      <div className="bg-gray-900 rounded-2xl p-6 mt-6">
+        <h2 className="text-xl font-semibold text-white mb-3">
           Attendance Rate
         </h2>
-
-        <p className="text-4xl font-bold text-green-400">
+        <div className="text-5xl font-bold text-green-400">
           {attendanceRate}%
-        </p>
+        </div>
       </div>
 
-      <input
-        type="text"
-        placeholder="🔍 Search team/member..."
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        className="w-full p-3 rounded-xl bg-gray-900 text-white outline-none mb-6"
-      />
+      {/* SEARCH */}
+      <div className="mt-6">
+        <input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="🔍 Search team/member..."
+          className="w-full p-4 rounded-xl bg-gray-900 text-white outline-none"
+        />
+      </div>
 
-      <AttendanceTable data={filteredData} />
+      {/* TABLE */}
+      <div className="mt-6">
+        {loading ? (
+          <div className="text-gray-400">Loading attendance...</div>
+        ) : (
+          <AttendanceTable data={filteredData} />
+        )}
+      </div>
     </div>
   );
 };

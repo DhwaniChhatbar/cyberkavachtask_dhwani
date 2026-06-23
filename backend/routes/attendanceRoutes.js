@@ -1,5 +1,4 @@
 import express from "express";
-
 import {
   checkIn,
   checkOut,
@@ -8,7 +7,6 @@ import {
   getDashboardStats,
   downloadAttendanceReport,
 } from "../controllers/attendanceController.js";
-
 import { protect } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
@@ -25,17 +23,21 @@ router.get("/test", (req, res) => {
 
 // ==========================
 // CHECK-IN
+// Supports team attendance
+// Supports individual attendance
 // ==========================
 router.post("/checkin", protect, checkIn);
 
 // ==========================
 // CHECK-OUT
+// Supports team attendance
+// Supports individual attendance
 // ==========================
 router.post("/checkout", protect, checkOut);
 
 // ==========================
 // COMPLETE ATTENDANCE
-// Awards points and badges
+// Awards points + badges
 // ==========================
 router.put(
   "/complete/:eventId",
@@ -44,7 +46,7 @@ router.put(
 );
 
 // ==========================
-// ATTENDANCE DASHBOARD STATS
+// DASHBOARD STATS
 // ==========================
 router.get(
   "/dashboard/:eventId",
@@ -53,7 +55,7 @@ router.get(
 );
 
 // ==========================
-// DOWNLOAD ATTENDANCE CSV REPORT
+// DOWNLOAD CSV REPORT
 // ==========================
 router.get(
   "/report/:eventId",
@@ -62,7 +64,7 @@ router.get(
 );
 
 // ==========================
-// EVENT ATTENDANCE LIST
+// GET ALL ATTENDANCE FOR EVENT
 // ==========================
 router.get(
   "/event/:eventId",

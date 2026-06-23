@@ -12,7 +12,9 @@ const EventDashboard = () => {
 
   const [events, setEvents] = useState([]);
   const [participants, setParticipants] = useState([]);
-  const [totalCapacity, setTotalCapacity] = useState(100);
+
+  // FIX: capacity is NOT sum of events anymore
+  const [totalCapacity] = useState(100);
 
   useEffect(() => {
     fetchEvents();
@@ -29,13 +31,6 @@ const EventDashboard = () => {
       const eventData = Array.isArray(res.data) ? res.data : [];
 
       setEvents(eventData);
-
-      const capacity = eventData.reduce(
-        (sum, event) => sum + (event.capacity || 0),
-        0
-      );
-
-      setTotalCapacity(capacity || 100);
     } catch (err) {
       console.error(err);
     }
@@ -93,7 +88,7 @@ const EventDashboard = () => {
   };
 
   // ==========================
-  // STATUS (MATCH BACKEND EXACTLY)
+  // STATUS CONSTANTS (MATCH BACKEND EXACTLY)
   // ==========================
   const STATUS = {
     DRAFT: "Draft",
@@ -115,6 +110,7 @@ const EventDashboard = () => {
         <AnalyticsCard title="Events" value={events.length} />
       </div>
 
+      {/* FIXED CAPACITY (NO MORE SUM BUG) */}
       <div className="mb-8">
         <CapacityIndicator
           current={participants.length}
@@ -134,6 +130,7 @@ const EventDashboard = () => {
               <EventCard event={event} />
 
               <div className="mt-3 flex gap-3 flex-wrap">
+
                 {/* TECH COORDINATOR */}
                 {role === "Tech Coordinator" &&
                   event.status === STATUS.DRAFT && (
@@ -166,6 +163,7 @@ const EventDashboard = () => {
                       Publish Event
                     </button>
                   )}
+
               </div>
             </div>
           ))}
