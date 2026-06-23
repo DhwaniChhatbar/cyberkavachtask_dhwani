@@ -15,7 +15,9 @@ export const checkIn = async (req, res) => {
   try {
     const { eventId, teamId, memberId } = req.body;
 
-    if (!eventId || (!teamId && !memberId)) {
+    const userId = memberId || req.user?.id;
+
+    if (!eventId || (!teamId && !userId)) {
       return res.status(400).json({
         success: false,
         message: "Event ID and Team ID or Member ID is required",
@@ -62,12 +64,10 @@ export const checkIn = async (req, res) => {
         status: "checked-in",
       });
 
-      if (io) {
-        io.to(eventId).emit("attendance:checkin", {
-          type: "CHECKIN",
-          data: attendance,
-        });
-      }
+      io?.to(eventId).emit("attendance:checkin", {
+        type: "CHECKIN",
+        data: attendance,
+      });
 
       return res.status(201).json({
         success: true,
@@ -81,7 +81,7 @@ export const checkIn = async (req, res) => {
     // ======================
     const existingAttendance = await Attendance.findOne({
       event: eventId,
-      member: memberId,
+      member: userId,
     });
 
     if (existingAttendance) {
@@ -94,17 +94,15 @@ export const checkIn = async (req, res) => {
     const attendance = await Attendance.create({
       event: eventId,
       team: null,
-      member: memberId,
+      member: userId,
       checkInTime: new Date(),
       status: "checked-in",
     });
 
-    if (io) {
-      io.to(eventId).emit("attendance:checkin", {
-        type: "CHECKIN",
-        data: attendance,
-      });
-    }
+    io?.to(eventId).emit("attendance:checkin", {
+      type: "CHECKIN",
+      data: attendance,
+    });
 
     return res.status(201).json({
       success: true,
@@ -113,13 +111,13 @@ export const checkIn = async (req, res) => {
     });
   } catch (error) {
     console.error("CHECK IN ERROR:", error);
-
     return res.status(500).json({
       success: false,
       message: error.message,
     });
   }
 };
+
 // ======================
 // CHECK OUT
 // ======================
@@ -127,7 +125,9 @@ export const checkOut = async (req, res) => {
   try {
     const { eventId, teamId, memberId } = req.body;
 
-    if (!eventId || (!teamId && !memberId)) {
+    const userId = memberId || req.user?.id;
+
+    if (!eventId || (!teamId && !userId)) {
       return res.status(400).json({
         success: false,
         message: "Event ID and Team ID or Member ID is required",
@@ -159,23 +159,19 @@ export const checkOut = async (req, res) => {
 
       attendance.checkOutTime = new Date();
 
-      const duration =
-        Math.floor(
-          (attendance.checkOutTime - attendance.checkInTime) /
-            (1000 * 60)
-        ) || 0;
+      const duration = Math.floor(
+        (attendance.checkOutTime - attendance.checkInTime) / (1000 * 60)
+      ) || 0;
 
       attendance.durationMinutes = duration;
       attendance.status = "checked-out";
 
       await attendance.save();
 
-      if (io) {
-        io.to(eventId).emit("attendance:checkout", {
-          type: "CHECKOUT",
-          data: attendance,
-        });
-      }
+      io?.to(eventId).emit("attendance:checkout", {
+        type: "CHECKOUT",
+        data: attendance,
+      });
 
       return res.status(200).json({
         success: true,
@@ -189,7 +185,7 @@ export const checkOut = async (req, res) => {
     // ======================
     const attendance = await Attendance.findOne({
       event: eventId,
-      member: memberId,
+      member: userId,
     });
 
     if (!attendance) {
@@ -208,23 +204,19 @@ export const checkOut = async (req, res) => {
 
     attendance.checkOutTime = new Date();
 
-    const duration =
-      Math.floor(
-        (attendance.checkOutTime - attendance.checkInTime) /
-          (1000 * 60)
-      ) || 0;
+    const duration = Math.floor(
+      (attendance.checkOutTime - attendance.checkInTime) / (1000 * 60)
+    ) || 0;
 
     attendance.durationMinutes = duration;
     attendance.status = "checked-out";
 
     await attendance.save();
 
-    if (io) {
-      io.to(eventId).emit("attendance:checkout", {
-        type: "CHECKOUT",
-        data: attendance,
-      });
-    }
+    io?.to(eventId).emit("attendance:checkout", {
+      type: "CHECKOUT",
+      data: attendance,
+    });
 
     return res.status(200).json({
       success: true,
@@ -233,13 +225,13 @@ export const checkOut = async (req, res) => {
     });
   } catch (error) {
     console.error("CHECK OUT ERROR:", error);
-
     return res.status(500).json({
       success: false,
       message: error.message,
     });
   }
 };
+
 // ======================
 // GET ATTENDANCE LIST
 // ======================
@@ -249,17 +241,14 @@ export const getAttendanceByEvent = async (req, res) => {
       event: req.params.eventId,
     })
       .populate("event", "name date")
-      .populate("team", "teamName teamId")
+      .populate("team", "teamName teamId members")
       .populate("member", "name email")
       .sort({ checkInTime: -1 });
 
     const formattedAttendance = attendance.map((record) => ({
       _id: record._id,
-
       event: record.event,
-
       team: record.team,
-
       member: record.member,
 
       attendeeName:
@@ -267,24 +256,16 @@ export const getAttendanceByEvent = async (req, res) => {
         record.member?.name ||
         "Unknown",
 
-      attendeeEmail:
-        record.member?.email || "",
+      attendeeEmail: record.member?.email || "",
 
       checkInTime: record.checkInTime,
-
       checkOutTime: record.checkOutTime,
-
       durationMinutes: record.durationMinutes,
 
       status: record.status,
-
       lateFlag: record.lateFlag,
-
       earlyExitFlag: record.earlyExitFlag,
-
-      certificateGenerated:
-        record.certificateGenerated,
-
+      certificateGenerated: record.certificateGenerated,
       pointsAwarded: record.pointsAwarded,
 
       createdAt: record.createdAt,
@@ -297,7 +278,6 @@ export const getAttendanceByEvent = async (req, res) => {
     });
   } catch (error) {
     console.error("GET ATTENDANCE ERROR:", error);
-
     return res.status(500).json({
       success: false,
       message: error.message,
@@ -312,9 +292,7 @@ export const getDashboardStats = async (req, res) => {
   try {
     const { eventId } = req.params;
 
-    const total = await Attendance.countDocuments({
-      event: eventId,
-    });
+    const total = await Attendance.countDocuments({ event: eventId });
 
     const checkedIn = await Attendance.countDocuments({
       event: eventId,
@@ -351,57 +329,39 @@ export const getDashboardStats = async (req, res) => {
       pointsAwarded: true,
     });
 
-    const averageDurationResult = await Attendance.aggregate([
-      {
-        $match: {
-          event: req.params.eventId,
-        },
-      },
+    const avg = await Attendance.aggregate([
+      { $match: { event: eventId } },
       {
         $group: {
           _id: null,
-          avgDuration: {
-            $avg: "$durationMinutes",
-          },
+          avgDuration: { $avg: "$durationMinutes" },
         },
       },
     ]);
 
-    const averageDuration =
-      averageDurationResult.length > 0
-        ? Math.round(averageDurationResult[0].avgDuration)
-        : 0;
-
     return res.status(200).json({
       success: true,
-
       total,
-
       checkedIn,
-
       checkedOut,
-
       completed,
-
       late,
-
       earlyExit,
-
       certificateGenerated,
-
       pointsAwarded,
-
-      averageDuration,
+      averageDuration: avg[0]?.avgDuration
+        ? Math.round(avg[0].avgDuration)
+        : 0,
     });
   } catch (error) {
     console.error("DASHBOARD STATS ERROR:", error);
-
     return res.status(500).json({
       success: false,
       message: error.message,
     });
   }
 };
+
 // ======================
 // DOWNLOAD CSV REPORT
 // ======================
@@ -417,62 +377,43 @@ export const downloadAttendanceReport = async (req, res) => {
 
     const data = attendance.map((record) => ({
       Event: record.event?.name || "Unknown",
-
       Type: record.team ? "Team" : "Individual",
-
       Name:
         record.team?.teamName ||
         record.member?.name ||
         "Unknown",
-
-      TeamID: record.team?.teamId || "",
-
       Email: record.member?.email || "",
-
       CheckInTime: record.checkInTime
         ? new Date(record.checkInTime).toLocaleString()
         : "",
-
       CheckOutTime: record.checkOutTime
         ? new Date(record.checkOutTime).toLocaleString()
         : "",
-
       DurationMinutes: record.durationMinutes || 0,
-
       Status: record.status,
-
       Late: record.lateFlag ? "Yes" : "No",
-
       EarlyExit: record.earlyExitFlag ? "Yes" : "No",
-
-      CertificateGenerated: record.certificateGenerated
-        ? "Yes"
-        : "No",
-
-      PointsAwarded: record.pointsAwarded
-        ? "Yes"
-        : "No",
+      CertificateGenerated: record.certificateGenerated ? "Yes" : "No",
+      PointsAwarded: record.pointsAwarded ? "Yes" : "No",
     }));
 
     const csv = generateAttendanceCSV(data);
 
     res.header("Content-Type", "text/csv");
-    res.attachment(
-      `attendance-report-${req.params.eventId}.csv`
-    );
+    res.attachment(`attendance-report-${req.params.eventId}.csv`);
 
-    return res.status(200).send(csv);
+    return res.send(csv);
   } catch (error) {
-    console.error("DOWNLOAD ATTENDANCE REPORT ERROR:", error);
-
+    console.error("DOWNLOAD ERROR:", error);
     return res.status(500).json({
       success: false,
       message: error.message,
     });
   }
 };
+
 // ======================
-// COMPLETE ATTENDANCE (FINAL PIPELINE)
+// COMPLETE ATTENDANCE
 // ======================
 export const completeAttendance = async (req, res) => {
   try {
@@ -480,9 +421,7 @@ export const completeAttendance = async (req, res) => {
 
     const attendanceList = await Attendance.find({
       event: eventId,
-    })
-      .populate("team")
-      .populate("member");
+    }).populate("team member");
 
     if (!attendanceList.length) {
       return res.status(404).json({
@@ -495,14 +434,8 @@ export const completeAttendance = async (req, res) => {
 
     for (const record of attendanceList) {
       try {
-        // ======================
-        // MARK COMPLETED
-        // ======================
         record.status = "completed";
 
-        // ======================
-        // CALCULATE DURATION
-        // ======================
         if (
           record.checkInTime &&
           record.checkOutTime &&
@@ -515,9 +448,6 @@ export const completeAttendance = async (req, res) => {
           );
         }
 
-        // ======================
-        // INDIVIDUAL ATTENDANCE
-        // ======================
         if (record.member && !record.pointsAwarded) {
           await Points.create({
             user: record.member,
@@ -528,81 +458,52 @@ export const completeAttendance = async (req, res) => {
             assignedBy: req.user.id,
           });
 
-          record.pointsAwarded = true;
-
-          await evaluateBadgesForUser(
-            record.member,
-            eventId
-          );
+          await evaluateBadgesForUser(record.member, eventId);
 
           await Notification.create({
             recipient: record.member,
-            message:
-              "You received 10 points for attendance",
+            message: "You received 10 points for attendance",
             type: "Event",
           });
 
-          if (io) {
-            io.to(record.member.toString()).emit(
-              "points:update",
-              {
-                userId: record.member,
-                points: 10,
-              }
-            );
-          }
+          io?.to(record.member.toString()).emit("points:update", {
+            userId: record.member,
+            points: 10,
+          });
 
+          record.pointsAwarded = true;
           rewardsProcessed++;
         }
 
-        // ======================
-        // TEAM ATTENDANCE
-        // ======================
         if (record.team && !record.pointsAwarded) {
           const members = record.team.members || [];
 
           for (const member of members) {
             if (!member.user) continue;
 
-            try {
-              await Points.create({
-                user: member.user,
-                event: eventId,
-                points: 10,
-                category: "Participation",
-                remarks: "Attendance completion reward",
-                assignedBy: req.user.id,
-              });
+            await Points.create({
+              user: member.user,
+              event: eventId,
+              points: 10,
+              category: "Participation",
+              remarks: "Attendance completion reward",
+              assignedBy: req.user.id,
+            });
 
-              await evaluateBadgesForUser(
-                member.user,
-                eventId
-              );
+            await evaluateBadgesForUser(member.user, eventId);
 
-              await Notification.create({
-                recipient: member.user,
-                message:
-                  "You received 10 points for attendance",
-                type: "Event",
-              });
+            await Notification.create({
+              recipient: member.user,
+              message: "You received 10 points for attendance",
+              type: "Event",
+            });
 
-              if (io) {
-                io.to(member.user.toString()).emit(
-                  "points:update",
-                  {
-                    userId: member.user,
-                    points: 10,
-                  }
-                );
-              }
+            io?.to(member.user.toString()).emit("points:update", {
+              userId: member.user,
+              points: 10,
+            });
 
-              rewardsProcessed++;
-            } catch (err) {
-              console.error(
-                "TEAM REWARD ERROR:",
-                err.message
-              );
-            }
+            rewardsProcessed++;
           }
 
           record.pointsAwarded = true;
@@ -610,19 +511,14 @@ export const completeAttendance = async (req, res) => {
 
         await record.save();
       } catch (err) {
-        console.error(
-          "ATTENDANCE COMPLETION ERROR:",
-          err.message
-        );
+        console.error("REWARD ERROR:", err.message);
       }
     }
 
-    if (io) {
-      io.to(eventId).emit("attendance:completed", {
-        eventId,
-        totalCount: attendanceList.length,
-      });
-    }
+    io?.to(eventId).emit("attendance:completed", {
+      eventId,
+      totalCount: attendanceList.length,
+    });
 
     return res.status(200).json({
       success: true,
@@ -631,8 +527,7 @@ export const completeAttendance = async (req, res) => {
       rewardsProcessed,
     });
   } catch (error) {
-    console.error("COMPLETE ATTENDANCE ERROR:", error);
-
+    console.error("COMPLETE ERROR:", error);
     return res.status(500).json({
       success: false,
       message: error.message,

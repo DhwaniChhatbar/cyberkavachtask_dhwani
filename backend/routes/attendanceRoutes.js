@@ -6,7 +6,9 @@ import {
   getAttendanceByEvent,
   getDashboardStats,
   downloadAttendanceReport,
+  getMyAttendance,
 } from "../controllers/attendanceController.js";
+
 import { protect } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
@@ -22,54 +24,56 @@ router.get("/test", (req, res) => {
 });
 
 // ==========================
-// CHECK-IN
-// Supports team attendance
-// Supports individual attendance
+// MEMBER ATTENDANCE HISTORY
+// (My Attendance - logged in user)
+// ==========================
+router.get("/my", protect, getMyAttendance);
+
+// ==========================
+// CHECK-IN ROUTE
+// Supports both:
+// - Individual attendance
+// - Team attendance
 // ==========================
 router.post("/checkin", protect, checkIn);
 
 // ==========================
-// CHECK-OUT
-// Supports team attendance
-// Supports individual attendance
+// CHECK-OUT ROUTE
+// Supports both:
+// - Individual attendance
+// - Team attendance
 // ==========================
 router.post("/checkout", protect, checkOut);
 
 // ==========================
-// COMPLETE ATTENDANCE
-// Awards points + badges
+// COMPLETE ATTENDANCE PIPELINE
+// - Marks attendance completed
+// - Awards points
+// - Triggers badge evaluation
 // ==========================
-router.put(
-  "/complete/:eventId",
-  protect,
-  completeAttendance
-);
+router.put("/complete/:eventId", protect, completeAttendance);
 
 // ==========================
-// DASHBOARD STATS
+// DASHBOARD STATS (EVENT LEVEL)
+// - total attendance
+// - checked-in
+// - checked-out
+// - completed
+// - averages
 // ==========================
-router.get(
-  "/dashboard/:eventId",
-  protect,
-  getDashboardStats
-);
+router.get("/dashboard/:eventId", protect, getDashboardStats);
 
 // ==========================
-// DOWNLOAD CSV REPORT
+// DOWNLOAD ATTENDANCE REPORT (CSV)
+// - exports event attendance data
 // ==========================
-router.get(
-  "/report/:eventId",
-  protect,
-  downloadAttendanceReport
-);
+router.get("/report/:eventId", protect, downloadAttendanceReport);
 
 // ==========================
-// GET ALL ATTENDANCE FOR EVENT
+// EVENT ATTENDANCE LIST
+// - full attendance list per event
+// - admin / coordinator view
 // ==========================
-router.get(
-  "/event/:eventId",
-  protect,
-  getAttendanceByEvent
-);
+router.get("/event/:eventId", protect, getAttendanceByEvent);
 
 export default router;

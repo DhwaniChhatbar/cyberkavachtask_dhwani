@@ -11,8 +11,9 @@ const MyAttendance = () => {
 
   const fetchMyAttendance = async () => {
     try {
-      const res = await api.get("/attendance/my-attendance");
-      setAttendance(res.data || []);
+      const res = await api.get("/attendance/my");
+
+      setAttendance(res.data.attendance || []);
     } catch (err) {
       console.error("Error fetching attendance:", err);
     } finally {
@@ -45,6 +46,11 @@ const MyAttendance = () => {
 
               <div className="space-y-2 text-gray-300">
                 <p>
+                  <span className="font-semibold">Type:</span>{" "}
+                  {record.role}
+                </p>
+
+                <p>
                   <span className="font-semibold">Status:</span>{" "}
                   <span
                     className={`font-semibold ${
@@ -52,8 +58,8 @@ const MyAttendance = () => {
                         ? "text-green-400"
                         : record.status === "checked-out"
                         ? "text-blue-400"
-                        : record.status === "late"
-                        ? "text-yellow-400"
+                        : record.status === "completed"
+                        ? "text-purple-400"
                         : "text-red-400"
                     }`}
                   >
@@ -77,14 +83,14 @@ const MyAttendance = () => {
 
                 <p>
                   <span className="font-semibold">
-                    Duration (minutes):
+                    Duration:
                   </span>{" "}
-                  {record.durationMinutes || 0}
+                  {record.durationMinutes || 0} min
                 </p>
 
                 <p>
                   <span className="font-semibold">
-                    Certificate Generated:
+                    Certificate:
                   </span>{" "}
                   {record.certificateGenerated ? (
                     <span className="text-green-400">Yes</span>
@@ -95,7 +101,7 @@ const MyAttendance = () => {
 
                 <p>
                   <span className="font-semibold">
-                    Points Awarded:
+                    Points:
                   </span>{" "}
                   {record.pointsAwarded ? (
                     <span className="text-green-400">Yes</span>
