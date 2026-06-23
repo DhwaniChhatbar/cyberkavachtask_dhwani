@@ -27,6 +27,11 @@ export const createEvent = async (req, res) => {
 
     const event = await Event.create({
       ...req.body,
+
+      // 🔥 PERMANENT TYPE SAFETY FIX
+      teamSize: Number(req.body.teamSize || 1),
+      capacity: Number(req.body.capacity || 50),
+
       createdBy: req.user.id,
       poster: req.file ? req.file.filename : "",
       status: "Draft",
@@ -162,7 +167,16 @@ export const updateEvent = async (req, res) => {
       });
     }
 
-    Object.assign(event, req.body);
+    // 🔥 SAFE UPDATE (prevents overwriting numeric fields wrongly)
+    Object.assign(event, {
+      ...req.body,
+      teamSize: req.body.teamSize
+        ? Number(req.body.teamSize)
+        : event.teamSize,
+      capacity: req.body.capacity
+        ? Number(req.body.capacity)
+        : event.capacity,
+    });
 
     if (req.file) {
       event.poster = req.file.filename;

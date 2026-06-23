@@ -46,18 +46,20 @@ const eventSchema = new mongoose.Schema(
       trim: true,
     },
 
-    // 🔥 TEAM SIZE CONTROL
+    // 🔥 TEAM SIZE (FIXED PERMANENTLY)
     teamSize: {
       type: Number,
       default: 1,
       min: 1,
       max: 20,
+      set: (v) => Number(v),
     },
 
     capacity: {
       type: Number,
       required: true,
       min: 1,
+      set: (v) => Number(v),
     },
 
     registrationCount: {
@@ -159,6 +161,14 @@ const eventSchema = new mongoose.Schema(
     // CERTIFICATES
     // ==========================
     certificatesEnabled: {
+      type: Boolean,
+      default: false,
+    },
+
+    // ==========================
+    // COMPLETION FLAG (SAFE ADD)
+    // ==========================
+    isCompleted: {
       type: Boolean,
       default: false,
     },

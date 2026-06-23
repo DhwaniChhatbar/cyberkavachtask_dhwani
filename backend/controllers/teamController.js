@@ -59,17 +59,34 @@ export const createTeam = async (req, res) => {
     }
 
     // ==========================
-    // TEAM SIZE RULE (IMPORTANT FIX)
-    // leader + members must not exceed event.teamSize
+    // FIX: SAFE TEAM SIZE HANDLING (PERMANENT)
     // ==========================
-    const maxMembersAllowed = Number(eventDoc.teamSize || 1);
+    const maxMembersAllowed = parseInt(eventDoc.teamSize, 10);
 
-    const totalRequested = 1 + (members?.length || 0);
+    if (isNaN(maxMembersAllowed) || maxMembersAllowed <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid team size configured for event",
+      });
+    }
+
+    const safeMembers = Array.isArray(members) ? members : [];
+
+    const validMembers = safeMembers.filter(
+      (m) =>
+        m.fullName &&
+        m.email &&
+        m.collegeId &&
+        m.department &&
+        m.institute
+    );
+
+    const totalRequested = 1 + validMembers.length;
 
     if (totalRequested > maxMembersAllowed) {
       return res.status(400).json({
         success: false,
-        message: `Maximum team size allowed is ${maxMembersAllowed}. You tried to add ${totalRequested}.`,
+        message: `Maximum team size allowed is ${maxMembersAllowed}. You tried ${totalRequested}.`,
       });
     }
 
@@ -101,7 +118,7 @@ export const createTeam = async (req, res) => {
     const teamId = "TEAM-" + Date.now();
 
     // ==========================
-    // LEADER AS STRICT LEADER OBJECT
+    // LEADER OBJECT
     // ==========================
     const leader = {
       user: req.user.id,
@@ -114,18 +131,11 @@ export const createTeam = async (req, res) => {
     };
 
     // ==========================
-    // FINAL MEMBERS (LIMITED)
+    // FINAL TEAM MEMBERS
     // ==========================
-    const safeMembers = Array.isArray(members) ? members : [];
-
-    const allowedMembers = safeMembers.slice(
-      0,
-      maxMembersAllowed - 1
-    );
-
     const finalMembers = [
       leader,
-      ...allowedMembers.map((m) => ({
+      ...validMembers.map((m) => ({
         user: m.user || null,
         fullName: m.fullName,
         email: m.email,
@@ -151,7 +161,7 @@ export const createTeam = async (req, res) => {
     });
 
     // ==========================
-    // UPDATE EVENT REGISTRATION COUNT
+    // UPDATE EVENT COUNT
     // ==========================
     eventDoc.registrationCount += 1;
     await eventDoc.save();
@@ -160,21 +170,16 @@ export const createTeam = async (req, res) => {
     // SOCKET EVENT
     // ==========================
     const io = req.app.get("io");
-
-    if (io) {
-      io.emit("team-created", team);
-    }
+    if (io) io.emit("team-created", team);
 
     // ==========================
     // EMAIL
     // ==========================
     try {
-      const message = `
-Hello ${leader.fullName}
-
-Your team has been registered successfully.
-
-TEAM DETAILS
+      await sendEmail(
+        leader.email,
+        "Team Registration Successful 🎉",
+        `Hello ${leader.fullName}
 
 Team Name: ${teamName}
 Team ID: ${teamId}
@@ -183,18 +188,10 @@ Event: ${eventDoc.name}
 Team Size Limit: ${maxMembersAllowed}
 Members Added: ${finalMembers.length}
 
-Status: Registered
-
-Thank you for participating!
-`;
-
-      await sendEmail(
-        leader.email,
-        "Team Registration Successful 🎉",
-        message
+Status: Registered`
       );
-    } catch (emailErr) {
-      console.log("Email error:", emailErr.message);
+    } catch (err) {
+      console.log("Email error:", err.message);
     }
 
     return res.status(201).json({
@@ -204,7 +201,6 @@ Thank you for participating!
     });
   } catch (err) {
     console.log("CREATE TEAM ERROR:", err);
-
     return res.status(500).json({
       success: false,
       error: err.message,
@@ -224,9 +220,7 @@ export const getTeams = async (req, res) => {
 
     return res.json(teams);
   } catch (err) {
-    return res.status(500).json({
-      error: err.message,
-    });
+    return res.status(500).json({ error: err.message });
   }
 };
 
@@ -240,16 +234,12 @@ export const getTeamById = async (req, res) => {
       .populate("leader", "name email");
 
     if (!team) {
-      return res.status(404).json({
-        message: "Team not found",
-      });
+      return res.status(404).json({ message: "Team not found" });
     }
 
     return res.json(team);
   } catch (err) {
-    return res.status(500).json({
-      error: err.message,
-    });
+    return res.status(500).json({ error: err.message });
   }
 };
 
@@ -258,23 +248,17 @@ export const getTeamById = async (req, res) => {
 // ==========================
 export const updateTeam = async (req, res) => {
   try {
-    const team = await Team.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true }
-    );
+    const team = await Team.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+    });
 
     if (!team) {
-      return res.status(404).json({
-        message: "Team not found",
-      });
+      return res.status(404).json({ message: "Team not found" });
     }
 
     return res.json(team);
   } catch (err) {
-    return res.status(500).json({
-      error: err.message,
-    });
+    return res.status(500).json({ error: err.message });
   }
 };
 
@@ -286,9 +270,7 @@ export const deleteTeam = async (req, res) => {
     const team = await Team.findById(req.params.id);
 
     if (!team) {
-      return res.status(404).json({
-        message: "Team not found",
-      });
+      return res.status(404).json({ message: "Team not found" });
     }
 
     const eventDoc = await Event.findById(team.event);
@@ -305,8 +287,6 @@ export const deleteTeam = async (req, res) => {
       message: "Team deleted successfully",
     });
   } catch (err) {
-    return res.status(500).json({
-      error: err.message,
-    });
+    return res.status(500).json({ error: err.message });
   }
 };
