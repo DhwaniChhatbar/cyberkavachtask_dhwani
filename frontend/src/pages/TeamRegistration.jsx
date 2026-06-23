@@ -1,24 +1,37 @@
 import React from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import api from "../utils/api";
 import TeamForm from "../components/module3/TeamForm";
 
 const TeamRegistration = () => {
   const { eventId } = useParams();
+  const navigate = useNavigate();
 
   const handleCreateTeam = async (data) => {
     try {
-      await api.post("/teams", {
+      if (!eventId) {
+        alert("Event ID not found");
+        return;
+      }
+
+      const payload = {
         ...data,
         event: eventId,
-      });
+      };
 
-      alert("Team created successfully");
+      const res = await api.post("/teams", payload);
+
+      alert(
+        res.data?.message || "Team created successfully"
+      );
+
+      navigate("/my-teams");
     } catch (err) {
-      console.error(err);
+      console.error("Team registration error:", err);
 
       alert(
         err.response?.data?.message ||
+        err.response?.data?.error ||
         "Failed to create team"
       );
     }

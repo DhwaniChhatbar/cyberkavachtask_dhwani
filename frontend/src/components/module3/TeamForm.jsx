@@ -3,41 +3,27 @@ import React, { useState } from "react";
 const TeamForm = ({
   onSubmit,
   initialTeamName = "",
-  initialMembers = [],
 }) => {
   const [teamName, setTeamName] = useState(initialTeamName);
-  const [eventName, setEventName] = useState("");
   const [leaderName, setLeaderName] = useState("");
   const [leaderEmail, setLeaderEmail] = useState("");
   const [previousEvent, setPreviousEvent] = useState("");
 
-  const [members, setMembers] = useState(
-    initialMembers.join(", ")
-  );
-
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    const memberArray = members
-      .split(",")
-      .map((m) => m.trim())
-      .filter((m) => m !== "");
-
     onSubmit({
       teamName,
-      eventName,
       leaderName,
       leaderEmail,
       previousEvent,
-      members: memberArray,
+      members: [], // empty array because members schema expects ObjectIds
     });
 
     setTeamName("");
-    setEventName("");
     setLeaderName("");
     setLeaderEmail("");
     setPreviousEvent("");
-    setMembers("");
   };
 
   return (
@@ -51,15 +37,6 @@ const TeamForm = ({
         className="w-full p-3 bg-gray-800 rounded-lg outline-none"
         value={teamName}
         onChange={(e) => setTeamName(e.target.value)}
-        required
-      />
-
-      <input
-        type="text"
-        placeholder="Event Name"
-        className="w-full p-3 bg-gray-800 rounded-lg outline-none"
-        value={eventName}
-        onChange={(e) => setEventName(e.target.value)}
         required
       />
 
@@ -87,14 +64,6 @@ const TeamForm = ({
         className="w-full p-3 bg-gray-800 rounded-lg outline-none"
         value={previousEvent}
         onChange={(e) => setPreviousEvent(e.target.value)}
-      />
-
-      <textarea
-        rows="4"
-        placeholder="Members (comma separated)"
-        className="w-full p-3 bg-gray-800 rounded-lg outline-none"
-        value={members}
-        onChange={(e) => setMembers(e.target.value)}
       />
 
       <button

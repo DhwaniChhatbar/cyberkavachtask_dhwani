@@ -1,12 +1,20 @@
 import React from "react";
 
 const WaitlistCard = ({
-  registrations,
-  capacity,
+  registrations = 0,
+  capacity = 0,
 }) => {
+  const safeRegistrations = Number(registrations) || 0;
+  const safeCapacity = Number(capacity) || 0;
+
   const waitlist =
-    registrations > capacity
-      ? registrations - capacity
+    safeRegistrations > safeCapacity
+      ? safeRegistrations - safeCapacity
+      : 0;
+
+  const availableSlots =
+    safeCapacity > safeRegistrations
+      ? safeCapacity - safeRegistrations
       : 0;
 
   return (
@@ -15,13 +23,51 @@ const WaitlistCard = ({
         Waitlist Status
       </h2>
 
-      <p>Capacity : {capacity}</p>
+      <div className="space-y-3 text-gray-300">
+        <p>
+          Capacity :{" "}
+          <span className="font-semibold text-white">
+            {safeCapacity}
+          </span>
+        </p>
 
-      <p>Total Registrations : {registrations}</p>
+        <p>
+          Total Registrations :{" "}
+          <span className="font-semibold text-white">
+            {safeRegistrations}
+          </span>
+        </p>
 
-      <p className="text-red-400 mt-3">
-        Waitlist : {waitlist}
-      </p>
+        <p>
+          Available Slots :{" "}
+          <span className="font-semibold text-green-400">
+            {availableSlots}
+          </span>
+        </p>
+
+        <p>
+          Waitlist :{" "}
+          <span
+            className={`font-semibold ${
+              waitlist > 0
+                ? "text-red-400"
+                : "text-green-400"
+            }`}
+          >
+            {waitlist}
+          </span>
+        </p>
+
+        {waitlist > 0 ? (
+          <p className="text-sm text-red-300 mt-4">
+            Capacity exceeded. Additional registrations are on the waitlist.
+          </p>
+        ) : (
+          <p className="text-sm text-green-300 mt-4">
+            Registration is within capacity.
+          </p>
+        )}
+      </div>
     </div>
   );
 };

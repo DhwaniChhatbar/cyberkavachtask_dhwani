@@ -13,12 +13,13 @@ const teamSchema = new mongoose.Schema(
 
     teamId: {
       type: String,
-      unique: true,
       required: true,
+      unique: true,
+      trim: true,
     },
 
     // ==========================
-    // EVENT LINK
+    // EVENT
     // ==========================
     event: {
       type: mongoose.Schema.Types.ObjectId,
@@ -38,11 +39,13 @@ const teamSchema = new mongoose.Schema(
     leaderName: {
       type: String,
       default: "",
+      trim: true,
     },
 
     leaderEmail: {
       type: String,
       default: "",
+      trim: true,
     },
 
     // ==========================
@@ -61,10 +64,11 @@ const teamSchema = new mongoose.Schema(
     previousEvent: {
       type: String,
       default: "",
+      trim: true,
     },
 
     // ==========================
-    // QR / CHECK-IN SUPPORT
+    // QR SUPPORT
     // ==========================
     qrCode: {
       type: String,
@@ -99,7 +103,7 @@ const teamSchema = new mongoose.Schema(
 );
 
 // ==========================
-// INDEXES (FIXED - NO DUPLICATE INDEX)
+// INDEXES
 // ==========================
 teamSchema.index({ event: 1 });
 teamSchema.index({ leader: 1 });
