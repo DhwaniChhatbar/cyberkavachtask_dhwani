@@ -83,9 +83,6 @@ const leaderSchema = new mongoose.Schema(
 
 const teamSchema = new mongoose.Schema(
   {
-    // ==========================
-    // BASIC INFO
-    // ==========================
     teamName: {
       type: String,
       required: true,
@@ -95,73 +92,49 @@ const teamSchema = new mongoose.Schema(
     teamId: {
       type: String,
       required: true,
-      unique: true,
       trim: true,
+      unique: true,
     },
 
-    // ==========================
-    // EVENT
-    // ==========================
     event: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Event",
       required: true,
     },
 
-    // ==========================
-    // LEADER USER REFERENCE
-    // ==========================
     leader: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
     },
 
-    // ==========================
-    // LEADER DETAILS
-    // ==========================
     leaderDetails: {
       type: leaderSchema,
       required: true,
     },
 
-    // ==========================
-    // TEAM MEMBERS
-    // ==========================
     members: {
       type: [memberSchema],
       default: [],
     },
 
-    // ==========================
-    // OPTIONAL HISTORY
-    // ==========================
     previousEvent: {
       type: String,
       default: "",
       trim: true,
     },
 
-    // ==========================
-    // QR SUPPORT
-    // ==========================
     qrCode: {
       type: String,
       default: "",
     },
 
-    // ==========================
-    // STATUS
-    // ==========================
     status: {
       type: String,
       enum: ["Pending", "Approved", "Rejected"],
       default: "Approved",
     },
 
-    // ==========================
-    // ANALYTICS
-    // ==========================
     points: {
       type: Number,
       default: 0,
@@ -180,10 +153,11 @@ const teamSchema = new mongoose.Schema(
 );
 
 // ==========================
-// INDEXES
+// ONLY CLEAN INDEXES (NO DUPLICATES)
 // ==========================
 teamSchema.index({ event: 1 });
 teamSchema.index({ leader: 1 });
-teamSchema.index({ teamId: 1 });
 
+// ⚠️ IMPORTANT: teamId already has unique:true → NO NEED extra index
+// (removes duplicate index warning)
 export default mongoose.model("Team", teamSchema);
