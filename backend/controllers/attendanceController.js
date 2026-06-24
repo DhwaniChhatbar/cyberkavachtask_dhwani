@@ -534,3 +534,27 @@ export const completeAttendance = async (req, res) => {
     });
   }
 };
+// ======================
+// GET MY ATTENDANCE
+// ======================
+export const getMyAttendance = async (req, res) => {
+  try {
+    const attendance = await Attendance.find({
+      member: req.user.id,
+    })
+      .populate("event", "name date")
+      .sort({ createdAt: -1 });
+
+    return res.status(200).json({
+      success: true,
+      attendance,
+    });
+  } catch (error) {
+    console.error("GET MY ATTENDANCE ERROR:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
