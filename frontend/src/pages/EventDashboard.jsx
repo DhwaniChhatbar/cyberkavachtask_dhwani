@@ -2,8 +2,6 @@ import React, { useEffect, useState } from "react";
 import api from "../utils/api";
 
 import AnalyticsCard from "../components/module3/AnalyticsCard";
-import CapacityIndicator from "../components/module3/CapacityIndicator";
-import ParticipantTable from "../components/module3/ParticipantTable";
 import EventCard from "../components/module3/EventCard";
 
 const EventDashboard = () => {
@@ -11,9 +9,6 @@ const EventDashboard = () => {
   const role = user?.role?.trim();
 
   const [events, setEvents] = useState([]);
-  const [participants, setParticipants] = useState([]);
-
-  const [totalCapacity] = useState(100);
 
   useEffect(() => {
     fetchEvents();
@@ -26,7 +21,9 @@ const EventDashboard = () => {
     try {
       const res = await api.get("/events");
 
-      const eventData = Array.isArray(res.data) ? res.data : [];
+      const eventData = Array.isArray(res.data)
+        ? res.data
+        : res.data?.events || [];
 
       setEvents(eventData);
     } catch (err) {
@@ -79,32 +76,33 @@ const EventDashboard = () => {
       </h1>
 
       {role !== "Member" && (
-        <>
-          <div className="grid md:grid-cols-3 gap-5 mb-8">
-            <AnalyticsCard
-              title="Registrations"
-              value={events.reduce(
-                (acc, e) => acc + (e.registrations?.length || 0),
-                0
-              )}
-            />
+        <div className="grid md:grid-cols-3 gap-5 mb-8">
+          <AnalyticsCard
+            title="Registrations"
+            value={events.reduce(
+              (acc, e) => acc + (e.registrations?.length || 0),
+              0
+            )}
+          />
 
-            <AnalyticsCard title="Teams" value={events.length} />
+          <AnalyticsCard
+            title="Teams"
+            value={events.filter(
+              (e) => e.eventType === "Team"
+            ).length}
+          />
 
-            <AnalyticsCard title="Events" value={events.length} />
-          </div>
-
-          <div className="mb-8">
-            <CapacityIndicator
-              current={participants.length}
-              total={totalCapacity}
-            />
-          </div>
-        </>
+          <AnalyticsCard
+            title="Events"
+            value={events.length}
+          />
+        </div>
       )}
 
       <div className="mb-10">
-        <h2 className="text-2xl font-bold mb-6">Events</h2>
+        <h2 className="text-2xl font-bold mb-6">
+          Events
+        </h2>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {events.map((event) => (
@@ -152,10 +150,6 @@ const EventDashboard = () => {
           ))}
         </div>
       </div>
-
-      {role !== "Member" && (
-        <ParticipantTable participants={participants} />
-      )}
     </div>
   );
 };
