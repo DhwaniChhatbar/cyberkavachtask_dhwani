@@ -270,19 +270,17 @@ export const getAttendanceByEvent = async (req, res) => {
 
     const formattedAttendance = attendance.map((record) => ({
       _id: record._id,
+
+      // ✅ FIX FOR FRONTEND N/A ISSUE
+      fullName: record.member?.name ?? "N/A",
+      email: record.member?.email ?? "N/A",
+      collegeId: record.member?.collegeId ?? "N/A",
+      department: record.member?.department ?? "N/A",
+      institute: record.member?.institute ?? "N/A",
+
+      team: record.team?.teamName ?? record.team ?? "N/A",
+
       event: record.event,
-      team: record.team,
-      member: record.member,
-
-      memberId: record.member?._id || null,
-      teamId: record.team?._id || null,
-
-      attendeeName:
-        record.team?.teamName ||
-        record.member?.name ||
-        "Unknown",
-
-      attendeeEmail: record.member?.email || "",
 
       checkInTime: record.checkInTime,
       checkOutTime: record.checkOutTime,
@@ -293,8 +291,6 @@ export const getAttendanceByEvent = async (req, res) => {
       earlyExitFlag: record.earlyExitFlag,
       certificateGenerated: record.certificateGenerated,
       pointsAwarded: record.pointsAwarded,
-
-      createdAt: record.createdAt,
     }));
 
     return res.status(200).json({
@@ -319,6 +315,9 @@ export const getDashboardStats = async (req, res) => {
     const { eventId } = req.params;
 
     const total = await Attendance.countDocuments({ event: eventId });
+    const event = await Event.findById(eventId);
+
+    const registrationCount = event?.registrations?.length || 0;
 
     const checkedIn = await Attendance.countDocuments({
       event: eventId,
@@ -368,6 +367,7 @@ export const getDashboardStats = async (req, res) => {
     return res.status(200).json({
       success: true,
       total,
+      registrationCount, // ✅ ADD THIS
       checkedIn,
       checkedOut,
       completed,

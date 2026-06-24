@@ -27,21 +27,64 @@ export const createEvent = async (req, res) => {
 
     const event = await Event.create({
       ...req.body,
-
-      // 🔥 PERMANENT TYPE SAFETY FIX
       teamSize: Number(req.body.teamSize || 1),
       capacity: Number(req.body.capacity || 50),
-
       createdBy: req.user.id,
       poster: req.file ? req.file.filename : "",
       status: "Draft",
+
+      // 🔥 FIX: ensure array exists
+      registrations: [],
+
+      // 🔥 FIX: ALWAYS derive from array, not manual number
       registrationCount: 0,
+
       certificatesEnabled: false,
       registrationLink: "",
       approvalStage: "NONE",
     });
 
     return res.status(201).json(event);
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+};
+
+// ==========================
+// REGISTER EVENT (🔴 MISSING LOGIC FIX ADDED)
+// ==========================
+// ⚠️ THIS IS THE ROOT FIX FOR "2 REGISTRATIONS ISSUE"
+export const registerForEvent = async (req, res) => {
+  try {
+    const { eventId } = req.body;
+    const userId = req.user.id;
+
+    const event = await Event.findById(eventId);
+
+    if (!event) {
+      return res.status(404).json({ message: "Event not found" });
+    }
+
+    // 🔥 FIX: prevent duplicate registration
+    if (event.registrations.includes(userId)) {
+      return res.status(400).json({
+        message: "Already registered",
+      });
+    }
+
+    // 🔥 FIX: use addToSet logic (safe push)
+    event.registrations.push(userId);
+
+    // 🔥 FIX: correct count always derived from array
+    event.registrationCount = event.registrations.length;
+
+    await event.save();
+
+    return res.json({
+      success: true,
+      message: "Registered successfully",
+      registrationCount: event.registrationCount,
+    });
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
@@ -167,7 +210,6 @@ export const updateEvent = async (req, res) => {
       });
     }
 
-    // 🔥 SAFE UPDATE (prevents overwriting numeric fields wrongly)
     Object.assign(event, {
       ...req.body,
       teamSize: req.body.teamSize
@@ -194,7 +236,7 @@ export const updateEvent = async (req, res) => {
 };
 
 // ==========================
-// GET EVENTS (ROLE BASED)
+// GET EVENTS
 // ==========================
 export const getEvents = async (req, res) => {
   try {
@@ -257,7 +299,10 @@ export const getEventById = async (req, res) => {
       return res.status(404).json({ message: "Event not found" });
     }
 
-    return res.json(event);
+    return res.json({
+      ...event.toObject(),
+      registrationCount: event.registrations?.length || 0,
+    });
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
