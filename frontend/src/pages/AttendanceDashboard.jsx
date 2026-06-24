@@ -5,9 +5,6 @@ import socket from "../socket";
 import api from "../utils/api";
 
 const AttendanceDashboard = () => {
-  // ⚠️ later replace with dynamic eventId from route
-  const eventId = "event123";
-
   const [stats, setStats] = useState({
     checkedIn: 0,
     checkedOut: 0,
@@ -16,13 +13,36 @@ const AttendanceDashboard = () => {
   });
 
   const [attendanceData, setAttendanceData] = useState([]);
+  const [events, setEvents] = useState([]);
+  const [eventId, setEventId] = useState("");
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
+
+  // ==========================
+  // FETCH EVENTS
+  // ==========================
+  const fetchEvents = async () => {
+    try {
+      const res = await api.get("/events");
+
+      const eventList = res.data.events || res.data || [];
+
+      setEvents(eventList);
+
+      if (eventList.length > 0) {
+        setEventId(eventList[0]._id);
+      }
+    } catch (err) {
+      console.error("Events error:", err);
+    }
+  };
 
   // ==========================
   // FETCH STATS
   // ==========================
   const fetchStats = async () => {
+    if (!eventId) return;
+
     try {
       const res = await api.get(`/attendance/dashboard/${eventId}`);
 
@@ -38,15 +58,19 @@ const AttendanceDashboard = () => {
   };
 
   // ==========================
-  // FETCH ATTENDANCE LIST
+  // FETCH ATTENDANCE
   // ==========================
   const fetchAttendance = async () => {
+    if (!eventId) return;
+
     try {
       const res = await api.get(`/attendance/event/${eventId}`);
 
-      const formatted = (res.data || []).map((item) => ({
-        name: item.team?.teamName || item.member?.name || "Unknown",
-        email: item.member?.email || "-",
+      const records = res.data.attendance || [];
+
+      const formatted = records.map((item) => ({
+        name: item.attendeeName || "Unknown",
+        email: item.attendeeEmail || "-",
         checkIn: item.checkInTime
           ? new Date(item.checkInTime).toLocaleString()
           : "-",
@@ -65,9 +89,21 @@ const AttendanceDashboard = () => {
   };
 
   // ==========================
-  // SOCKET HANDLING
+  // INITIAL LOAD
   // ==========================
   useEffect(() => {
+    fetchEvents();
+  }, []);
+
+  // ==========================
+  // REFETCH WHEN EVENT CHANGES
+  // ==========================
+  useEffect(() => {
+    if (!eventId) return;
+
+    fetchStats();
+    fetchAttendance();
+
     socket.emit("join-event", eventId);
 
     const refresh = () => {
@@ -84,26 +120,21 @@ const AttendanceDashboard = () => {
       socket.off("attendance:checkout", refresh);
       socket.off("attendance:completed", refresh);
     };
-  }, []);
-
-  // initial load
-  useEffect(() => {
-    fetchStats();
-    fetchAttendance();
-  }, []);
+  }, [eventId]);
 
   // ==========================
   // ATTENDANCE RATE
   // ==========================
   const attendanceRate = useMemo(() => {
     if (!stats.total) return 0;
+
     return Math.round(
       ((stats.checkedIn + stats.checkedOut) / stats.total) * 100
     );
   }, [stats]);
 
   // ==========================
-  // SEARCH FILTER
+  // SEARCH
   // ==========================
   const filteredData = useMemo(() => {
     return attendanceData.filter((item) =>
@@ -113,40 +144,50 @@ const AttendanceDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-950 p-6">
-
-      {/* HEADER */}
       <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-6">
         <h1 className="text-3xl font-bold text-white">
           Attendance Dashboard
         </h1>
 
-        <button
-          onClick={() =>
-            window.open(
-              `${import.meta.env.VITE_API_URL}/api/attendance/report/${eventId}`,
-              "_blank"
-            )
-          }
-          className="bg-green-600 hover:bg-green-700 px-5 py-3 rounded-xl text-white font-semibold"
-        >
-          📥 Download CSV
-        </button>
+        <div className="flex gap-4">
+          <select
+            value={eventId}
+            onChange={(e) => setEventId(e.target.value)}
+            className="bg-gray-900 text-white px-4 py-3 rounded-xl"
+          >
+            {events.map((event) => (
+              <option key={event._id} value={event._id}>
+                {event.title || event.name}
+              </option>
+            ))}
+          </select>
+
+          <button
+            onClick={() =>
+              window.open(
+                `${import.meta.env.VITE_API_URL}/attendance/report/${eventId}`,
+                "_blank"
+              )
+            }
+            className="bg-green-600 hover:bg-green-700 px-5 py-3 rounded-xl text-white font-semibold"
+          >
+            📥 Download CSV
+          </button>
+        </div>
       </div>
 
-      {/* STATS */}
       <AttendanceStats {...stats} />
 
-      {/* RATE */}
       <div className="bg-gray-900 rounded-2xl p-6 mt-6">
         <h2 className="text-xl font-semibold text-white mb-3">
           Attendance Rate
         </h2>
+
         <div className="text-5xl font-bold text-green-400">
           {attendanceRate}%
         </div>
       </div>
 
-      {/* SEARCH */}
       <div className="mt-6">
         <input
           value={search}
@@ -156,10 +197,11 @@ const AttendanceDashboard = () => {
         />
       </div>
 
-      {/* TABLE */}
       <div className="mt-6">
         {loading ? (
-          <div className="text-gray-400">Loading attendance...</div>
+          <div className="text-gray-400">
+            Loading attendance...
+          </div>
         ) : (
           <AttendanceTable data={filteredData} />
         )}
