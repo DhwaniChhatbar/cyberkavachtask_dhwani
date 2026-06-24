@@ -7,11 +7,13 @@ import api from "../utils/api";
 const AttendanceDashboard = () => {
   const user = JSON.parse(localStorage.getItem("user") || "null");
 
-  const canDownloadReport = [
+  const canManageAttendance = [
     "Faculty Coordinator",
     "Student Coordinator",
     "Tech Coordinator",
   ].includes(user?.role);
+
+  const canDownloadReport = canManageAttendance;
 
   const [stats, setStats] = useState({
     checkedIn: 0,
@@ -37,7 +39,7 @@ const AttendanceDashboard = () => {
 
       setEvents(eventList);
 
-      if (eventList.length > 0) {
+      if (eventList.length > 0 && !eventId) {
         setEventId(eventList[0]._id);
       }
     } catch (err) {
@@ -74,11 +76,21 @@ const AttendanceDashboard = () => {
     try {
       const res = await api.get(`/attendance/event/${eventId}`);
 
-      const records = res.data.attendance || [];
+      const records = res.data.attendance || res.data || [];
 
       const formatted = records.map((item) => ({
-        name: item.attendeeName || "Unknown",
-        email: item.attendeeEmail || "-",
+        id: item._id,
+        teamId: item.team?._id,
+        memberId: item.member?._id,
+        name:
+          item.team?.teamName ||
+          item.member?.name ||
+          item.attendeeName ||
+          "Unknown",
+        email:
+          item.member?.email ||
+          item.attendeeEmail ||
+          "-",
         checkIn: item.checkInTime
           ? new Date(item.checkInTime).toLocaleString()
           : "-",
@@ -97,6 +109,42 @@ const AttendanceDashboard = () => {
   };
 
   // ==========================
+  // CHECK-IN
+  // ==========================
+  const handleCheckIn = async (row) => {
+    try {
+      await api.post("/attendance/checkin", {
+        eventId,
+        teamId: row.teamId,
+        memberId: row.memberId,
+      });
+
+      fetchStats();
+      fetchAttendance();
+    } catch (err) {
+      console.error("Check-in error:", err);
+    }
+  };
+
+  // ==========================
+  // CHECK-OUT
+  // ==========================
+  const handleCheckOut = async (row) => {
+    try {
+      await api.post("/attendance/checkout", {
+        eventId,
+        teamId: row.teamId,
+        memberId: row.memberId,
+      });
+
+      fetchStats();
+      fetchAttendance();
+    } catch (err) {
+      console.error("Check-out error:", err);
+    }
+  };
+
+  // ==========================
   // INITIAL LOAD
   // ==========================
   useEffect(() => {
@@ -104,7 +152,7 @@ const AttendanceDashboard = () => {
   }, []);
 
   // ==========================
-  // REFETCH WHEN EVENT CHANGES
+  // EVENT CHANGE
   // ==========================
   useEffect(() => {
     if (!eventId) return;
@@ -157,7 +205,7 @@ const AttendanceDashboard = () => {
           Attendance Dashboard
         </h1>
 
-        <div className="flex gap-4">
+        <div className="flex gap-4 flex-wrap">
           <select
             value={eventId}
             onChange={(e) => setEventId(e.target.value)}
@@ -174,7 +222,7 @@ const AttendanceDashboard = () => {
             <button
               onClick={() =>
                 window.open(
-                  `${import.meta.env.VITE_API_URL}/api/attendance/report/${eventId}`,
+                  `${import.meta.env.VITE_API_URL}/attendance/report/${eventId}`,
                   "_blank"
                 )
               }
@@ -213,7 +261,52 @@ const AttendanceDashboard = () => {
             Loading attendance...
           </div>
         ) : (
-          <AttendanceTable data={filteredData} />
+          <>
+            <AttendanceTable data={filteredData} />
+
+            {canManageAttendance && (
+              <div className="mt-8 bg-gray-900 rounded-2xl p-6">
+                <h2 className="text-2xl text-white font-bold mb-4">
+                  Attendance Actions
+                </h2>
+
+                <div className="space-y-4">
+                  {filteredData.map((row, index) => (
+                    <div
+                      key={index}
+                      className="flex flex-col md:flex-row md:items-center md:justify-between bg-gray-800 rounded-xl p-4"
+                    >
+                      <div>
+                        <p className="text-white font-semibold">
+                          {row.name}
+                        </p>
+
+                        <p className="text-gray-400 text-sm">
+                          {row.status}
+                        </p>
+                      </div>
+
+                      <div className="flex gap-3 mt-3 md:mt-0">
+                        <button
+                          onClick={() => handleCheckIn(row)}
+                          className="bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg text-white"
+                        >
+                          Check In
+                        </button>
+
+                        <button
+                          onClick={() => handleCheckOut(row)}
+                          className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg text-white"
+                        >
+                          Check Out
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>

@@ -11,12 +11,24 @@ import { evaluateBadgesForUser } from "../utils/badgeEngine.js";
 // ======================
 // CHECK IN
 // ======================
+
 export const checkIn = async (req, res) => {
   try {
     const { eventId, teamId, memberId } = req.body;
 
     const userId = memberId || req.user?.id;
-
+    if (
+      ![
+        "Faculty Coordinator",
+        "Student Coordinator",
+        "Tech Coordinator",
+      ].includes(req.user.role)
+    ) {
+      return res.status(403).json({
+        success: false,
+        message: "Unauthorized",
+      });
+    }
     if (!eventId || (!teamId && !userId)) {
       return res.status(400).json({
         success: false,
@@ -126,7 +138,18 @@ export const checkOut = async (req, res) => {
     const { eventId, teamId, memberId } = req.body;
 
     const userId = memberId || req.user?.id;
-
+    if (
+      ![
+        "Faculty Coordinator",
+        "Student Coordinator",
+        "Tech Coordinator",
+      ].includes(req.user.role)
+    ) {
+      return res.status(403).json({
+        success: false,
+        message: "Unauthorized",
+      });
+    }
     if (!eventId || (!teamId && !userId)) {
       return res.status(400).json({
         success: false,
@@ -250,6 +273,9 @@ export const getAttendanceByEvent = async (req, res) => {
       event: record.event,
       team: record.team,
       member: record.member,
+
+      memberId: record.member?._id || null,
+      teamId: record.team?._id || null,
 
       attendeeName:
         record.team?.teamName ||
@@ -444,7 +470,7 @@ export const completeAttendance = async (req, res) => {
           record.durationMinutes = Math.floor(
             (new Date(record.checkOutTime) -
               new Date(record.checkInTime)) /
-              (1000 * 60)
+            (1000 * 60)
           );
         }
 
