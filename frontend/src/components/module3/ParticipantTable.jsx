@@ -17,42 +17,29 @@ const ParticipantTable = ({ participants = [] }) => {
 
         <tbody>
           {participants.length > 0 ? (
-            participants.map((p, index) => (
-              <tr
-                key={index}
-                className="border-b border-gray-800"
-              >
-                <td className="p-3">
-                  {p.fullName || "N/A"}
-                </td>
+            participants.map((p, index) => {
+              // ✅ SAFE TEAM EXTRACTION (handles backend mismatch)
+              const team =
+                p.team?.name ||     // if populated object
+                p.team ||           // if plain string
+                p.teamName ||       // fallback old API
+                p.user?.team ||     // nested structure case
+                "N/A";
 
-                <td className="p-3">
-                  {p.email || "N/A"}
-                </td>
-
-                <td className="p-3">
-                  {p.collegeId || "N/A"}
-                </td>
-
-                <td className="p-3">
-                  {p.department || "N/A"}
-                </td>
-
-                <td className="p-3">
-                  {p.institute || "N/A"}
-                </td>
-
-                <td className="p-3">
-                  {p.team || "N/A"}
-                </td>
-              </tr>
-            ))
+              return (
+                <tr key={index} className="border-b border-gray-800">
+                  <td className="p-3">{p.fullName || "N/A"}</td>
+                  <td className="p-3">{p.email || "N/A"}</td>
+                  <td className="p-3">{p.collegeId || "N/A"}</td>
+                  <td className="p-3">{p.department || "N/A"}</td>
+                  <td className="p-3">{p.institute || "N/A"}</td>
+                  <td className="p-3">{team}</td>
+                </tr>
+              );
+            })
           ) : (
             <tr>
-              <td
-                colSpan="6"
-                className="p-6 text-center text-gray-400"
-              >
+              <td colSpan="6" className="p-6 text-center text-gray-400">
                 No participants found
               </td>
             </tr>

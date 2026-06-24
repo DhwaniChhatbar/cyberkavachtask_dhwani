@@ -6,14 +6,45 @@ const EventCard = ({ event }) => {
 
   if (!event) return null;
 
-  const status = event.status || "Draft";
+  // =========================
+  // SAFE STATUS HANDLING
+  // =========================
+  const status =
+    event.status ||
+    event.eventStatus ||
+    "Draft";
 
+  // =========================
+  // SAFE IMAGE HANDLING
+  // =========================
   const posterSrc =
-    event.poster && event.poster.startsWith("http")
+    event.poster?.startsWith("http")
       ? event.poster
       : event.poster
       ? `${import.meta.env.VITE_API_URL}/${event.poster}`
       : "https://via.placeholder.com/600x300?text=Event+Poster";
+
+  // =========================
+  // SAFE DATE HANDLING
+  // =========================
+  const formatDate = (date) => {
+    if (!date) return "N/A";
+    const d = new Date(date);
+    return isNaN(d.getTime()) ? "N/A" : d.toLocaleDateString();
+  };
+
+  // =========================
+  // SAFE REG COUNT
+  // =========================
+  const registrationCount =
+    event.registrationCount ??
+    event.registrations?.length ??
+    0;
+
+  // =========================
+  // SAFE TEAM SIZE
+  // =========================
+  const teamSize = event.teamSize || event.maxTeamSize || 1;
 
   return (
     <div className="bg-gray-900 rounded-2xl overflow-hidden shadow-lg border border-gray-800">
@@ -34,25 +65,18 @@ const EventCard = ({ event }) => {
         </p>
 
         <div className="mt-4 space-y-2 text-sm text-gray-300">
-          <p>
-            📅{" "}
-            {event.date
-              ? new Date(event.date).toLocaleDateString()
-              : "N/A"}
-          </p>
+          <p>📅 {formatDate(event.date)}</p>
 
           <p>📍 {event.venue || "N/A"}</p>
 
-          <p>👥 Team Size: {event.teamSize || 1}</p>
+          <p>👥 Team Size: {teamSize}</p>
 
           <p>
             ⏳ Registration Deadline:{" "}
-            {event.registrationDeadline
-              ? new Date(event.registrationDeadline).toLocaleDateString()
-              : "N/A"}
+            {formatDate(event.registrationDeadline)}
           </p>
 
-          <p>👤 Registrations: {event.registrationCount || 0}</p>
+          <p>👤 Registrations: {registrationCount}</p>
         </div>
 
         {/* Status */}
@@ -73,9 +97,7 @@ const EventCard = ({ event }) => {
 
           {status === "Published" && (
             <button
-              onClick={() =>
-                navigate(`/register-team/${event._id}`)
-              }
+              onClick={() => navigate(`/register-team/${event._id}`)}
               className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg transition"
             >
               Register
