@@ -16,6 +16,7 @@ import {
   FaCheckCircle,
   FaPlusCircle,
   FaUserCheck,
+  FaIdCard,
 } from "react-icons/fa";
 
 const Sidebar = () => {
@@ -156,22 +157,27 @@ const Sidebar = () => {
         "Faculty Coordinator",
         "Student Coordinator",
         "Tech Coordinator",
+         "Member",
       ],
     },
 
     {
       name: "Attendance",
       icon: <FaUserCheck />,
-      path:
-        role === "Member"
-          ? "/my-attendance"
-          : "/attendance",
+      path: role === "Member" ? "/my-attendance" : "/attendance",
       roles: [
         "Faculty Coordinator",
         "Student Coordinator",
         "Tech Coordinator",
         "Member",
       ],
+    },
+
+    {
+      name: "Member ID Event",
+      icon: <FaIdCard />,
+      path: "/member-event",
+      roles: ["Member"],
     },
 
     {
@@ -192,10 +198,7 @@ const Sidebar = () => {
       name: "Points History",
       icon: <FaHistory />,
       path: "/points-history",
-      roles: [
-        "Faculty Coordinator",
-        "Student Coordinator",
-      ],
+      roles: ["Faculty Coordinator", "Student Coordinator"],
     },
 
     {
@@ -236,9 +239,7 @@ const Sidebar = () => {
                 to={item.path}
                 className="flex items-center gap-4 rounded-xl px-4 py-3 hover:bg-gray-800 transition"
               >
-                <span className="text-xl">
-                  {item.icon}
-                </span>
+                <span className="text-xl">{item.icon}</span>
                 <span>{item.name}</span>
               </Link>
             ))}

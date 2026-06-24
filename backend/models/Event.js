@@ -46,7 +46,14 @@ const eventSchema = new mongoose.Schema(
       trim: true,
     },
 
-    // 🔥 TEAM SIZE (FIXED PERMANENTLY)
+    // ✅ ADD THIS (minimal change)
+    registrations: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
+
     teamSize: {
       type: Number,
       default: 1,
@@ -166,7 +173,7 @@ const eventSchema = new mongoose.Schema(
     },
 
     // ==========================
-    // COMPLETION FLAG (SAFE ADD)
+    // COMPLETION FLAG
     // ==========================
     isCompleted: {
       type: Boolean,

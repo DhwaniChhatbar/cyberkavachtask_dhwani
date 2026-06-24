@@ -2,6 +2,16 @@ import React from "react";
 import TeamQRCode from "./TeamQRCode";
 
 const TeamCard = ({ team }) => {
+  // 🔥 SAFE FALLBACK FOR LEADER (VERY IMPORTANT FIX)
+  const leader =
+    team.leaderDetails ||
+    team.leader ||
+    team.members?.find((m) => m.isLeader) ||
+    {};
+
+  const members =
+    team.members?.filter((m) => !m.isLeader) || [];
+
   return (
     <div className="bg-gray-900 p-5 rounded-2xl border border-gray-800 shadow-lg">
 
@@ -9,11 +19,11 @@ const TeamCard = ({ team }) => {
       <div className="flex justify-between items-start">
         <div>
           <h2 className="text-2xl font-bold text-white">
-            {team.teamName}
+            {team.teamName || "N/A"}
           </h2>
 
           <p className="mt-2 text-gray-400 text-sm">
-            Team ID: {team.teamId}
+            Team ID: {team.teamId || "N/A"}
           </p>
 
           <p className="text-gray-500 text-sm mt-1">
@@ -37,43 +47,41 @@ const TeamCard = ({ team }) => {
       {/* =========================
           LEADER SECTION (FIXED)
       ========================= */}
-      {team.leaderDetails && (
-        <div className="mt-5 bg-gray-800 rounded-xl p-4">
+      <div className="mt-5 bg-gray-800 rounded-xl p-4">
 
-          <h3 className="font-semibold text-white mb-3">
-            👤 Team Leader
-          </h3>
+        <h3 className="font-semibold text-white mb-3">
+          👤 Team Leader
+        </h3>
 
-          <div className="space-y-1 text-sm text-gray-300">
+        <div className="space-y-1 text-sm text-gray-300">
 
-            <p>
-              <span className="text-white font-medium">Name:</span>{" "}
-              {team.leaderDetails.fullName || "N/A"}
-            </p>
+          <p>
+            <span className="text-white font-medium">Name:</span>{" "}
+            {leader.fullName || leader.name || "N/A"}
+          </p>
 
-            <p>
-              <span className="text-white font-medium">Email:</span>{" "}
-              {team.leaderDetails.email || "N/A"}
-            </p>
+          <p>
+            <span className="text-white font-medium">Email:</span>{" "}
+            {leader.email || "N/A"}
+          </p>
 
-            <p>
-              <span className="text-white font-medium">College ID:</span>{" "}
-              {team.leaderDetails.collegeId || "N/A"}
-            </p>
+          <p>
+            <span className="text-white font-medium">College ID:</span>{" "}
+            {leader.collegeId || "N/A"}
+          </p>
 
-            <p>
-              <span className="text-white font-medium">Department:</span>{" "}
-              {team.leaderDetails.department || "N/A"}
-            </p>
+          <p>
+            <span className="text-white font-medium">Department:</span>{" "}
+            {leader.department || "N/A"}
+          </p>
 
-            <p>
-              <span className="text-white font-medium">Institute:</span>{" "}
-              {team.leaderDetails.institute || "N/A"}
-            </p>
+          <p>
+            <span className="text-white font-medium">Institute:</span>{" "}
+            {leader.institute || "N/A"}
+          </p>
 
-          </div>
         </div>
-      )}
+      </div>
 
       {/* =========================
           MEMBERS SECTION (FIXED)
@@ -84,24 +92,22 @@ const TeamCard = ({ team }) => {
           Team Members
         </h3>
 
-        {team.members?.filter((m) => !m.isLeader).length > 0 ? (
-          team.members
-            .filter((m) => !m.isLeader)
-            .map((member, index) => (
-              <div
-                key={index}
-                className="bg-gray-800 p-4 rounded-xl mb-3 text-sm text-gray-300"
-              >
-                <p className="text-white font-medium mb-1">
-                  {member.fullName || "N/A"}
-                </p>
+        {members.length > 0 ? (
+          members.map((member, index) => (
+            <div
+              key={index}
+              className="bg-gray-800 p-4 rounded-xl mb-3 text-sm text-gray-300"
+            >
+              <p className="text-white font-medium mb-1">
+                {member.fullName || member.name || "N/A"}
+              </p>
 
-                <p>📧 {member.email || "N/A"}</p>
-                <p>🆔 {member.collegeId || "N/A"}</p>
-                <p>🎓 {member.department || "N/A"}</p>
-                <p>🏫 {member.institute || "N/A"}</p>
-              </div>
-            ))
+              <p>📧 {member.email || "N/A"}</p>
+              <p>🆔 {member.collegeId || "N/A"}</p>
+              <p>🎓 {member.department || "N/A"}</p>
+              <p>🏫 {member.institute || "N/A"}</p>
+            </div>
+          ))
         ) : (
           <p className="text-gray-500 text-sm">
             No members added
