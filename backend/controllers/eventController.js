@@ -33,10 +33,8 @@ export const createEvent = async (req, res) => {
       poster: req.file ? req.file.filename : "",
       status: "Draft",
 
-      // 🔥 FIX: ensure array exists
       registrations: [],
 
-      // 🔥 FIX: ALWAYS derive from array, not manual number
       registrationCount: 0,
 
       certificatesEnabled: false,
@@ -51,9 +49,8 @@ export const createEvent = async (req, res) => {
 };
 
 // ==========================
-// REGISTER EVENT (🔴 MISSING LOGIC FIX ADDED)
+// REGISTER EVENT
 // ==========================
-// ⚠️ THIS IS THE ROOT FIX FOR "2 REGISTRATIONS ISSUE"
 export const registerForEvent = async (req, res) => {
   try {
     const { eventId } = req.body;
@@ -65,17 +62,17 @@ export const registerForEvent = async (req, res) => {
       return res.status(404).json({ message: "Event not found" });
     }
 
-    // 🔥 FIX: prevent duplicate registration
+    if (!event.registrations) {
+      event.registrations = [];
+    }
+
     if (event.registrations.includes(userId)) {
       return res.status(400).json({
         message: "Already registered",
       });
     }
 
-    // 🔥 FIX: use addToSet logic (safe push)
     event.registrations.push(userId);
-
-    // 🔥 FIX: correct count always derived from array
     event.registrationCount = event.registrations.length;
 
     await event.save();
@@ -236,7 +233,7 @@ export const updateEvent = async (req, res) => {
 };
 
 // ==========================
-// GET EVENTS
+// GET EVENTS (FIXED HERE)
 // ==========================
 export const getEvents = async (req, res) => {
   try {
@@ -256,9 +253,18 @@ export const getEvents = async (req, res) => {
       .populate("createdBy", "name email")
       .populate("approvedBy", "name")
       .populate("publishedBy", "name")
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .lean(); // IMPORTANT FIX
 
-    return res.json(events);
+    // 🔥 ENSURE registrations ALWAYS EXIST
+    const safeEvents = events.map((e) => ({
+      ...e,
+      registrations: e.registrations || [],
+      registrationCount:
+        e.registrationCount ?? (e.registrations?.length || 0),
+    }));
+
+    return res.json(safeEvents);
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
@@ -293,15 +299,18 @@ export const getEventById = async (req, res) => {
     const event = await Event.findById(req.params.id)
       .populate("createdBy", "name email")
       .populate("approvedBy", "name")
-      .populate("publishedBy", "name");
+      .populate("publishedBy", "name")
+      .lean();
 
     if (!event) {
       return res.status(404).json({ message: "Event not found" });
     }
 
     return res.json({
-      ...event.toObject(),
-      registrationCount: event.registrations?.length || 0,
+      ...event,
+      registrations: event.registrations || [],
+      registrationCount:
+        event.registrationCount ?? (event.registrations?.length || 0),
     });
   } catch (err) {
     return res.status(500).json({ error: err.message });
