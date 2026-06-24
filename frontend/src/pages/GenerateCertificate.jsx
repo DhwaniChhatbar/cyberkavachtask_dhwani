@@ -11,29 +11,33 @@ const GenerateCertificate = () => {
   const [loading, setLoading] = useState(false);
   const [generatedCertificate, setGeneratedCertificate] = useState(null);
 
+  // Load only events initially
   useEffect(() => {
-    fetchUsers();
     fetchEvents();
   }, []);
 
-  const fetchUsers = async () => {
-    try {
-      const res = await api.get("/users");
-
-      if (res.data?.users) {
-        setUsers(res.data.users);
-      }
-    } catch (error) {
-      console.error("Error fetching users:", error);
-    }
-  };
+  // Fetch users ONLY when event changes
+  useEffect(() => {
+    if (!selectedEvent) return;
+    fetchEventUsers();
+  }, [selectedEvent]);
 
   const fetchEvents = async () => {
     try {
       const res = await api.get("/events");
       setEvents(res.data || []);
     } catch (error) {
-      console.error("Error fetching events:", error);
+      setEvents([]);
+    }
+  };
+
+  // ONLY EVENT USERS (NO /users, NO ATTENDANCE)
+  const fetchEventUsers = async () => {
+    try {
+      const res = await api.get(`/events/${selectedEvent}/users`);
+      setUsers(res.data || []);
+    } catch (error) {
+      setUsers([]);
     }
   };
 
@@ -43,13 +47,11 @@ const GenerateCertificate = () => {
     try {
       setLoading(true);
 
-      const event = events.find(
-        (ev) => ev._id === selectedEvent
-      );
+      const event = events.find((ev) => ev._id === selectedEvent);
 
       const res = await api.post("/certificates", {
         event: selectedEvent,
-        eventName: event.name,
+        eventName: event?.name,
         user: selectedUser,
       });
 
@@ -57,12 +59,9 @@ const GenerateCertificate = () => {
 
       setSelectedEvent("");
       setSelectedUser("");
+      setUsers([]);
     } catch (err) {
-      console.error(err);
-      alert(
-        err.response?.data?.message ||
-          "Failed to generate certificate"
-      );
+      alert(err.response?.data?.message || "Failed to generate certificate");
     } finally {
       setLoading(false);
     }
@@ -76,11 +75,9 @@ const GenerateCertificate = () => {
           Generate Certificate
         </h1>
 
-        <form
-          onSubmit={handleSubmit}
-          className="space-y-5"
-        >
+        <form onSubmit={handleSubmit} className="space-y-5">
 
+          {/* EVENT SELECT */}
           <div>
             <label className="block mb-2 text-gray-300">
               Select Event
@@ -92,9 +89,7 @@ const GenerateCertificate = () => {
               className="w-full p-3 rounded-lg bg-gray-800 outline-none"
               required
             >
-              <option value="">
-                Choose an event
-              </option>
+              <option value="">Choose an event</option>
 
               {events.map((event) => (
                 <option key={event._id} value={event._id}>
@@ -104,6 +99,7 @@ const GenerateCertificate = () => {
             </select>
           </div>
 
+          {/* USER SELECT (EVENT BASED ONLY) */}
           <div>
             <label className="block mb-2 text-gray-300">
               Select User
@@ -115,30 +111,32 @@ const GenerateCertificate = () => {
               className="w-full p-3 rounded-lg bg-gray-800 outline-none"
               required
             >
-              <option value="">
-                Choose a user
-              </option>
+              <option value="">Choose a user</option>
 
-              {users.map((user) => (
-                <option key={user._id} value={user._id}>
-                  {user.name} ({user.role})
-                </option>
-              ))}
+              {users.length === 0 ? (
+                <option disabled>No users in this event</option>
+              ) : (
+                users.map((user) => (
+                  <option key={user._id} value={user._id}>
+                    {user.name} ({user.role})
+                  </option>
+                ))
+              )}
             </select>
           </div>
 
+          {/* SUBMIT */}
           <button
             type="submit"
             disabled={loading}
             className="w-full bg-blue-600 hover:bg-blue-700 p-3 rounded-lg font-semibold"
           >
-            {loading
-              ? "Generating..."
-              : "Generate Certificate"}
+            {loading ? "Generating..." : "Generate Certificate"}
           </button>
 
         </form>
 
+        {/* RESULT */}
         {generatedCertificate && (
           <div className="mt-8 bg-gray-800 rounded-xl p-6">
 
@@ -146,39 +144,18 @@ const GenerateCertificate = () => {
               Certificate Generated ✅
             </h2>
 
-            <div className="space-y-2">
-
-              <p>
-                <strong>Certificate ID:</strong>{" "}
-                {generatedCertificate.certificateId}
-              </p>
-
-              <p>
-                <strong>Event:</strong>{" "}
-                {generatedCertificate.eventName}
-              </p>
-
-              <p>
-                <strong>User ID:</strong>{" "}
-                {generatedCertificate.user}
-              </p>
-
-              <p>
-                <strong>Type:</strong>{" "}
-                {generatedCertificate.type}
-              </p>
-
-              <p>
-                <strong>Issued At:</strong>{" "}
-                {new Date(
-                  generatedCertificate.createdAt
-                ).toLocaleString()}
-              </p>
-
-            </div>
+            <p><strong>Certificate ID:</strong> {generatedCertificate.certificateId}</p>
+            <p><strong>Event:</strong> {generatedCertificate.eventName}</p>
+            <p><strong>User ID:</strong> {generatedCertificate.user}</p>
+            <p><strong>Type:</strong> {generatedCertificate.type}</p>
+            <p>
+              <strong>Issued At:</strong>{" "}
+              {new Date(generatedCertificate.createdAt).toLocaleString()}
+            </p>
 
           </div>
         )}
+
       </div>
     </div>
   );

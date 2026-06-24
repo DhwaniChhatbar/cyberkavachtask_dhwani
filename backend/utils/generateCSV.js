@@ -1,5 +1,18 @@
 import { Parser } from "json2csv";
 
+const flattenValue = (value) => {
+  if (value === null || value === undefined) return "N/A";
+
+  if (typeof value === "object") {
+    if (Array.isArray(value)) {
+      return value.join(", ");
+    }
+    return JSON.stringify(value);
+  }
+
+  return value;
+};
+
 export const generateCSV = (
   data,
   res,
@@ -13,11 +26,20 @@ export const generateCSV = (
       });
     }
 
-    const fields = Object.keys(data[0]);
+    // 🔥 FIX: safer field extraction (handles missing keys across objects)
+    const fields = [...new Set(data.flatMap((item) => Object.keys(item)))];
+
+    const safeData = data.map((item) => {
+      const obj = {};
+      fields.forEach((key) => {
+        obj[key] = flattenValue(item[key]);
+      });
+      return obj;
+    });
 
     const parser = new Parser({ fields });
 
-    const csv = parser.parse(data);
+    const csv = parser.parse(safeData);
 
     res.setHeader("Content-Type", "text/csv");
     res.setHeader(

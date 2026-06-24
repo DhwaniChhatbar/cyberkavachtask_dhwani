@@ -6,8 +6,14 @@ const CertificatePreview = ({
   eventName,
   certificateId,
 }) => {
+  // 🔥 SAFE FIX: avoid window crash in edge cases
+  const origin =
+    typeof window !== "undefined"
+      ? window.location.origin
+      : "";
+
   const verifyUrl = certificateId
-    ? `${window.location.origin}/verify-certificate/${certificateId}`
+    ? `${origin}/verify-certificate/${certificateId}`
     : "";
 
   return (
@@ -52,13 +58,10 @@ const CertificatePreview = ({
       </div>
 
       {/* QR Code */}
-      {certificateId && (
+      {certificateId && verifyUrl && (
         <>
           <div className="flex justify-center mt-8">
-            <QRCodeSVG
-              value={verifyUrl}
-              size={120}
-            />
+            <QRCodeSVG value={verifyUrl} size={120} />
           </div>
 
           <div className="text-center text-sm text-gray-500 mt-3">

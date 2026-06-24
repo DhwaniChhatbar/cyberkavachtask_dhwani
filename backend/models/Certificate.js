@@ -35,12 +35,7 @@ const certificateSchema = new mongoose.Schema(
 
     type: {
       type: String,
-      enum: [
-        "Participation",
-        "Winner",
-        "Runner Up",
-        "Special",
-      ],
+      enum: ["Participation", "Winner", "Runner Up", "Special"],
       default: "Participation",
     },
 
@@ -49,7 +44,6 @@ const certificateSchema = new mongoose.Schema(
       default: Date.now,
     },
 
-    // Anti-tamper verification hash
     hash: {
       type: String,
       required: true,
@@ -61,35 +55,26 @@ const certificateSchema = new mongoose.Schema(
   }
 );
 
-// Prevent duplicate individual certificates
+// 🔥 FIX 1: safer partial index (Mongo stable behavior)
 certificateSchema.index(
-  {
-    eventName: 1,
-    user: 1,
-  },
+  { eventName: 1, user: 1 },
   {
     unique: true,
     partialFilterExpression: {
-      user: { $exists: true, $type: "objectId" },
+      user: { $type: "objectId" },
     },
   }
 );
 
-// Prevent duplicate team certificates
+// 🔥 FIX 2: safer team index
 certificateSchema.index(
-  {
-    eventName: 1,
-    team: 1,
-  },
+  { eventName: 1, team: 1 },
   {
     unique: true,
     partialFilterExpression: {
-      team: { $exists: true, $type: "objectId" },
+      team: { $type: "objectId" },
     },
   }
 );
 
-export default mongoose.model(
-  "Certificate",
-  certificateSchema
-);
+export default mongoose.model("Certificate", certificateSchema);

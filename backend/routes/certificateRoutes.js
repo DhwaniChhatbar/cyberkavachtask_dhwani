@@ -45,12 +45,9 @@ router.get(
 /**
  * ==========================
  * VERIFY CERTIFICATE
- * PUBLIC
+ * PUBLIC (SAFE ACCESS ONLY)
  * ==========================
  */
-router.get(
-  "/verify/:certificateId",
-  verifyCertificate
-);
+router.get("/verify/:certificateId", verifyCertificate);
 
 export default router;

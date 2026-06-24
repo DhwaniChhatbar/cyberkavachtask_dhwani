@@ -24,36 +24,24 @@ const CertificateCard = ({ certificate }) => {
 
     pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
 
-    pdf.save(
-      `${certificate.certificateId || "certificate"}.pdf`
-    );
+    pdf.save(`${certificate.certificateId || "certificate"}.pdf`);
   };
 
   const downloadCSV = () => {
     const csvData = [
-      [
-        "Certificate ID",
-        "User",
-        "Event",
-        "Issued By",
-        "Issued At",
-      ],
+      ["Certificate ID", "User", "Event", "Issued By", "Issued At"],
       [
         certificate.certificateId || "",
-        certificate.user?.name || "",
+        certificate.user?.name || "Unknown User", // 🔥 safe fallback
         certificate.eventName || "",
-        certificate.issuedBy?.name || "",
+        certificate.issuedBy?.name || "Faculty Coordinator", // 🔥 safe fallback
         certificate.createdAt
-          ? new Date(
-              certificate.createdAt
-            ).toLocaleDateString()
+          ? new Date(certificate.createdAt).toLocaleDateString()
           : "",
       ],
     ];
 
-    const csvContent = csvData
-      .map((row) => row.join(","))
-      .join("\n");
+    const csvContent = csvData.map((row) => row.join(",")).join("\n");
 
     const blob = new Blob([csvContent], {
       type: "text/csv;charset=utf-8;",
@@ -64,12 +52,10 @@ const CertificateCard = ({ certificate }) => {
     const link = document.createElement("a");
 
     link.href = url;
-    link.download = `${certificate.certificateId}.csv`;
+    link.download = `${certificate.certificateId || "certificate"}.csv`;
 
     document.body.appendChild(link);
-
     link.click();
-
     document.body.removeChild(link);
   };
 
@@ -98,26 +84,20 @@ const CertificateCard = ({ certificate }) => {
         </p>
 
         <h3 className="text-2xl font-semibold text-center mt-3">
-          {certificate.eventName}
+          {certificate.eventName || "Unknown Event"}
         </h3>
 
         <div className="mt-12 flex justify-between text-sm">
           <div>
-            <p>
-              <strong>Certificate ID:</strong>
-            </p>
-            <p>{certificate.certificateId}</p>
+            <p><strong>Certificate ID:</strong></p>
+            <p>{certificate.certificateId || "N/A"}</p>
           </div>
 
           <div className="text-right">
-            <p>
-              <strong>Date Issued:</strong>
-            </p>
+            <p><strong>Date Issued:</strong></p>
             <p>
               {certificate.createdAt
-                ? new Date(
-                    certificate.createdAt
-                  ).toLocaleDateString()
+                ? new Date(certificate.createdAt).toLocaleDateString()
                 : "N/A"}
             </p>
           </div>

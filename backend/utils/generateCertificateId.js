@@ -10,8 +10,7 @@ export const generateCertificateId = async () => {
       .substring(2, 8)
       .toUpperCase();
 
-    certificateId = `CERT-${new Date()
-      .getFullYear()}-${random}`;
+    certificateId = `CERT-${new Date().getFullYear()}-${random}`;
 
     const existingCertificate = await Certificate.findOne({
       certificateId,

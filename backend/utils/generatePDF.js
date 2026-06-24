@@ -1,5 +1,18 @@
 import PDFDocument from "pdfkit";
 
+const formatValue = (value) => {
+  if (value === null || value === undefined) return "N/A";
+
+  if (typeof value === "object") {
+    if (Array.isArray(value)) {
+      return value.join(", ");
+    }
+    return JSON.stringify(value);
+  }
+
+  return value;
+};
+
 export const generatePDF = (
   data,
   res,
@@ -21,23 +34,16 @@ export const generatePDF = (
     doc.pipe(res);
 
     // Title
-    doc
-      .fontSize(22)
-      .text(title, {
-        align: "center",
-      });
+    doc.fontSize(22).text(title, { align: "center" });
 
     doc.moveDown(2);
 
     // Timestamp
     doc
       .fontSize(10)
-      .text(
-        `Generated on: ${new Date().toLocaleString()}`,
-        {
-          align: "right",
-        }
-      );
+      .text(`Generated on: ${new Date().toLocaleString()}`, {
+        align: "right",
+      });
 
     doc.moveDown();
 
@@ -55,13 +61,7 @@ export const generatePDF = (
           doc
             .fontSize(12)
             .fillColor("black")
-            .text(
-              `${key}: ${
-                value !== undefined && value !== null
-                  ? value
-                  : "N/A"
-              }`
-            );
+            .text(`${key}: ${formatValue(value)}`);
         });
 
         doc.moveDown();
@@ -76,13 +76,7 @@ export const generatePDF = (
         doc
           .fontSize(12)
           .fillColor("black")
-          .text(
-            `${key}: ${
-              value !== undefined && value !== null
-                ? value
-                : "N/A"
-            }`
-          );
+          .text(`${key}: ${formatValue(value)}`);
       });
     }
 

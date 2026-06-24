@@ -18,10 +18,15 @@ const CertificateDashboard = () => {
     const query = search.trim().toLowerCase();
 
     let filtered = certificates.filter((certificate) => {
+      const userName =
+        typeof certificate?.user === "object"
+          ? certificate?.user?.name
+          : ""; // 🔥 FIX: prevents undefined issues
+
       return (
         certificate?.certificateId?.toLowerCase().includes(query) ||
         certificate?.eventName?.toLowerCase().includes(query) ||
-        certificate?.user?.name?.toLowerCase().includes(query)
+        userName?.toLowerCase().includes(query)
       );
     });
 
@@ -77,9 +82,7 @@ const CertificateDashboard = () => {
   const totalCertificates = certificates.length;
 
   const totalEvents = useMemo(() => {
-    return new Set(
-      certificates.map((c) => c.eventName)
-    ).size;
+    return new Set(certificates.map((c) => c.eventName)).size;
   }, [certificates]);
 
   const todayCertificates = useMemo(() => {

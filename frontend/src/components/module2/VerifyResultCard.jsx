@@ -11,6 +11,12 @@ const VerifyResultCard = ({ certificate }) => {
     );
   }
 
+  // 🔥 SAFE DATE HANDLING
+  const issuedDate =
+    certificate.createdAt && !isNaN(new Date(certificate.createdAt))
+      ? new Date(certificate.createdAt).toLocaleDateString()
+      : "N/A";
+
   return (
     <div className="bg-gray-900 rounded-2xl p-6 text-white border border-gray-800">
 
@@ -47,11 +53,7 @@ const VerifyResultCard = ({ certificate }) => {
 
         <p>
           <strong>Issued Date:</strong>{" "}
-          {certificate.createdAt
-            ? new Date(
-                certificate.createdAt
-              ).toLocaleDateString()
-            : "N/A"}
+          {issuedDate}
         </p>
 
       </div>

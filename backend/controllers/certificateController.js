@@ -8,9 +8,6 @@ import { generateCertificateId } from "../utils/generateCertificateId.js";
 // GENERATE CERTIFICATE
 // ==========================
 export const generateCertificate = async (req, res) => {
-  console.log("generateCertificate called");
-  console.log(req.body);
-
   try {
     const { eventName, user } = req.body;
 
@@ -21,7 +18,6 @@ export const generateCertificate = async (req, res) => {
       });
     }
 
-    // check user exists
     const existingUser = await User.findById(user);
 
     if (!existingUser) {
@@ -31,7 +27,6 @@ export const generateCertificate = async (req, res) => {
       });
     }
 
-    // prevent duplicate certificates
     const existingCertificate = await Certificate.findOne({
       user: existingUser._id,
       eventName: eventName.trim(),
@@ -44,19 +39,14 @@ export const generateCertificate = async (req, res) => {
       });
     }
 
-    // check eligibility using points
     const pointsData = await Points.aggregate([
       {
-        $match: {
-          user: existingUser._id,
-        },
+        $match: { user: existingUser._id },
       },
       {
         $group: {
           _id: "$user",
-          totalPoints: {
-            $sum: "$points",
-          },
+          totalPoints: { $sum: "$points" },
         },
       },
     ]);
@@ -76,8 +66,8 @@ export const generateCertificate = async (req, res) => {
       .createHash("sha256")
       .update(
         certificateId +
-        existingUser._id.toString() +
-        eventName.trim()
+          existingUser._id.toString() +
+          eventName.trim()
       )
       .digest("hex");
 
@@ -85,13 +75,18 @@ export const generateCertificate = async (req, res) => {
       certificateId,
       eventName: eventName.trim(),
       user: existingUser._id,
-      issuedBy: req.user.id,
+      issuedBy: req.user?.id || null,
       hash,
     });
 
+    // 🔥 MINIMAL FIX: return populated-like structure immediately
+    const populatedCertificate = await Certificate.findById(certificate._id)
+      .populate("user", "name email role")
+      .populate("issuedBy", "name email");
+
     return res.status(201).json({
       success: true,
-      certificate,
+      certificate: populatedCertificate,
     });
   } catch (err) {
     console.error("CERTIFICATE ERROR:", err);
@@ -109,8 +104,8 @@ export const generateCertificate = async (req, res) => {
 export const getCertificates = async (req, res) => {
   try {
     const certificates = await Certificate.find()
-      .populate("user")
-      .populate("issuedBy")
+      .populate("user", "name email role") // 🔥 minimal improvement
+      .populate("issuedBy", "name email")  // 🔥 minimal improvement
       .sort({ createdAt: -1 });
 
     return res.status(200).json({
@@ -140,11 +135,9 @@ export const verifyCertificate = async (req, res) => {
       });
     }
 
-    const certificate = await Certificate.findOne({
-      certificateId,
-    })
-      .populate("user")
-      .populate("issuedBy");
+    const certificate = await Certificate.findOne({ certificateId })
+      .populate("user", "name email role") // 🔥 ensure consistent UI
+      .populate("issuedBy", "name email");
 
     if (!certificate) {
       return res.status(404).json({

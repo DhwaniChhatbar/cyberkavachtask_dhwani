@@ -11,9 +11,10 @@ const CertificateSearchBar = ({
 
       <input
         type="text"
-        value={value}
-        onChange={onChange}
+        value={value || ""} // 🔥 safe fallback
+        onChange={onChange || (() => {})} // 🔥 prevent crash
         placeholder="Search by certificate ID, event name, or user..."
+        aria-label="Search Certificates" // 🔥 accessibility improvement
         className="
           w-full
           bg-gray-800
