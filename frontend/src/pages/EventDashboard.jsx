@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import api from "../utils/api";
 
 import AnalyticsCard from "../components/module3/AnalyticsCard";
+import CapacityIndicator from "../components/module3/CapacityIndicator";
+import ParticipantTable from "../components/module3/ParticipantTable";
 import EventCard from "../components/module3/EventCard";
 
 const EventDashboard = () => {
@@ -9,9 +11,14 @@ const EventDashboard = () => {
   const role = user?.role?.trim();
 
   const [events, setEvents] = useState([]);
+  const [participants, setParticipants] = useState([]);
+  const [teamsCount, setTeamsCount] = useState(0);
+
+  const [totalCapacity] = useState(100);
 
   useEffect(() => {
     fetchEvents();
+    fetchTeams();
   }, []);
 
   // =========================
@@ -29,6 +36,44 @@ const EventDashboard = () => {
     } catch (err) {
       console.error("EVENT FETCH ERROR:", err);
       setEvents([]);
+    }
+  };
+
+  // =========================
+  // TEAMS + PARTICIPANTS
+  // =========================
+  const fetchTeams = async () => {
+    try {
+      const res = await api.get("/teams");
+
+      const teamData = Array.isArray(res.data)
+        ? res.data
+        : res.data?.teams || [];
+
+      setTeamsCount(teamData.length);
+
+      const participantList = [];
+
+      teamData.forEach((team) => {
+        // members array already contains leader,
+        // so do NOT push leaderDetails separately
+        (team.members || []).forEach((member) => {
+          participantList.push({
+            fullName: member.fullName || "N/A",
+            email: member.email || "N/A",
+            collegeId: member.collegeId || "N/A",
+            department: member.department || "N/A",
+            institute: member.institute || "N/A",
+            team: team.teamName || "N/A",
+          });
+        });
+      });
+
+      setParticipants(participantList);
+    } catch (err) {
+      console.error("TEAM FETCH ERROR:", err);
+      setTeamsCount(0);
+      setParticipants([]);
     }
   };
 
@@ -76,29 +121,37 @@ const EventDashboard = () => {
       </h1>
 
       {role !== "Member" && (
-        <div className="grid md:grid-cols-3 gap-5 mb-8">
-          <AnalyticsCard
-            title="Registrations"
-            value={events.reduce(
-              (acc, e) => acc + (e.registrations?.length || 0),
-              0
-            )}
-          />
+        <>
+          <div className="grid md:grid-cols-3 gap-5 mb-8">
+            <AnalyticsCard
+              title="Registrations"
+              value={events.reduce(
+                (acc, e) => acc + (e.registrationCount || 0),
+                0
+              )}
+            />
 
-          <AnalyticsCard
-            title="Teams"
-            value={events.filter(
-              (e) => e.eventType === "Team"
-            ).length}
-          />
+            <AnalyticsCard
+              title="Teams"
+              value={teamsCount}
+            />
 
-          <AnalyticsCard
-            title="Events"
-            value={events.length}
-          />
-        </div>
+            <AnalyticsCard
+              title="Events"
+              value={events.length}
+            />
+          </div>
+
+          <div className="mb-8">
+            <CapacityIndicator
+              current={participants.length}
+              total={totalCapacity}
+            />
+          </div>
+        </>
       )}
 
+      {/* EVENTS */}
       <div className="mb-10">
         <h2 className="text-2xl font-bold mb-6">
           Events
@@ -150,6 +203,11 @@ const EventDashboard = () => {
           ))}
         </div>
       </div>
+
+      {/* PARTICIPANTS */}
+      {role !== "Member" && (
+        <ParticipantTable participants={participants} />
+      )}
     </div>
   );
 };

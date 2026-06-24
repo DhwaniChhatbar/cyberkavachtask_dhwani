@@ -214,32 +214,65 @@ Status: Registered`
 export const getTeams = async (req, res) => {
   try {
     const teams = await Team.find()
-      .populate("event")
+      .populate("event", "name")
       .populate("leader", "name email")
       .sort({ createdAt: -1 });
 
-    return res.json(teams);
+    const formattedTeams = teams.map((team) => ({
+      _id: team._id,
+      teamName: team.teamName,
+      teamId: team.teamId,
+      status: team.status,
+      createdAt: team.createdAt,
+
+      event: team.event,
+
+      leaderDetails: team.leaderDetails,
+
+      members: team.members,
+
+      participantCount: team.members?.length || 0,
+    }));
+
+    return res.status(200).json({
+      success: true,
+      teams: formattedTeams,
+      totalTeams: formattedTeams.length,
+    });
   } catch (err) {
-    return res.status(500).json({ error: err.message });
+    console.log("GET TEAMS ERROR:", err);
+
+    return res.status(500).json({
+      success: false,
+      error: err.message,
+    });
   }
 };
-
 // ==========================
 // GET TEAM BY ID
 // ==========================
 export const getTeamById = async (req, res) => {
   try {
     const team = await Team.findById(req.params.id)
-      .populate("event")
+      .populate("event", "name")
       .populate("leader", "name email");
 
     if (!team) {
-      return res.status(404).json({ message: "Team not found" });
+      return res.status(404).json({
+        success: false,
+        message: "Team not found",
+      });
     }
 
-    return res.json(team);
+    return res.status(200).json({
+      success: true,
+      team,
+    });
   } catch (err) {
-    return res.status(500).json({ error: err.message });
+    return res.status(500).json({
+      success: false,
+      error: err.message,
+    });
   }
 };
 
