@@ -174,13 +174,6 @@ const Sidebar = () => {
     },
 
     {
-      name: "Member ID Event",
-      icon: <FaIdCard />,
-      path: "/member-event",
-      roles: ["Member"],
-    },
-
-    {
       name: "Create Event",
       icon: <FaPlusCircle />,
       path: "/create-event",

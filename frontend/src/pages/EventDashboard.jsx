@@ -17,11 +17,7 @@ const EventDashboard = () => {
 
   useEffect(() => {
     fetchEvents();
-
-    if (role !== "Member") {
-      fetchParticipants();
-    }
-  }, [role]);
+  }, []);
 
   // =========================
   // EVENTS
@@ -36,31 +32,6 @@ const EventDashboard = () => {
     } catch (err) {
       console.error("EVENT FETCH ERROR:", err);
       setEvents([]);
-    }
-  };
-
-  // =========================
-  // PARTICIPANTS (UNCHANGED SOURCE)
-  // =========================
-  const fetchParticipants = async () => {
-    try {
-      const res = await api.get("/attendance/event");
-
-      const data = res.data?.attendance || res.data || [];
-
-      const formatted = data.map((p) => ({
-        fullName: p.member?.name || p.fullName || "N/A",
-        email: p.member?.email || p.email || "N/A",
-        collegeId: p.member?.collegeId || p.collegeId || "N/A",
-        department: p.member?.department || p.department || "N/A",
-        institute: p.member?.institute || p.institute || "N/A",
-        team: p.team?.teamName || p.team || "N/A",
-      }));
-
-      setParticipants(formatted);
-    } catch (err) {
-      console.error("PARTICIPANT FETCH ERROR:", err);
-      setParticipants([]);
     }
   };
 
@@ -103,13 +74,13 @@ const EventDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-950 text-white p-6">
-      <h1 className="text-3xl font-bold mb-8">Event Dashboard</h1>
+      <h1 className="text-3xl font-bold mb-8">
+        Event Dashboard
+      </h1>
 
       {role !== "Member" && (
         <>
           <div className="grid md:grid-cols-3 gap-5 mb-8">
-
-            {/* ✅ FIXED: REAL REGISTRATION COUNT FROM EVENTS */}
             <AnalyticsCard
               title="Registrations"
               value={events.reduce(
@@ -132,7 +103,6 @@ const EventDashboard = () => {
         </>
       )}
 
-      {/* EVENTS */}
       <div className="mb-10">
         <h2 className="text-2xl font-bold mb-6">Events</h2>
 
@@ -145,7 +115,9 @@ const EventDashboard = () => {
                 {role === "Tech Coordinator" &&
                   event.status === STATUS.DRAFT && (
                     <button
-                      onClick={() => handleSendForApproval(event._id)}
+                      onClick={() =>
+                        handleSendForApproval(event._id)
+                      }
                       className="bg-yellow-600 px-4 py-2 rounded-lg hover:bg-yellow-700"
                     >
                       Send For Approval
@@ -155,7 +127,9 @@ const EventDashboard = () => {
                 {role === "Faculty Coordinator" &&
                   event.status === STATUS.PENDING && (
                     <button
-                      onClick={() => handleApprove(event._id)}
+                      onClick={() =>
+                        handleApprove(event._id)
+                      }
                       className="bg-green-600 px-4 py-2 rounded-lg hover:bg-green-700"
                     >
                       Approve Event
@@ -165,7 +139,9 @@ const EventDashboard = () => {
                 {role === "Student Coordinator" &&
                   event.status === STATUS.APPROVED && (
                     <button
-                      onClick={() => handlePublish(event._id)}
+                      onClick={() =>
+                        handlePublish(event._id)
+                      }
                       className="bg-purple-600 px-4 py-2 rounded-lg hover:bg-purple-700"
                     >
                       Publish Event
@@ -177,7 +153,6 @@ const EventDashboard = () => {
         </div>
       </div>
 
-      {/* PARTICIPANTS */}
       {role !== "Member" && (
         <ParticipantTable participants={participants} />
       )}
