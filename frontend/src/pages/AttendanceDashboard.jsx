@@ -5,6 +5,14 @@ import socket from "../socket";
 import api from "../utils/api";
 
 const AttendanceDashboard = () => {
+  const user = JSON.parse(localStorage.getItem("user") || "null");
+
+  const canDownloadReport = [
+    "Faculty Coordinator",
+    "Student Coordinator",
+    "Tech Coordinator",
+  ].includes(user?.role);
+
   const [stats, setStats] = useState({
     checkedIn: 0,
     checkedOut: 0,
@@ -162,17 +170,19 @@ const AttendanceDashboard = () => {
             ))}
           </select>
 
-          <button
-            onClick={() =>
-              window.open(
-                `${import.meta.env.VITE_API_URL}/attendance/report/${eventId}`,
-                "_blank"
-              )
-            }
-            className="bg-green-600 hover:bg-green-700 px-5 py-3 rounded-xl text-white font-semibold"
-          >
-            📥 Download CSV
-          </button>
+          {canDownloadReport && (
+            <button
+              onClick={() =>
+                window.open(
+                  `${import.meta.env.VITE_API_URL}/api/attendance/report/${eventId}`,
+                  "_blank"
+                )
+              }
+              className="bg-green-600 hover:bg-green-700 px-5 py-3 rounded-xl text-white font-semibold"
+            >
+              📥 Download CSV
+            </button>
+          )}
         </div>
       </div>
 

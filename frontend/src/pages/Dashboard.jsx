@@ -38,7 +38,10 @@ const Dashboard = () => {
 
   useEffect(() => {
     fetchLeaderboard();
-    fetchUsers();
+
+    if (role !== "Member") {
+      fetchUsers();
+    }
 
     socket.on("leaderboard:update", fetchLeaderboard);
 
@@ -54,6 +57,12 @@ const Dashboard = () => {
 
   const topUser = users.length > 0 ? users[0] : null;
 
+  const myEntry = users.find(
+    (u) =>
+      u.user?._id === currentUser?._id ||
+      u.user?.email === currentUser?.email
+  );
+
   return (
     <div className="p-6">
       <h1 className="text-3xl font-bold mb-2">
@@ -65,12 +74,22 @@ const Dashboard = () => {
       </p>
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
-        <StatCard
-          title="Total Users"
-          value={totalUsers}
-          icon={<FaUsers />}
-          color="emerald"
-        />
+
+        {role !== "Member" ? (
+          <StatCard
+            title="Total Users"
+            value={totalUsers}
+            icon={<FaUsers />}
+            color="emerald"
+          />
+        ) : (
+          <StatCard
+            title="My Points"
+            value={myEntry?.totalPoints || 0}
+            icon={<FaStar />}
+            color="emerald"
+          />
+        )}
 
         <StatCard
           title="Total Points"

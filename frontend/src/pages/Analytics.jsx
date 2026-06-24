@@ -22,17 +22,12 @@ const Analytics = () => {
 
   const [loading, setLoading] = useState(true);
 
-  const user = JSON.parse(localStorage.getItem("user"));
+  const user = JSON.parse(localStorage.getItem("user") || "null");
   const role = user?.role;
 
   useEffect(() => {
-    // 🔐 FRONTEND ROLE GUARD
-    const allowedRoles = [
-      "Admin",
-      "Faculty Coordinator",
-    ];
-
-    if (!user || !allowedRoles.includes(role)) {
+    // Faculty Coordinator only
+    if (!user || role !== "Faculty Coordinator") {
       window.location.href = "/dashboard";
       return;
     }
@@ -55,7 +50,9 @@ const Analytics = () => {
     const token = localStorage.getItem("token");
 
     window.open(
-      `${import.meta.env.VITE_API_URL || "http://localhost:5000/api"}/analytics/export/pdf?token=${token}`,
+      `${
+        import.meta.env.VITE_API_URL || "http://localhost:5000/api"
+      }/analytics/export/pdf?token=${token}`,
       "_blank"
     );
   };
@@ -64,7 +61,9 @@ const Analytics = () => {
     const token = localStorage.getItem("token");
 
     window.open(
-      `${import.meta.env.VITE_API_URL || "http://localhost:5000/api"}/analytics/export/csv?token=${token}`,
+      `${
+        import.meta.env.VITE_API_URL || "http://localhost:5000/api"
+      }/analytics/export/csv?token=${token}`,
       "_blank"
     );
   };
@@ -81,12 +80,12 @@ const Analytics = () => {
 
   return (
     <div className="min-h-screen bg-gray-950 p-6">
-
       <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-8">
         <div>
           <h1 className="text-4xl text-white font-bold">
             Analytics Dashboard
           </h1>
+
           <p className="text-gray-400 mt-1">
             Role: {role}
           </p>
@@ -109,7 +108,7 @@ const Analytics = () => {
         </div>
       </div>
 
-      {/* Stats Cards */}
+      {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
         <StatsCard title="Total Users" value={stats.totalUsers} />
         <StatsCard title="Faculty Coordinators" value={stats.facultyCount} />
@@ -125,8 +124,14 @@ const Analytics = () => {
           title="Under Review Requests"
           value={stats.underReviewRequests}
         />
-        <StatsCard title="Approved Requests" value={stats.approvedRequests} />
-        <StatsCard title="Rejected Requests" value={stats.rejectedRequests} />
+        <StatsCard
+          title="Approved Requests"
+          value={stats.approvedRequests}
+        />
+        <StatsCard
+          title="Rejected Requests"
+          value={stats.rejectedRequests}
+        />
         <StatsCard
           title="Certificates Issued"
           value={stats.totalCertificates}
@@ -142,7 +147,6 @@ const Analytics = () => {
         <BarChart stats={stats} />
         <LineChart stats={stats} />
       </div>
-
     </div>
   );
 };

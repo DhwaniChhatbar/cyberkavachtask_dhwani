@@ -25,54 +25,57 @@ router.get("/test", (req, res) => {
 
 // ==========================
 // MEMBER ATTENDANCE HISTORY
-// (My Attendance - logged in user)
 // ==========================
 router.get("/my", protect, getMyAttendance);
 
 // ==========================
-// CHECK-IN ROUTE
-// Supports both:
-// - Individual attendance
-// - Team attendance
+// CHECK-IN
 // ==========================
 router.post("/checkin", protect, checkIn);
 
 // ==========================
-// CHECK-OUT ROUTE
-// Supports both:
-// - Individual attendance
-// - Team attendance
+// CHECK-OUT
 // ==========================
 router.post("/checkout", protect, checkOut);
 
 // ==========================
-// COMPLETE ATTENDANCE PIPELINE
-// - Marks attendance completed
-// - Awards points
-// - Triggers badge evaluation
+// COMPLETE ATTENDANCE
 // ==========================
 router.put("/complete/:eventId", protect, completeAttendance);
 
 // ==========================
-// DASHBOARD STATS (EVENT LEVEL)
-// - total attendance
-// - checked-in
-// - checked-out
-// - completed
-// - averages
+// DASHBOARD STATS
 // ==========================
 router.get("/dashboard/:eventId", protect, getDashboardStats);
 
 // ==========================
-// DOWNLOAD ATTENDANCE REPORT (CSV)
-// - exports event attendance data
+// DOWNLOAD ATTENDANCE REPORT
+// Only Coordinators can export CSV
 // ==========================
-router.get("/report/:eventId", protect, downloadAttendanceReport);
+router.get(
+  "/report/:eventId",
+  protect,
+  (req, res, next) => {
+    const allowedRoles = [
+      "Faculty Coordinator",
+      "Student Coordinator",
+      "Tech Coordinator",
+    ];
+
+    if (!allowedRoles.includes(req.user.role)) {
+      return res.status(403).json({
+        success: false,
+        message: "Access denied",
+      });
+    }
+
+    next();
+  },
+  downloadAttendanceReport
+);
 
 // ==========================
 // EVENT ATTENDANCE LIST
-// - full attendance list per event
-// - admin / coordinator view
 // ==========================
 router.get("/event/:eventId", protect, getAttendanceByEvent);
 

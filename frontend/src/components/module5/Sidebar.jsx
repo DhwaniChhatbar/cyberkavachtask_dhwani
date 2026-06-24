@@ -156,7 +156,6 @@ const Sidebar = () => {
         "Faculty Coordinator",
         "Student Coordinator",
         "Tech Coordinator",
-        "Member",
       ],
     },
 
@@ -193,7 +192,10 @@ const Sidebar = () => {
       name: "Points History",
       icon: <FaHistory />,
       path: "/points-history",
-      roles: ["Faculty Coordinator", "Student Coordinator"],
+      roles: [
+        "Faculty Coordinator",
+        "Student Coordinator",
+      ],
     },
 
     {
@@ -234,7 +236,9 @@ const Sidebar = () => {
                 to={item.path}
                 className="flex items-center gap-4 rounded-xl px-4 py-3 hover:bg-gray-800 transition"
               >
-                <span className="text-xl">{item.icon}</span>
+                <span className="text-xl">
+                  {item.icon}
+                </span>
                 <span>{item.name}</span>
               </Link>
             ))}
