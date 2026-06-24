@@ -34,20 +34,12 @@ const EventCard = ({ event }) => {
   };
 
   // =========================
-  // SAFE REGISTRATION COUNT (FIXED LOGIC)
-  // =========================
-  const registrationCount =
-    Array.isArray(event.registrations)
-      ? event.registrations.length
-      : event.registrationCount ?? 0;
-
-  // =========================
-  // SAFE TEAM SIZE
+  // TEAM SIZE
   // =========================
   const teamSize = event.teamSize || event.maxTeamSize || 1;
 
   // =========================
-  // CHECK IF USER ALREADY REGISTERED (optional UX improvement)
+  // USER CHECK
   // =========================
   const user = JSON.parse(localStorage.getItem("user") || "null");
   const isRegistered =
@@ -83,7 +75,7 @@ const EventCard = ({ event }) => {
             {formatDate(event.registrationDeadline)}
           </p>
 
-          <p>👤 Registrations: {registrationCount}</p>
+          {/* ❌ REMOVED: Registration count */}
         </div>
 
         {/* Status + Register Button */}
@@ -102,7 +94,6 @@ const EventCard = ({ event }) => {
             {status}
           </span>
 
-          {/* REGISTER BUTTON FIXED */}
           {status === "Published" && !isRegistered && (
             <button
               onClick={() =>
@@ -114,7 +105,6 @@ const EventCard = ({ event }) => {
             </button>
           )}
 
-          {/* Already Registered State */}
           {status === "Published" && isRegistered && (
             <span className="text-green-400 text-sm font-medium">
               Already Registered

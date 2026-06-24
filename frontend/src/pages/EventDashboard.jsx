@@ -40,11 +40,11 @@ const EventDashboard = () => {
   };
 
   // =========================
-  // PARTICIPANTS (FIXED LOGIC)
+  // PARTICIPANTS (UNCHANGED SOURCE)
   // =========================
   const fetchParticipants = async () => {
     try {
-      const res = await api.get("/attendance/event"); // FIXED IDEA: use attendance, not teams
+      const res = await api.get("/attendance/event");
 
       const data = res.data?.attendance || res.data || [];
 
@@ -54,7 +54,6 @@ const EventDashboard = () => {
         collegeId: p.member?.collegeId || p.collegeId || "N/A",
         department: p.member?.department || p.department || "N/A",
         institute: p.member?.institute || p.institute || "N/A",
-
         team: p.team?.teamName || p.team || "N/A",
       }));
 
@@ -109,9 +108,14 @@ const EventDashboard = () => {
       {role !== "Member" && (
         <>
           <div className="grid md:grid-cols-3 gap-5 mb-8">
+
+            {/* ✅ FIXED: REAL REGISTRATION COUNT FROM EVENTS */}
             <AnalyticsCard
               title="Registrations"
-              value={participants.length}
+              value={events.reduce(
+                (acc, e) => acc + (e.registrations?.length || 0),
+                0
+              )}
             />
 
             <AnalyticsCard title="Teams" value={events.length} />
