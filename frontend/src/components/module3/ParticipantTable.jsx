@@ -18,22 +18,56 @@ const ParticipantTable = ({ participants = [] }) => {
         <tbody>
           {participants.length > 0 ? (
             participants.map((p, index) => {
-              // ✅ SAFE TEAM EXTRACTION (handles backend mismatch)
+              // ✅ NORMALIZED DATA (handles BOTH backend formats)
+              const member = p.member || p;
+
               const team =
-                p.team?.name ||     // if populated object
-                p.team ||           // if plain string
-                p.teamName ||       // fallback old API
-                p.user?.team ||     // nested structure case
+                p.team?.teamName ||
+                p.team ||
+                p.teamName ||
                 "N/A";
 
               return (
                 <tr key={index} className="border-b border-gray-800">
-                  <td className="p-3">{p.fullName || "N/A"}</td>
-                  <td className="p-3">{p.email || "N/A"}</td>
-                  <td className="p-3">{p.collegeId || "N/A"}</td>
-                  <td className="p-3">{p.department || "N/A"}</td>
-                  <td className="p-3">{p.institute || "N/A"}</td>
+
+                  {/* NAME */}
+                  <td className="p-3">
+                    {p.fullName ||
+                      member?.name ||
+                      "N/A"}
+                  </td>
+
+                  {/* EMAIL */}
+                  <td className="p-3">
+                    {p.email ||
+                      member?.email ||
+                      "N/A"}
+                  </td>
+
+                  {/* COLLEGE ID */}
+                  <td className="p-3">
+                    {p.collegeId ||
+                      member?.collegeId ||
+                      "N/A"}
+                  </td>
+
+                  {/* DEPARTMENT */}
+                  <td className="p-3">
+                    {p.department ||
+                      member?.department ||
+                      "N/A"}
+                  </td>
+
+                  {/* INSTITUTE */}
+                  <td className="p-3">
+                    {p.institute ||
+                      member?.institute ||
+                      "N/A"}
+                  </td>
+
+                  {/* TEAM */}
                   <td className="p-3">{team}</td>
+
                 </tr>
               );
             })

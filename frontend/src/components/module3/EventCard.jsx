@@ -34,17 +34,24 @@ const EventCard = ({ event }) => {
   };
 
   // =========================
-  // SAFE REG COUNT
+  // SAFE REGISTRATION COUNT (FIXED LOGIC)
   // =========================
   const registrationCount =
-    event.registrationCount ??
-    event.registrations?.length ??
-    0;
+    Array.isArray(event.registrations)
+      ? event.registrations.length
+      : event.registrationCount ?? 0;
 
   // =========================
   // SAFE TEAM SIZE
   // =========================
   const teamSize = event.teamSize || event.maxTeamSize || 1;
+
+  // =========================
+  // CHECK IF USER ALREADY REGISTERED (optional UX improvement)
+  // =========================
+  const user = JSON.parse(localStorage.getItem("user") || "null");
+  const isRegistered =
+    event.registrations?.includes(user?.id) || false;
 
   return (
     <div className="bg-gray-900 rounded-2xl overflow-hidden shadow-lg border border-gray-800">
@@ -79,7 +86,7 @@ const EventCard = ({ event }) => {
           <p>👤 Registrations: {registrationCount}</p>
         </div>
 
-        {/* Status */}
+        {/* Status + Register Button */}
         <div className="mt-5 flex items-center justify-between">
           <span
             className={`px-3 py-1 rounded-full text-sm ${
@@ -95,13 +102,23 @@ const EventCard = ({ event }) => {
             {status}
           </span>
 
-          {status === "Published" && (
+          {/* REGISTER BUTTON FIXED */}
+          {status === "Published" && !isRegistered && (
             <button
-              onClick={() => navigate(`/register-team/${event._id}`)}
+              onClick={() =>
+                navigate(`/register-team/${event._id}`)
+              }
               className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg transition"
             >
               Register
             </button>
+          )}
+
+          {/* Already Registered State */}
+          {status === "Published" && isRegistered && (
+            <span className="text-green-400 text-sm font-medium">
+              Already Registered
+            </span>
           )}
         </div>
       </div>

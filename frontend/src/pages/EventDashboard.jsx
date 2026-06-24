@@ -21,42 +21,53 @@ const EventDashboard = () => {
     if (role !== "Member") {
       fetchParticipants();
     }
-  }, []);
+  }, [role]);
 
+  // =========================
+  // EVENTS
+  // =========================
   const fetchEvents = async () => {
     try {
       const res = await api.get("/events");
 
-      const eventData = Array.isArray(res.data)
-        ? res.data
-        : [];
+      const eventData = Array.isArray(res.data) ? res.data : [];
 
       setEvents(eventData);
     } catch (err) {
-      console.error(err);
+      console.error("EVENT FETCH ERROR:", err);
+      setEvents([]);
     }
   };
 
+  // =========================
+  // PARTICIPANTS (FIXED LOGIC)
+  // =========================
   const fetchParticipants = async () => {
     try {
-      const res = await api.get("/teams");
+      const res = await api.get("/attendance/event"); // FIXED IDEA: use attendance, not teams
 
-      const teams = Array.isArray(res.data)
-        ? res.data
-        : [];
+      const data = res.data?.attendance || res.data || [];
 
-      const formatted = teams.map((team) => ({
-        name: team.leaderName || "N/A",
-        email: team.leaderEmail || "N/A",
-        team: team.teamId || "N/A",
+      const formatted = data.map((p) => ({
+        fullName: p.member?.name || p.fullName || "N/A",
+        email: p.member?.email || p.email || "N/A",
+        collegeId: p.member?.collegeId || p.collegeId || "N/A",
+        department: p.member?.department || p.department || "N/A",
+        institute: p.member?.institute || p.institute || "N/A",
+
+        team: p.team?.teamName || p.team || "N/A",
       }));
 
       setParticipants(formatted);
     } catch (err) {
-      console.error(err);
+      console.error("PARTICIPANT FETCH ERROR:", err);
+      setParticipants([]);
     }
   };
 
+  // =========================
+  // ACTIONS
+  // =========================
   const handleSendForApproval = async (id) => {
     try {
       await api.put(`/events/approval/${id}`);
@@ -93,9 +104,7 @@ const EventDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-950 text-white p-6">
-      <h1 className="text-3xl font-bold mb-8">
-        Event Dashboard
-      </h1>
+      <h1 className="text-3xl font-bold mb-8">Event Dashboard</h1>
 
       {role !== "Member" && (
         <>
@@ -105,15 +114,9 @@ const EventDashboard = () => {
               value={participants.length}
             />
 
-            <AnalyticsCard
-              title="Teams"
-              value={participants.length}
-            />
+            <AnalyticsCard title="Teams" value={events.length} />
 
-            <AnalyticsCard
-              title="Events"
-              value={events.length}
-            />
+            <AnalyticsCard title="Events" value={events.length} />
           </div>
 
           <div className="mb-8">
@@ -125,10 +128,9 @@ const EventDashboard = () => {
         </>
       )}
 
+      {/* EVENTS */}
       <div className="mb-10">
-        <h2 className="text-2xl font-bold mb-6">
-          Events
-        </h2>
+        <h2 className="text-2xl font-bold mb-6">Events</h2>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {events.map((event) => (
@@ -139,9 +141,7 @@ const EventDashboard = () => {
                 {role === "Tech Coordinator" &&
                   event.status === STATUS.DRAFT && (
                     <button
-                      onClick={() =>
-                        handleSendForApproval(event._id)
-                      }
+                      onClick={() => handleSendForApproval(event._id)}
                       className="bg-yellow-600 px-4 py-2 rounded-lg hover:bg-yellow-700"
                     >
                       Send For Approval
@@ -151,9 +151,7 @@ const EventDashboard = () => {
                 {role === "Faculty Coordinator" &&
                   event.status === STATUS.PENDING && (
                     <button
-                      onClick={() =>
-                        handleApprove(event._id)
-                      }
+                      onClick={() => handleApprove(event._id)}
                       className="bg-green-600 px-4 py-2 rounded-lg hover:bg-green-700"
                     >
                       Approve Event
@@ -163,9 +161,7 @@ const EventDashboard = () => {
                 {role === "Student Coordinator" &&
                   event.status === STATUS.APPROVED && (
                     <button
-                      onClick={() =>
-                        handlePublish(event._id)
-                      }
+                      onClick={() => handlePublish(event._id)}
                       className="bg-purple-600 px-4 py-2 rounded-lg hover:bg-purple-700"
                     >
                       Publish Event
@@ -177,10 +173,9 @@ const EventDashboard = () => {
         </div>
       </div>
 
+      {/* PARTICIPANTS */}
       {role !== "Member" && (
-        <ParticipantTable
-          participants={participants}
-        />
+        <ParticipantTable participants={participants} />
       )}
     </div>
   );
