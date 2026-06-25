@@ -8,14 +8,11 @@ const AuditLogs = () => {
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
 
-  // fetch logs
   const fetchLogs = async () => {
     try {
       setLoading(true);
 
       const res = await api.get("/audit-logs");
-
-      // ✅ FIX: supports both API response formats
       const data = res.data?.logs || res.data || [];
 
       setLogs(data);
@@ -33,7 +30,6 @@ const AuditLogs = () => {
     fetchLogs();
   }, []);
 
-  // search filter
   useEffect(() => {
     if (!search.trim()) {
       setFilteredLogs(logs);
@@ -55,10 +51,13 @@ const AuditLogs = () => {
   }, [search, logs]);
 
   return (
-    <div className="p-6">
-      {/* Header */}
+    <div className="p-6 min-h-screen bg-gray-100">
+
+      {/* HEADER */}
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">Audit Logs</h1>
+        <h1 className="text-2xl font-bold text-gray-800">
+          Audit Logs
+        </h1>
 
         <button
           onClick={fetchLogs}
@@ -69,22 +68,22 @@ const AuditLogs = () => {
         </button>
       </div>
 
-      {/* Search */}
-      <div className="flex items-center gap-2 mb-4">
-        <FaSearch />
+      {/* SEARCH */}
+      <div className="flex items-center gap-2 mb-4 bg-white p-3 rounded shadow">
+        <FaSearch className="text-gray-500" />
         <input
           type="text"
-          placeholder="Search logs (action, user, module...)"
+          placeholder="Search logs by action, user, module..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full px-3 py-2 border rounded"
+          className="w-full outline-none text-gray-800"
         />
       </div>
 
-      {/* Table */}
-      <div className="overflow-x-auto bg-white shadow rounded">
-        <table className="w-full border-collapse">
-          <thead className="bg-gray-100">
+      {/* TABLE */}
+      <div className="bg-white shadow rounded overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead className="bg-gray-200 text-gray-700">
             <tr>
               <th className="p-3 text-left">Time</th>
               <th className="p-3 text-left">User</th>
@@ -97,27 +96,30 @@ const AuditLogs = () => {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan="5" className="p-4 text-center">
+                <td colSpan="5" className="p-4 text-center text-gray-500">
                   Loading...
                 </td>
               </tr>
             ) : filteredLogs.length === 0 ? (
               <tr>
-                <td colSpan="5" className="p-4 text-center">
+                <td colSpan="5" className="p-4 text-center text-gray-500">
                   No logs found
                 </td>
               </tr>
             ) : (
               filteredLogs.map((log) => (
-                <tr key={log._id} className="border-t">
-                  <td className="p-3 text-sm">
+                <tr
+                  key={log._id}
+                  className="border-b hover:bg-gray-50 transition"
+                >
+                  <td className="p-3 text-gray-700">
                     {log.createdAt
                       ? new Date(log.createdAt).toLocaleString()
                       : "-"}
                   </td>
 
                   <td className="p-3">
-                    <div className="font-medium">
+                    <div className="font-medium text-gray-800">
                       {log?.user?.name || "System"}
                     </div>
                     <div className="text-xs text-gray-500">
@@ -131,9 +133,11 @@ const AuditLogs = () => {
                     </span>
                   </td>
 
-                  <td className="p-3">{log?.module || "-"}</td>
+                  <td className="p-3 text-gray-700">
+                    {log?.module || "-"}
+                  </td>
 
-                  <td className="p-3 text-sm text-gray-600">
+                  <td className="p-3 text-gray-600">
                     {log?.details || "-"}
                   </td>
                 </tr>
