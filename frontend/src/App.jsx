@@ -42,6 +42,7 @@ import EventCreation from "./pages/EventCreation";
 // MODULE 6
 import Analytics from "./pages/Analytics";
 import Settings from "./pages/Settings";
+import AuditLogs from "./pages/AuditLogs";
 
 // =========================
 // AUTH HELPERS
@@ -395,6 +396,20 @@ function App() {
   }
 />
         {/* MODULE 6 */}
+        <Route
+  path="/audit-logs"
+  element={
+    <RoleRoute
+      allowedRoles={[
+        "Faculty Coordinator",
+      ]}
+    >
+      <Layout>
+        <AuditLogs />
+      </Layout>
+    </RoleRoute>
+  }
+/>
         <Route
           path="/analytics"
           element={
