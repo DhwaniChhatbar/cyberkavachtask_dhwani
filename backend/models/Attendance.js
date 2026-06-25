@@ -11,6 +11,12 @@ const attendanceSchema = new mongoose.Schema(
       required: true,
     },
 
+    eventName: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+
     // ==========================
     // TEAM
     // ==========================
@@ -20,13 +26,25 @@ const attendanceSchema = new mongoose.Schema(
       default: null,
     },
 
+    teamName: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+
     // ==========================
-    // USER REFERENCE
+    // USER
     // ==========================
     member: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       default: null,
+    },
+
+    participantType: {
+      type: String,
+      enum: ["Individual", "Team"],
+      default: "Individual",
     },
 
     // ==========================
@@ -70,7 +88,7 @@ const attendanceSchema = new mongoose.Schema(
     },
 
     // ==========================
-    // CHECK-IN / CHECK-OUT
+    // CHECK-IN
     // ==========================
     checkInTime: {
       type: Date,
@@ -108,7 +126,7 @@ const attendanceSchema = new mongoose.Schema(
     },
 
     // ==========================
-    // MODULE 2 (CERTIFICATES)
+    // CERTIFICATE MODULE
     // ==========================
     certificateGenerated: {
       type: Boolean,
@@ -116,7 +134,7 @@ const attendanceSchema = new mongoose.Schema(
     },
 
     // ==========================
-    // MODULE 5 (POINTS)
+    // POINTS MODULE
     // ==========================
     pointsAwarded: {
       type: Boolean,
@@ -150,10 +168,15 @@ attendanceSchema.index({ member: 1 });
 // ==========================
 attendanceSchema.pre("save", function (next) {
   if (!this.team && !this.member) {
-    return next(new Error("Either team or member is required"));
+    return next(
+      new Error("Either team or member is required")
+    );
   }
 
   next();
 });
 
-export default mongoose.model("Attendance", attendanceSchema);
+export default mongoose.model(
+  "Attendance",
+  attendanceSchema
+);

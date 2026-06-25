@@ -171,11 +171,19 @@ const eventSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    attendanceEnabled: {
+      type: Boolean,
+      default: true,
+    },
 
     // ==========================
     // COMPLETION FLAG
     // ==========================
     isCompleted: {
+      type: Boolean,
+      default: false,
+    },
+    attendanceCompleted: {
       type: Boolean,
       default: false,
     },

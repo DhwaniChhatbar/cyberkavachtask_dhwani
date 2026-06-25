@@ -1,8 +1,6 @@
 import React from "react";
-import TeamQRCode from "./TeamQRCode";
 
 const TeamCard = ({ team }) => {
-  // 🔥 SAFE FALLBACK FOR LEADER (VERY IMPORTANT FIX)
   const leader =
     team.leaderDetails ||
     team.leader ||
@@ -14,7 +12,6 @@ const TeamCard = ({ team }) => {
 
   return (
     <div className="bg-gray-900 p-5 rounded-2xl border border-gray-800 shadow-lg">
-
       {/* HEADER */}
       <div className="flex justify-between items-start">
         <div>
@@ -44,17 +41,13 @@ const TeamCard = ({ team }) => {
         </span>
       </div>
 
-      {/* =========================
-          LEADER SECTION (FIXED)
-      ========================= */}
+      {/* TEAM LEADER */}
       <div className="mt-5 bg-gray-800 rounded-xl p-4">
-
         <h3 className="font-semibold text-white mb-3">
           👤 Team Leader
         </h3>
 
         <div className="space-y-1 text-sm text-gray-300">
-
           <p>
             <span className="text-white font-medium">Name:</span>{" "}
             {leader.fullName || leader.name || "N/A"}
@@ -79,15 +72,11 @@ const TeamCard = ({ team }) => {
             <span className="text-white font-medium">Institute:</span>{" "}
             {leader.institute || "N/A"}
           </p>
-
         </div>
       </div>
 
-      {/* =========================
-          MEMBERS SECTION (FIXED)
-      ========================= */}
+      {/* TEAM MEMBERS */}
       <div className="mt-5">
-
         <h3 className="font-semibold mb-3 text-white">
           Team Members
         </h3>
@@ -124,15 +113,6 @@ const TeamCard = ({ team }) => {
           </span>
         </div>
       )}
-
-      {/* QR CODE */}
-      <div className="mt-6">
-        <TeamQRCode
-          teamId={team.teamId}
-          teamName={team.teamName}
-        />
-      </div>
-
     </div>
   );
 };

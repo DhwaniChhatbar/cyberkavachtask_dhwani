@@ -44,9 +44,11 @@ const AttendanceReport = () => {
     try {
       setLoading(true);
 
-      const res = await api.get(`/attendance/event/${eventId}`);
+      const res = await api.get(
+        `/attendance/event/${eventId}`
+      );
 
-      setAttendance(res.data.attendance || res.data || []);
+      setAttendance(res.data.attendance || []);
     } catch (err) {
       console.error("Attendance fetch error:", err);
     } finally {
@@ -68,8 +70,11 @@ const AttendanceReport = () => {
             className="bg-gray-900 text-white px-4 py-3 rounded-xl"
           >
             {events.map((event) => (
-              <option key={event._id} value={event._id}>
-                {event.title || event.name}
+              <option
+                key={event._id}
+                value={event._id}
+              >
+                {event.name}
               </option>
             ))}
           </select>
@@ -101,33 +106,26 @@ const AttendanceReport = () => {
           {attendance.map((record) => (
             <MemberAttendanceCard
               key={record._id}
-              name={
-                record.attendeeName ||
-                record.team?.teamName ||
-                record.member?.name ||
-                "Unknown"
-              }
-              email={
-                record.attendeeEmail ||
-                record.member?.email ||
-                "N/A"
-              }
+              name={record.fullName || "Unknown"}
+              email={record.email || "N/A"}
               status={record.status}
               checkIn={
                 record.checkInTime
-                  ? new Date(record.checkInTime).toLocaleString()
+                  ? new Date(
+                      record.checkInTime
+                    ).toLocaleString()
                   : "-"
               }
               checkOut={
                 record.checkOutTime
-                  ? new Date(record.checkOutTime).toLocaleString()
+                  ? new Date(
+                      record.checkOutTime
+                    ).toLocaleString()
                   : "-"
               }
-              durationMinutes={record.durationMinutes || 0}
-              lateFlag={record.lateFlag}
-              earlyExitFlag={record.earlyExitFlag}
-              certificateGenerated={record.certificateGenerated}
-              pointsAwarded={record.pointsAwarded}
+              durationMinutes={
+                record.durationMinutes || 0
+              }
             />
           ))}
         </div>

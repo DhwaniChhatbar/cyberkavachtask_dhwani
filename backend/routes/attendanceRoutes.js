@@ -24,11 +24,14 @@ const allowRoles = (roles) => {
         message: "Access denied",
       });
     }
+
     next();
   };
 };
 
-// Allowed coordinator roles
+// ==========================
+// ROLES
+// ==========================
 const COORDINATORS = [
   "Faculty Coordinator",
   "Student Coordinator",
@@ -46,32 +49,38 @@ router.get("/test", (req, res) => {
 });
 
 // ==========================
-// MEMBER ATTENDANCE HISTORY (only logged-in user)
+// MY ATTENDANCE
 // ==========================
-router.get("/my", protect, getMyAttendance);
+router.get(
+  "/my",
+  protect,
+  getMyAttendance
+);
 
 // ==========================
-// CHECK-IN (Students / Members only)
+// CHECK IN
+// Coordinators perform attendance
 // ==========================
 router.post(
   "/checkin",
   protect,
-  allowRoles(["Student", "Member"]),
+  allowRoles(COORDINATORS),
   checkIn
 );
 
 // ==========================
-// CHECK-OUT (Students / Members only)
+// CHECK OUT
+// Coordinators perform attendance
 // ==========================
 router.post(
   "/checkout",
   protect,
-  allowRoles(["Student", "Member"]),
+  allowRoles(COORDINATORS),
   checkOut
 );
 
 // ==========================
-// COMPLETE ATTENDANCE (Coordinators only)
+// COMPLETE ATTENDANCE
 // ==========================
 router.put(
   "/complete/:eventId",
@@ -81,7 +90,7 @@ router.put(
 );
 
 // ==========================
-// DASHBOARD STATS (Coordinators only)
+// DASHBOARD STATS
 // ==========================
 router.get(
   "/dashboard/:eventId",
@@ -91,7 +100,7 @@ router.get(
 );
 
 // ==========================
-// DOWNLOAD ATTENDANCE REPORT (Coordinators only)
+// DOWNLOAD REPORT
 // ==========================
 router.get(
   "/report/:eventId",
@@ -101,7 +110,7 @@ router.get(
 );
 
 // ==========================
-// EVENT ATTENDANCE LIST (Coordinators only)
+// EVENT ATTENDANCE LIST
 // ==========================
 router.get(
   "/event/:eventId",

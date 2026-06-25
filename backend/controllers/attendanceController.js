@@ -265,7 +265,10 @@ export const getAttendanceByEvent = async (req, res) => {
     })
       .populate("event", "name date")
       .populate("team", "teamName teamId members")
-      .populate("member", "name email")
+      .populate(
+        "member",
+        "name email collegeId department institute"
+      )
       .sort({ checkInTime: -1 });
 
     const formattedAttendance = attendance.map((record) => ({
@@ -540,7 +543,12 @@ export const completeAttendance = async (req, res) => {
         console.error("REWARD ERROR:", err.message);
       }
     }
+    const event = await Event.findById(eventId);
 
+    if (event) {
+      event.attendanceCompleted = true;
+      await event.save();
+    }
     io?.to(eventId).emit("attendance:completed", {
       eventId,
       totalCount: attendanceList.length,

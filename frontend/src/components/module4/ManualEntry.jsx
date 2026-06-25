@@ -1,17 +1,16 @@
 import React, { useState } from "react";
 import api from "../../utils/api";
 
-const ManualEntry = ({ eventId }) => {
-  const [id, setId] = useState("");
+const ManualEntry = ({ eventId, refreshAttendance }) => {
+  const [memberId, setMemberId] = useState("");
   const [mode, setMode] = useState("checkin");
-  const [type, setType] = useState("member");
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!id.trim()) {
-      alert("Please enter Member ID or Team ID");
+    if (!memberId.trim()) {
+      alert("Please enter Member ID");
       return;
     }
 
@@ -20,25 +19,33 @@ const ManualEntry = ({ eventId }) => {
 
       const payload = {
         eventId,
+        memberId: memberId.trim(),
       };
 
-      if (type === "member") {
-        payload.memberId = id.trim();
-      } else {
-        payload.teamId = id.trim();
-      }
+      let res;
 
       if (mode === "checkin") {
-        const res = await api.post("/attendance/checkin", payload);
-
-        alert(res.data.message || "Checked in successfully");
+        res = await api.post(
+          "/attendance/checkin",
+          payload
+        );
       } else {
-        const res = await api.post("/attendance/checkout", payload);
-
-        alert(res.data.message || "Checked out successfully");
+        res = await api.post(
+          "/attendance/checkout",
+          payload
+        );
       }
 
-      setId("");
+      alert(
+        res.data.message ||
+          "Attendance updated successfully"
+      );
+
+      setMemberId("");
+
+      if (refreshAttendance) {
+        refreshAttendance();
+      }
     } catch (err) {
       console.error(err);
 
@@ -52,49 +59,43 @@ const ManualEntry = ({ eventId }) => {
   };
 
   return (
-    <div className="bg-gray-900 rounded-xl p-6 shadow-lg">
+    <div className="bg-gray-900 rounded-2xl p-6 shadow-lg">
       <h2 className="text-2xl font-bold text-white mb-6">
-        Attendance Entry
+        Manual Attendance
       </h2>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Check In / Check Out */}
+      <form
+        onSubmit={handleSubmit}
+        className="space-y-4"
+      >
         <select
           value={mode}
           onChange={(e) => setMode(e.target.value)}
-          className="w-full p-3 rounded-lg bg-gray-800 text-white"
+          className="w-full bg-gray-800 text-white p-3 rounded-lg"
         >
-          <option value="checkin">Check In</option>
-          <option value="checkout">Check Out</option>
+          <option value="checkin">
+            Check In
+          </option>
+
+          <option value="checkout">
+            Check Out
+          </option>
         </select>
 
-        {/* Member / Team */}
-        <select
-          value={type}
-          onChange={(e) => setType(e.target.value)}
-          className="w-full p-3 rounded-lg bg-gray-800 text-white"
-        >
-          <option value="member">Member</option>
-          <option value="team">Team</option>
-        </select>
-
-        {/* ID Input */}
         <input
           type="text"
-          value={id}
-          onChange={(e) => setId(e.target.value)}
-          placeholder={
-            type === "member"
-              ? "Enter Member ID"
-              : "Enter Team ID"
+          value={memberId}
+          onChange={(e) =>
+            setMemberId(e.target.value)
           }
-          className="w-full p-3 rounded-lg bg-gray-800 text-white outline-none"
+          placeholder="Enter Member ID"
+          className="w-full bg-gray-800 text-white p-3 rounded-lg outline-none"
         />
 
         <button
           type="submit"
-          disabled={loading}
-          className="w-full bg-blue-600 hover:bg-blue-700 py-3 rounded-lg text-white font-semibold"
+          disabled={loading || !eventId}
+          className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-700 text-white font-semibold py-3 rounded-lg"
         >
           {loading
             ? "Processing..."

@@ -1,8 +1,9 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import AttendanceStats from "../components/module4/AttendanceStats";
 import AttendanceTable from "../components/module4/AttendanceTable";
 import socket from "../socket";
 import api from "../utils/api";
+import ManualEntry from "../components/module4/ManualEntry";
 
 const AttendanceDashboard = () => {
   const user = JSON.parse(localStorage.getItem("user") || "null");
@@ -18,7 +19,6 @@ const AttendanceDashboard = () => {
   const [stats, setStats] = useState({
     checkedIn: 0,
     checkedOut: 0,
-    pending: 0,
     total: 0,
   });
 
@@ -43,7 +43,7 @@ const AttendanceDashboard = () => {
         setEventId(eventList[0]._id);
       }
     } catch (err) {
-      console.error("Events error:", err);
+      console.error(err);
     }
   };
 
@@ -54,16 +54,17 @@ const AttendanceDashboard = () => {
     if (!eventId) return;
 
     try {
-      const res = await api.get(`/attendance/dashboard/${eventId}`);
+      const res = await api.get(
+        `/attendance/dashboard/${eventId}`
+      );
 
       setStats({
         checkedIn: res.data.checkedIn || 0,
         checkedOut: res.data.checkedOut || 0,
-        pending: res.data.pending || 0,
         total: res.data.total || 0,
       });
     } catch (err) {
-      console.error("Stats error:", err);
+      console.error(err);
     }
   };
 
@@ -74,42 +75,49 @@ const AttendanceDashboard = () => {
     if (!eventId) return;
 
     try {
-      const res = await api.get(`/attendance/event/${eventId}`);
+      const res = await api.get(
+        `/attendance/event/${eventId}`
+      );
 
-      const records = res.data.attendance || res.data || [];
+      const records = res.data.attendance || [];
 
       const formatted = records.map((item) => ({
         id: item._id,
-        teamId: item.team?._id,
-        memberId: item.member?._id,
+        teamId: item.team?._id || null,
+        memberId: item.member?._id || null,
+
         name:
-          item.team?.teamName ||
+          item.fullName ||
           item.member?.name ||
-          item.attendeeName ||
+          item.team?.teamName ||
           "Unknown",
+
         email:
+          item.email ||
           item.member?.email ||
-          item.attendeeEmail ||
           "-",
+
         checkIn: item.checkInTime
           ? new Date(item.checkInTime).toLocaleString()
           : "-",
+
         checkOut: item.checkOutTime
           ? new Date(item.checkOutTime).toLocaleString()
           : "-",
+
         status: item.status,
       }));
 
       setAttendanceData(formatted);
     } catch (err) {
-      console.error("Attendance error:", err);
+      console.error(err);
     } finally {
       setLoading(false);
     }
   };
 
   // ==========================
-  // CHECK-IN
+  // CHECK IN
   // ==========================
   const handleCheckIn = async (row) => {
     try {
@@ -122,12 +130,15 @@ const AttendanceDashboard = () => {
       fetchStats();
       fetchAttendance();
     } catch (err) {
-      console.error("Check-in error:", err);
+      alert(
+        err.response?.data?.message ||
+        "Check-in failed"
+      );
     }
   };
 
   // ==========================
-  // CHECK-OUT
+  // CHECK OUT
   // ==========================
   const handleCheckOut = async (row) => {
     try {
@@ -140,12 +151,15 @@ const AttendanceDashboard = () => {
       fetchStats();
       fetchAttendance();
     } catch (err) {
-      console.error("Check-out error:", err);
+      alert(
+        err.response?.data?.message ||
+        "Check-out failed"
+      );
     }
   };
 
   // ==========================
-  // INITIAL LOAD
+  // LOAD EVENTS
   // ==========================
   useEffect(() => {
     fetchEvents();
@@ -179,24 +193,13 @@ const AttendanceDashboard = () => {
   }, [eventId]);
 
   // ==========================
-  // ATTENDANCE RATE
-  // ==========================
-  const attendanceRate = useMemo(() => {
-    if (!stats.total) return 0;
-
-    return Math.round(
-      ((stats.checkedIn + stats.checkedOut) / stats.total) * 100
-    );
-  }, [stats]);
-
-  // ==========================
   // SEARCH
   // ==========================
-  const filteredData = useMemo(() => {
-    return attendanceData.filter((item) =>
-      item.name.toLowerCase().includes(search.toLowerCase())
-    );
-  }, [attendanceData, search]);
+  const filteredData = attendanceData.filter((item) =>
+    item.name
+      .toLowerCase()
+      .includes(search.toLowerCase())
+  );
 
   return (
     <div className="min-h-screen bg-gray-950 p-6">
@@ -208,12 +211,17 @@ const AttendanceDashboard = () => {
         <div className="flex gap-4 flex-wrap">
           <select
             value={eventId}
-            onChange={(e) => setEventId(e.target.value)}
+            onChange={(e) =>
+              setEventId(e.target.value)
+            }
             className="bg-gray-900 text-white px-4 py-3 rounded-xl"
           >
             {events.map((event) => (
-              <option key={event._id} value={event._id}>
-                {event.title || event.name}
+              <option
+                key={event._id}
+                value={event._id}
+              >
+                {event.name}
               </option>
             ))}
           </select>
@@ -222,35 +230,38 @@ const AttendanceDashboard = () => {
             <button
               onClick={() =>
                 window.open(
-                  `${import.meta.env.VITE_API_URL}/attendance/report/${eventId}`,
+                  `${import.meta.env.VITE_API_URL
+                  }/attendance/report/${eventId}`,
                   "_blank"
                 )
               }
               className="bg-green-600 hover:bg-green-700 px-5 py-3 rounded-xl text-white font-semibold"
             >
-              📥 Download CSV
+              Download CSV
             </button>
           )}
         </div>
       </div>
 
       <AttendanceStats {...stats} />
-
-      <div className="bg-gray-900 rounded-2xl p-6 mt-6">
-        <h2 className="text-xl font-semibold text-white mb-3">
-          Attendance Rate
-        </h2>
-
-        <div className="text-5xl font-bold text-green-400">
-          {attendanceRate}%
+      {canManageAttendance && eventId && (
+        <div className="mt-6">
+          <ManualEntry
+            eventId={eventId}
+            refreshAttendance={() => {
+              fetchStats();
+              fetchAttendance();
+            }}
+          />
         </div>
-      </div>
-
+      )}
       <div className="mt-6">
         <input
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="🔍 Search team/member..."
+          onChange={(e) =>
+            setSearch(e.target.value)
+          }
+          placeholder="Search participant..."
           className="w-full p-4 rounded-xl bg-gray-900 text-white outline-none"
         />
       </div>
@@ -271,9 +282,9 @@ const AttendanceDashboard = () => {
                 </h2>
 
                 <div className="space-y-4">
-                  {filteredData.map((row, index) => (
+                  {filteredData.map((row) => (
                     <div
-                      key={index}
+                      key={row.id}
                       className="flex flex-col md:flex-row md:items-center md:justify-between bg-gray-800 rounded-xl p-4"
                     >
                       <div>
@@ -288,14 +299,18 @@ const AttendanceDashboard = () => {
 
                       <div className="flex gap-3 mt-3 md:mt-0">
                         <button
-                          onClick={() => handleCheckIn(row)}
+                          onClick={() =>
+                            handleCheckIn(row)
+                          }
                           className="bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg text-white"
                         >
                           Check In
                         </button>
 
                         <button
-                          onClick={() => handleCheckOut(row)}
+                          onClick={() =>
+                            handleCheckOut(row)
+                          }
                           className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg text-white"
                         >
                           Check Out
