@@ -26,7 +26,6 @@ const Analytics = () => {
   const role = user?.role;
 
   useEffect(() => {
-    // Faculty Coordinator only
     if (!user || role !== "Faculty Coordinator") {
       window.location.href = "/dashboard";
       return;
@@ -38,7 +37,47 @@ const Analytics = () => {
   const fetchAnalytics = async () => {
     try {
       const { data } = await api.get("/analytics");
-      setStats(data);
+
+      const roleStats = data.users?.roleStats || [];
+      const requestStats = data.requests?.requestStats || [];
+
+      const getRoleCount = (roleName) =>
+        roleStats.find((r) => r._id === roleName)?.count || 0;
+
+      const getRequestCount = (status) =>
+        requestStats.find((r) => r._id === status)?.count || 0;
+
+      setStats({
+        totalUsers: data.users?.totalUsers || 0,
+
+        facultyCount: getRoleCount("Faculty Coordinator"),
+
+        studentCoordinatorCount: getRoleCount(
+          "Student Coordinator"
+        ),
+
+        memberCount: getRoleCount("Member"),
+
+        totalEvents: data.events?.totalEvents || 0,
+
+        totalRequests: data.requests?.totalRequests || 0,
+
+        pendingRequests: getRequestCount("Pending"),
+
+        underReviewRequests: getRequestCount(
+          "Under Review"
+        ),
+
+        approvedRequests: getRequestCount("Approved"),
+
+        rejectedRequests: getRequestCount("Rejected"),
+
+        totalCertificates:
+          data.certificates?.totalCertificates || 0,
+
+        totalAttendanceRecords:
+          data.attendance?.totalAttendanceRecords || 0,
+      });
     } catch (error) {
       console.error("Analytics fetch error:", error);
     } finally {
@@ -51,7 +90,8 @@ const Analytics = () => {
 
     window.open(
       `${
-        import.meta.env.VITE_API_URL || "http://localhost:5000/api"
+        import.meta.env.VITE_API_URL ||
+        "http://localhost:5000/api"
       }/analytics/export/pdf?token=${token}`,
       "_blank"
     );
@@ -62,7 +102,8 @@ const Analytics = () => {
 
     window.open(
       `${
-        import.meta.env.VITE_API_URL || "http://localhost:5000/api"
+        import.meta.env.VITE_API_URL ||
+        "http://localhost:5000/api"
       }/analytics/export/csv?token=${token}`,
       "_blank"
     );
@@ -108,7 +149,6 @@ const Analytics = () => {
         </div>
       </div>
 
-      {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
         <StatsCard title="Total Users" value={stats.totalUsers} />
         <StatsCard title="Faculty Coordinators" value={stats.facultyCount} />
@@ -142,7 +182,6 @@ const Analytics = () => {
         />
       </div>
 
-      {/* Charts */}
       <div className="grid lg:grid-cols-2 gap-8 mt-10">
         <BarChart stats={stats} />
         <LineChart stats={stats} />
