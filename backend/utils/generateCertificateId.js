@@ -16,7 +16,7 @@ export const generateCertificateId = async () => {
       certificateId,
     });
 
-    exists = !!existingCertificate;
+    exists = Boolean(existingCertificate);
   }
 
   return certificateId;
