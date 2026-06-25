@@ -1,7 +1,7 @@
 import Request from "../models/Request.js";
 import Notification from "../models/Notification.js";
 import { io } from "../server.js";
-
+import { logAudit } from "../utils/auditLogger.js";
 /**
  * ==========================
  * CREATE REQUEST
@@ -26,18 +26,9 @@ export const createRequest = async (req, res) => {
       createdBy: req.user.id,
 
       approvalChain: [
-        {
-          role: "Tech Coordinator",
-          status: "Pending",
-        },
-        {
-          role: "Student Coordinator",
-          status: "Pending",
-        },
-        {
-          role: "Faculty Coordinator",
-          status: "Pending",
-        },
+        { role: "Tech Coordinator", status: "Pending" },
+        { role: "Student Coordinator", status: "Pending" },
+        { role: "Faculty Coordinator", status: "Pending" },
       ],
 
       currentStage: 0,
@@ -60,6 +51,14 @@ export const createRequest = async (req, res) => {
 
     io.emit("requestCreated", request);
 
+    // ✅ AUDIT LOG ADDED
+    await logAudit({
+      user: req.user.id,
+      action: "CREATE_REQUEST",
+      module: "REQUEST",
+      details: title,
+    });
+
     return res.status(201).json({
       success: true,
       request,
@@ -72,7 +71,6 @@ export const createRequest = async (req, res) => {
     });
   }
 };
-
 /**
  * ==========================
  * GET ALL REQUESTS
@@ -93,11 +91,11 @@ export const getAllRequests = async (req, res) => {
 
     const requests = canViewAll
       ? await Request.find()
-          .populate("createdBy", "name email role")
-          .sort({ createdAt: -1 })
+        .populate("createdBy", "name email role")
+        .sort({ createdAt: -1 })
       : await Request.find({ createdBy: req.user.id })
-          .populate("createdBy", "name email role")
-          .sort({ createdAt: -1 });
+        .populate("createdBy", "name email role")
+        .sort({ createdAt: -1 });
 
     return res.json(requests);
   } catch (err) {
@@ -252,7 +250,13 @@ export const approveRequest = async (req, res) => {
     }
 
     await request.save();
-
+    // after await request.save();
+    await logAudit({
+      user: req.user.id,
+      action: "APPROVE_REQUEST",
+      module: "REQUEST",
+      details: req.params.id,
+    });
     await Notification.create({
       recipient: request.createdBy,
       message: `${role} approved your request`,
@@ -321,7 +325,13 @@ export const rejectRequest = async (req, res) => {
     });
 
     await request.save();
-
+    // after await request.save();
+    await logAudit({
+      user: req.user.id,
+      action: "REJECT_REQUEST",
+      module: "REQUEST",
+      details: req.params.id,
+    });
     await Notification.create({
       recipient: request.createdBy,
       message: `${role} rejected your request`,
