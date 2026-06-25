@@ -2,15 +2,15 @@ import React, { useState } from "react";
 import api from "../../utils/api";
 
 const ManualEntry = ({ eventId, refreshAttendance }) => {
-  const [memberId, setMemberId] = useState("");
+  const [collegeId, setCollegeId] = useState("");
   const [mode, setMode] = useState("checkin");
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!memberId.trim()) {
-      alert("Please enter Member ID");
+    if (!collegeId.trim()) {
+      alert("Please enter College ID");
       return;
     }
 
@@ -19,7 +19,7 @@ const ManualEntry = ({ eventId, refreshAttendance }) => {
 
       const payload = {
         eventId,
-        memberId: memberId.trim(),
+        collegeId: collegeId.trim(),
       };
 
       let res;
@@ -41,7 +41,7 @@ const ManualEntry = ({ eventId, refreshAttendance }) => {
           "Attendance updated successfully"
       );
 
-      setMemberId("");
+      setCollegeId("");
 
       if (refreshAttendance) {
         refreshAttendance();
@@ -84,11 +84,11 @@ const ManualEntry = ({ eventId, refreshAttendance }) => {
 
         <input
           type="text"
-          value={memberId}
+          value={collegeId}
           onChange={(e) =>
-            setMemberId(e.target.value)
+            setCollegeId(e.target.value)
           }
-          placeholder="Enter Member ID"
+          placeholder="Enter College ID"
           className="w-full bg-gray-800 text-white p-3 rounded-lg outline-none"
         />
 

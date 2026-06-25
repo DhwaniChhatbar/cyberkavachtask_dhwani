@@ -16,7 +16,22 @@ export const checkIn = async (req, res) => {
   try {
     const { eventId, teamId, memberId } = req.body;
 
-    const userId = memberId || req.user?.id;
+    let userId = req.user?.id;
+
+    if (memberId) {
+      const user = await User.findOne({
+        collegeId: memberId.trim(),
+      });
+
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: "Member not found",
+        });
+      }
+
+      userId = user._id;
+    }
     if (
       ![
         "Faculty Coordinator",
@@ -137,7 +152,22 @@ export const checkOut = async (req, res) => {
   try {
     const { eventId, teamId, memberId } = req.body;
 
-    const userId = memberId || req.user?.id;
+    let userId = req.user?.id;
+
+    if (memberId) {
+      const user = await User.findOne({
+        collegeId: memberId.trim(),
+      });
+
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: "Member not found",
+        });
+      }
+
+      userId = user._id;
+    }
     if (
       ![
         "Faculty Coordinator",
