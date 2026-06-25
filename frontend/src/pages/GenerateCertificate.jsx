@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import api from "../utils/api";
-import CertificateCard from "../components/module4/CertificateCard";
+import CertificateCard from "../components/module2/CertificateCard";
 const GenerateCertificate = () => {
   const [events, setEvents] = useState([]);
   const [users, setUsers] = useState([]);
