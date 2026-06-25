@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import api from "../utils/api";
-
+import CertificateCard from "../components/module4/CertificateCard";
 const GenerateCertificate = () => {
   const [events, setEvents] = useState([]);
   const [users, setUsers] = useState([]);
@@ -153,44 +153,13 @@ const GenerateCertificate = () => {
           </button>
         </form>
 
-        {generatedCertificate && (
-          <div className="mt-8 bg-gray-800 rounded-xl p-6">
-            <h2 className="text-2xl font-bold text-green-400 mb-4">
-              Certificate Generated ✅
-            </h2>
-
-            <p>
-              <strong>Certificate ID:</strong>{" "}
-              {generatedCertificate.certificateId}
-            </p>
-
-            <p>
-              <strong>Event:</strong>{" "}
-              {generatedCertificate.eventName}
-            </p>
-
-            <p>
-              <strong>User:</strong>{" "}
-              {generatedCertificate.user?.name ||
-                generatedCertificate.displayName ||
-                "N/A"}
-            </p>
-
-            <p>
-              <strong>Type:</strong>{" "}
-              {generatedCertificate.type}
-            </p>
-
-            <p>
-              <strong>Issued At:</strong>{" "}
-              {generatedCertificate.createdAt
-                ? new Date(
-                    generatedCertificate.createdAt
-                  ).toLocaleString()
-                : "N/A"}
-            </p>
-          </div>
-        )}
+       {generatedCertificate && (
+  <div className="mt-8">
+    <CertificateCard
+      certificate={generatedCertificate}
+    />
+  </div>
+)}
       </div>
     </div>
   );
