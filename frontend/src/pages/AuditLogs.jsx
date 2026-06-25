@@ -12,11 +12,18 @@ const AuditLogs = () => {
   const fetchLogs = async () => {
     try {
       setLoading(true);
+
       const res = await api.get("/audit-logs");
-      setLogs(res.data || []);
-      setFilteredLogs(res.data || []);
+
+      // ✅ FIX: supports both API response formats
+      const data = res.data?.logs || res.data || [];
+
+      setLogs(data);
+      setFilteredLogs(data);
     } catch (err) {
       console.error("Failed to fetch audit logs:", err);
+      setLogs([]);
+      setFilteredLogs([]);
     } finally {
       setLoading(false);
     }
@@ -37,10 +44,10 @@ const AuditLogs = () => {
 
     const filtered = logs.filter((log) => {
       return (
-        log.action?.toLowerCase().includes(lower) ||
-        log.user?.name?.toLowerCase().includes(lower) ||
-        log.user?.email?.toLowerCase().includes(lower) ||
-        log.module?.toLowerCase().includes(lower)
+        log?.action?.toLowerCase().includes(lower) ||
+        log?.user?.name?.toLowerCase().includes(lower) ||
+        log?.user?.email?.toLowerCase().includes(lower) ||
+        log?.module?.toLowerCase().includes(lower)
       );
     });
 
@@ -104,28 +111,30 @@ const AuditLogs = () => {
               filteredLogs.map((log) => (
                 <tr key={log._id} className="border-t">
                   <td className="p-3 text-sm">
-                    {new Date(log.createdAt).toLocaleString()}
+                    {log.createdAt
+                      ? new Date(log.createdAt).toLocaleString()
+                      : "-"}
                   </td>
 
                   <td className="p-3">
                     <div className="font-medium">
-                      {log.user?.name || "System"}
+                      {log?.user?.name || "System"}
                     </div>
                     <div className="text-xs text-gray-500">
-                      {log.user?.email || "-"}
+                      {log?.user?.email || "-"}
                     </div>
                   </td>
 
                   <td className="p-3">
                     <span className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded">
-                      {log.action}
+                      {log?.action || "-"}
                     </span>
                   </td>
 
-                  <td className="p-3">{log.module || "-"}</td>
+                  <td className="p-3">{log?.module || "-"}</td>
 
                   <td className="p-3 text-sm text-gray-600">
-                    {log.details || "-"}
+                    {log?.details || "-"}
                   </td>
                 </tr>
               ))
