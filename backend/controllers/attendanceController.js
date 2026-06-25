@@ -3,35 +3,18 @@ import Event from "../models/Event.js";
 import Points from "../models/Points.js";
 import UserBadge from "../models/UserBadge.js";
 import Notification from "../models/Notification.js";
-
+import User from "../models/User.js";
 import { io } from "../server.js";
 import { generateAttendanceCSV } from "../utils/attendanceReport.js";
 import { evaluateBadgesForUser } from "../utils/badgeEngine.js";
-
-// ======================
-// CHECK IN
-// ======================
 
 export const checkIn = async (req, res) => {
   try {
     const { eventId, teamId, memberId } = req.body;
 
-    let userId = req.user?.id;
-
-    if (memberId) {
-      const user = await User.findOne({
-        collegeId: memberId.trim(),
-      });
-
-      if (!user) {
-        return res.status(404).json({
-          success: false,
-          message: "Member not found",
-        });
-      }
-
-      userId = user._id;
-    }
+    // ======================
+    // AUTH CHECK
+    // ======================
     if (
       ![
         "Faculty Coordinator",
@@ -44,7 +27,8 @@ export const checkIn = async (req, res) => {
         message: "Unauthorized",
       });
     }
-    if (!eventId || (!teamId && !userId)) {
+
+    if (!eventId || (!teamId && !memberId)) {
       return res.status(400).json({
         success: false,
         message: "Event ID and Team ID or Member ID is required",
@@ -68,7 +52,7 @@ export const checkIn = async (req, res) => {
     }
 
     // ======================
-    // TEAM ATTENDANCE
+    // TEAM CHECK-IN
     // ======================
     if (teamId) {
       const existingAttendance = await Attendance.findOne({
@@ -89,6 +73,15 @@ export const checkIn = async (req, res) => {
         member: null,
         checkInTime: new Date(),
         status: "checked-in",
+
+        // ✅ REQUIRED FIX (schema fix)
+        participantDetails: {
+          fullName: "Team",
+          email: "team@system",
+          collegeId: teamId,
+          department: "TEAM",
+          institute: "TEAM",
+        },
       });
 
       io?.to(eventId).emit("attendance:checkin", {
@@ -104,11 +97,22 @@ export const checkIn = async (req, res) => {
     }
 
     // ======================
-    // MEMBER ATTENDANCE
+    // MEMBER CHECK-IN (collegeId based)
     // ======================
+    const user = await User.findOne({
+      collegeId: memberId.trim(),
+    });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "Member not found",
+      });
+    }
+
     const existingAttendance = await Attendance.findOne({
       event: eventId,
-      member: userId,
+      member: user._id,
     });
 
     if (existingAttendance) {
@@ -121,9 +125,18 @@ export const checkIn = async (req, res) => {
     const attendance = await Attendance.create({
       event: eventId,
       team: null,
-      member: userId,
+      member: user._id,
       checkInTime: new Date(),
       status: "checked-in",
+
+      // ✅ REQUIRED FIX (THIS WAS CAUSING YOUR ERROR)
+      participantDetails: {
+        fullName: user.name,
+        email: user.email,
+        collegeId: user.collegeId,
+        department: user.department,
+        institute: user.institute,
+      },
     });
 
     io?.to(eventId).emit("attendance:checkin", {
@@ -144,30 +157,13 @@ export const checkIn = async (req, res) => {
     });
   }
 };
-
-// ======================
-// CHECK OUT
-// ======================
 export const checkOut = async (req, res) => {
   try {
     const { eventId, teamId, memberId } = req.body;
 
-    let userId = req.user?.id;
-
-    if (memberId) {
-      const user = await User.findOne({
-        collegeId: memberId.trim(),
-      });
-
-      if (!user) {
-        return res.status(404).json({
-          success: false,
-          message: "Member not found",
-        });
-      }
-
-      userId = user._id;
-    }
+    // ======================
+    // AUTH CHECK
+    // ======================
     if (
       ![
         "Faculty Coordinator",
@@ -180,12 +176,15 @@ export const checkOut = async (req, res) => {
         message: "Unauthorized",
       });
     }
-    if (!eventId || (!teamId && !userId)) {
+
+    if (!eventId || (!teamId && !memberId)) {
       return res.status(400).json({
         success: false,
         message: "Event ID and Team ID or Member ID is required",
       });
     }
+
+    const now = new Date();
 
     // ======================
     // TEAM CHECK OUT
@@ -210,14 +209,24 @@ export const checkOut = async (req, res) => {
         });
       }
 
-      attendance.checkOutTime = new Date();
+      attendance.checkOutTime = now;
 
-      const duration = Math.floor(
+      attendance.durationMinutes = Math.floor(
         (attendance.checkOutTime - attendance.checkInTime) / (1000 * 60)
-      ) || 0;
+      );
 
-      attendance.durationMinutes = duration;
       attendance.status = "checked-out";
+
+      // (optional but safe for schema consistency)
+      if (!attendance.participantDetails) {
+        attendance.participantDetails = {
+          fullName: "Team",
+          email: "team@system",
+          collegeId: teamId,
+          department: "TEAM",
+          institute: "TEAM",
+        };
+      }
 
       await attendance.save();
 
@@ -234,11 +243,22 @@ export const checkOut = async (req, res) => {
     }
 
     // ======================
-    // MEMBER CHECK OUT
+    // MEMBER CHECK OUT (collegeId based)
     // ======================
+    const user = await User.findOne({
+      collegeId: memberId.trim(),
+    });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "Member not found",
+      });
+    }
+
     const attendance = await Attendance.findOne({
       event: eventId,
-      member: userId,
+      member: user._id,
     });
 
     if (!attendance) {
@@ -255,14 +275,24 @@ export const checkOut = async (req, res) => {
       });
     }
 
-    attendance.checkOutTime = new Date();
+    attendance.checkOutTime = now;
 
-    const duration = Math.floor(
+    attendance.durationMinutes = Math.floor(
       (attendance.checkOutTime - attendance.checkInTime) / (1000 * 60)
-    ) || 0;
+    );
 
-    attendance.durationMinutes = duration;
     attendance.status = "checked-out";
+
+    // (safe fix for schema consistency)
+    if (!attendance.participantDetails) {
+      attendance.participantDetails = {
+        fullName: user.name,
+        email: user.email,
+        collegeId: user.collegeId,
+        department: user.department,
+        institute: user.institute,
+      };
+    }
 
     await attendance.save();
 
@@ -284,10 +314,6 @@ export const checkOut = async (req, res) => {
     });
   }
 };
-
-// ======================
-// GET ATTENDANCE LIST
-// ======================
 export const getAttendanceByEvent = async (req, res) => {
   try {
     const attendance = await Attendance.find({
@@ -295,23 +321,41 @@ export const getAttendanceByEvent = async (req, res) => {
     })
       .populate("event", "name date")
       .populate("team", "teamName teamId members")
-      .populate(
-        "member",
-        "name email collegeId department institute"
-      )
+      .populate("member", "name email collegeId department institute")
       .sort({ checkInTime: -1 });
 
     const formattedAttendance = attendance.map((record) => ({
-      _id: record._id,
+      id: record._id,
 
-      // ✅ FIX FOR FRONTEND N/A ISSUE
-      fullName: record.member?.name ?? "N/A",
-      email: record.member?.email ?? "N/A",
-      collegeId: record.member?.collegeId ?? "N/A",
-      department: record.member?.department ?? "N/A",
-      institute: record.member?.institute ?? "N/A",
+      // ======================
+      // UNIFIED PARTICIPANT DATA
+      // ======================
+      fullName:
+        record.participantDetails?.fullName ||
+        record.member?.name ||
+        "N/A",
 
-      team: record.team?.teamName ?? record.team ?? "N/A",
+      email:
+        record.participantDetails?.email ||
+        record.member?.email ||
+        "N/A",
+
+      collegeId:
+        record.participantDetails?.collegeId ||
+        record.member?.collegeId ||
+        "N/A",
+
+      department:
+        record.participantDetails?.department ||
+        record.member?.department ||
+        "N/A",
+
+      institute:
+        record.participantDetails?.institute ||
+        record.member?.institute ||
+        "N/A",
+
+      team: record.team?.teamName || "N/A",
 
       event: record.event,
 
@@ -320,6 +364,7 @@ export const getAttendanceByEvent = async (req, res) => {
       durationMinutes: record.durationMinutes,
 
       status: record.status,
+
       lateFlag: record.lateFlag,
       earlyExitFlag: record.earlyExitFlag,
       certificateGenerated: record.certificateGenerated,
@@ -339,117 +384,60 @@ export const getAttendanceByEvent = async (req, res) => {
     });
   }
 };
-
-// ======================
-// DASHBOARD STATS
-// ======================
-export const getDashboardStats = async (req, res) => {
-  try {
-    const { eventId } = req.params;
-
-    const total = await Attendance.countDocuments({ event: eventId });
-    const event = await Event.findById(eventId);
-
-    const registrationCount = event?.registrations?.length || 0;
-
-    const checkedIn = await Attendance.countDocuments({
-      event: eventId,
-      status: "checked-in",
-    });
-
-    const checkedOut = await Attendance.countDocuments({
-      event: eventId,
-      status: "checked-out",
-    });
-
-    const completed = await Attendance.countDocuments({
-      event: eventId,
-      status: "completed",
-    });
-
-    const late = await Attendance.countDocuments({
-      event: eventId,
-      lateFlag: true,
-    });
-
-    const earlyExit = await Attendance.countDocuments({
-      event: eventId,
-      earlyExitFlag: true,
-    });
-
-    const certificateGenerated = await Attendance.countDocuments({
-      event: eventId,
-      certificateGenerated: true,
-    });
-
-    const pointsAwarded = await Attendance.countDocuments({
-      event: eventId,
-      pointsAwarded: true,
-    });
-
-    const avg = await Attendance.aggregate([
-      { $match: { event: eventId } },
-      {
-        $group: {
-          _id: null,
-          avgDuration: { $avg: "$durationMinutes" },
-        },
-      },
-    ]);
-
-    return res.status(200).json({
-      success: true,
-      total,
-      registrationCount, // ✅ ADD THIS
-      checkedIn,
-      checkedOut,
-      completed,
-      late,
-      earlyExit,
-      certificateGenerated,
-      pointsAwarded,
-      averageDuration: avg[0]?.avgDuration
-        ? Math.round(avg[0].avgDuration)
-        : 0,
-    });
-  } catch (error) {
-    console.error("DASHBOARD STATS ERROR:", error);
-    return res.status(500).json({
-      success: false,
-      message: error.message,
-    });
-  }
-};
-
-// ======================
-// DOWNLOAD CSV REPORT
-// ======================
 export const downloadAttendanceReport = async (req, res) => {
   try {
     const attendance = await Attendance.find({
       event: req.params.eventId,
     })
       .populate("event", "name")
-      .populate("team", "teamName teamId")
-      .populate("member", "name email")
+      .populate("team", "teamName teamId members")
+      .populate("member", "name email collegeId department institute")
       .sort({ checkInTime: 1 });
 
     const data = attendance.map((record) => ({
       Event: record.event?.name || "Unknown",
       Type: record.team ? "Team" : "Individual",
+
+      // ======================
+      // UNIFIED IDENTITY SYSTEM
+      // ======================
       Name:
-        record.team?.teamName ||
+        record.participantDetails?.fullName ||
         record.member?.name ||
+        record.team?.teamName ||
         "Unknown",
-      Email: record.member?.email || "",
+
+      Email:
+        record.participantDetails?.email ||
+        record.member?.email ||
+        "",
+
+      CollegeId:
+        record.participantDetails?.collegeId ||
+        record.member?.collegeId ||
+        "",
+
+      Department:
+        record.participantDetails?.department ||
+        record.member?.department ||
+        "",
+
+      Institute:
+        record.participantDetails?.institute ||
+        record.member?.institute ||
+        "",
+
       CheckInTime: record.checkInTime
         ? new Date(record.checkInTime).toLocaleString()
         : "",
+
       CheckOutTime: record.checkOutTime
         ? new Date(record.checkOutTime).toLocaleString()
         : "",
+
       DurationMinutes: record.durationMinutes || 0,
       Status: record.status,
+
       Late: record.lateFlag ? "Yes" : "No",
       EarlyExit: record.earlyExitFlag ? "Yes" : "No",
       CertificateGenerated: record.certificateGenerated ? "Yes" : "No",
@@ -470,17 +458,15 @@ export const downloadAttendanceReport = async (req, res) => {
     });
   }
 };
-
-// ======================
-// COMPLETE ATTENDANCE
-// ======================
 export const completeAttendance = async (req, res) => {
   try {
     const { eventId } = req.params;
 
     const attendanceList = await Attendance.find({
       event: eventId,
-    }).populate("team member");
+    })
+      .populate("team")
+      .populate("member");
 
     if (!attendanceList.length) {
       return res.status(404).json({
@@ -495,6 +481,9 @@ export const completeAttendance = async (req, res) => {
       try {
         record.status = "completed";
 
+        // ======================
+        // SAFE DURATION CALC
+        // ======================
         if (
           record.checkInTime &&
           record.checkOutTime &&
@@ -503,13 +492,19 @@ export const completeAttendance = async (req, res) => {
           record.durationMinutes = Math.floor(
             (new Date(record.checkOutTime) -
               new Date(record.checkInTime)) /
-            (1000 * 60)
+              (1000 * 60)
           );
         }
 
-        if (record.member && !record.pointsAwarded) {
+        // ======================
+        // INDIVIDUAL USER
+        // ======================
+        const userId =
+          record.member?._id || record.member;
+
+        if (userId && !record.pointsAwarded) {
           await Points.create({
-            user: record.member,
+            user: userId,
             event: eventId,
             points: 10,
             category: "Participation",
@@ -517,16 +512,16 @@ export const completeAttendance = async (req, res) => {
             assignedBy: req.user.id,
           });
 
-          await evaluateBadgesForUser(record.member, eventId);
+          await evaluateBadgesForUser(userId, eventId);
 
           await Notification.create({
-            recipient: record.member,
+            recipient: userId,
             message: "You received 10 points for attendance",
             type: "Event",
           });
 
-          io?.to(record.member.toString()).emit("points:update", {
-            userId: record.member,
+          io?.to(userId.toString()).emit("points:update", {
+            userId,
             points: 10,
           });
 
@@ -534,14 +529,20 @@ export const completeAttendance = async (req, res) => {
           rewardsProcessed++;
         }
 
+        // ======================
+        // TEAM USERS (SAFE LOOP)
+        // ======================
         if (record.team && !record.pointsAwarded) {
           const members = record.team.members || [];
 
-          for (const member of members) {
-            if (!member.user) continue;
+          for (const m of members) {
+            const memberUser =
+              typeof m === "object" ? m.user : m;
+
+            if (!memberUser) continue;
 
             await Points.create({
-              user: member.user,
+              user: memberUser,
               event: eventId,
               points: 10,
               category: "Participation",
@@ -549,16 +550,16 @@ export const completeAttendance = async (req, res) => {
               assignedBy: req.user.id,
             });
 
-            await evaluateBadgesForUser(member.user, eventId);
+            await evaluateBadgesForUser(memberUser, eventId);
 
             await Notification.create({
-              recipient: member.user,
+              recipient: memberUser,
               message: "You received 10 points for attendance",
               type: "Event",
             });
 
-            io?.to(member.user.toString()).emit("points:update", {
-              userId: member.user,
+            io?.to(memberUser.toString()).emit("points:update", {
+              userId: memberUser,
               points: 10,
             });
 
@@ -568,17 +569,22 @@ export const completeAttendance = async (req, res) => {
           record.pointsAwarded = true;
         }
 
+        // ======================
+        // SAVE RECORD
+        // ======================
         await record.save();
       } catch (err) {
         console.error("REWARD ERROR:", err.message);
       }
     }
+
     const event = await Event.findById(eventId);
 
     if (event) {
       event.attendanceCompleted = true;
       await event.save();
     }
+
     io?.to(eventId).emit("attendance:completed", {
       eventId,
       totalCount: attendanceList.length,
@@ -598,20 +604,66 @@ export const completeAttendance = async (req, res) => {
     });
   }
 };
-// ======================
-// GET MY ATTENDANCE
-// ======================
 export const getMyAttendance = async (req, res) => {
   try {
+    const userId = req.user.id;
+
     const attendance = await Attendance.find({
-      member: req.user.id,
+      $or: [
+        { member: userId },
+        { "participantDetails.userId": userId },
+      ],
     })
       .populate("event", "name date")
+      .populate("team", "teamName teamId")
       .sort({ createdAt: -1 });
+
+    const formatted = attendance.map((record) => ({
+      id: record._id,
+
+      event: record.event,
+
+      team: record.team?.teamName || null,
+
+      status: record.status,
+
+      checkInTime: record.checkInTime,
+      checkOutTime: record.checkOutTime,
+      durationMinutes: record.durationMinutes || 0,
+
+      // ======================
+      // UNIFIED DISPLAY (COLLEGE-ID SYSTEM SAFE)
+      // ======================
+      fullName:
+        record.participantDetails?.fullName ||
+        record.member?.name ||
+        "N/A",
+
+      email:
+        record.participantDetails?.email ||
+        record.member?.email ||
+        "N/A",
+
+      collegeId:
+        record.participantDetails?.collegeId ||
+        record.member?.collegeId ||
+        "N/A",
+
+      department:
+        record.participantDetails?.department ||
+        record.member?.department ||
+        "N/A",
+
+      institute:
+        record.participantDetails?.institute ||
+        record.member?.institute ||
+        "N/A",
+    }));
 
     return res.status(200).json({
       success: true,
-      attendance,
+      count: formatted.length,
+      attendance: formatted,
     });
   } catch (error) {
     console.error("GET MY ATTENDANCE ERROR:", error);
