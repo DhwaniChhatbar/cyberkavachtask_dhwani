@@ -22,26 +22,49 @@ const CertificateCard = ({ certificate }) => {
     const pdfWidth = pdf.internal.pageSize.getWidth();
     const pdfHeight = pdf.internal.pageSize.getHeight();
 
-    pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+    pdf.addImage(
+      imgData,
+      "PNG",
+      0,
+      0,
+      pdfWidth,
+      pdfHeight
+    );
 
-    pdf.save(`${certificate.certificateId || "certificate"}.pdf`);
+    pdf.save(
+      `${certificate.certificateId || "certificate"}.pdf`
+    );
   };
 
   const downloadCSV = () => {
     const csvData = [
-      ["Certificate ID", "User", "Event", "Issued By", "Issued At"],
+      [
+        "Certificate ID",
+        "Recipient",
+        "Event",
+        "Issued By",
+        "Issued At",
+      ],
       [
         certificate.certificateId || "",
-        certificate.user?.name || "Unknown User", // 🔥 safe fallback
+        certificate.displayName ||
+          certificate.user?.name ||
+          certificate.team?.name ||
+          "Unknown Participant",
         certificate.eventName || "",
-        certificate.issuedBy?.name || "Faculty Coordinator", // 🔥 safe fallback
+        certificate.issuedBy?.name ||
+          "Faculty Coordinator",
         certificate.createdAt
-          ? new Date(certificate.createdAt).toLocaleDateString()
+          ? new Date(
+              certificate.createdAt
+            ).toLocaleDateString()
           : "",
       ],
     ];
 
-    const csvContent = csvData.map((row) => row.join(",")).join("\n");
+    const csvContent = csvData
+      .map((row) => row.join(","))
+      .join("\n");
 
     const blob = new Blob([csvContent], {
       type: "text/csv;charset=utf-8;",
@@ -52,7 +75,9 @@ const CertificateCard = ({ certificate }) => {
     const link = document.createElement("a");
 
     link.href = url;
-    link.download = `${certificate.certificateId || "certificate"}.csv`;
+    link.download = `${
+      certificate.certificateId || "certificate"
+    }.csv`;
 
     document.body.appendChild(link);
     link.click();
@@ -61,7 +86,6 @@ const CertificateCard = ({ certificate }) => {
 
   return (
     <div className="bg-gray-900 rounded-2xl p-5 shadow-lg border border-gray-800">
-
       {/* Certificate */}
       <div
         id={`certificate-${certificate._id}`}
@@ -76,7 +100,10 @@ const CertificateCard = ({ certificate }) => {
         </p>
 
         <h2 className="text-4xl font-bold text-center mt-4">
-          {certificate.user?.name || "Unknown User"}
+          {certificate.displayName ||
+            certificate.user?.name ||
+            certificate.team?.name ||
+            "Unknown Participant"}
         </h2>
 
         <p className="text-center mt-8 text-lg">
@@ -89,15 +116,23 @@ const CertificateCard = ({ certificate }) => {
 
         <div className="mt-12 flex justify-between text-sm">
           <div>
-            <p><strong>Certificate ID:</strong></p>
-            <p>{certificate.certificateId || "N/A"}</p>
+            <p>
+              <strong>Certificate ID:</strong>
+            </p>
+            <p>
+              {certificate.certificateId || "N/A"}
+            </p>
           </div>
 
           <div className="text-right">
-            <p><strong>Date Issued:</strong></p>
+            <p>
+              <strong>Date Issued:</strong>
+            </p>
             <p>
               {certificate.createdAt
-                ? new Date(certificate.createdAt).toLocaleDateString()
+                ? new Date(
+                    certificate.createdAt
+                  ).toLocaleDateString()
                 : "N/A"}
             </p>
           </div>
@@ -105,7 +140,8 @@ const CertificateCard = ({ certificate }) => {
 
         <div className="mt-10 text-right text-sm text-gray-600">
           Issued by:{" "}
-          {certificate.issuedBy?.name || "Faculty Coordinator"}
+          {certificate.issuedBy?.name ||
+            "Faculty Coordinator"}
         </div>
       </div>
 

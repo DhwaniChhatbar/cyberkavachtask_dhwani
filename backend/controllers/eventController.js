@@ -1,5 +1,5 @@
 import Event from "../models/Event.js";
-
+import Team from "../models/Team.js";
 // ==========================
 // ROLE CHECK HELPER
 // ==========================
@@ -339,5 +339,29 @@ export const deleteEvent = async (req, res) => {
     });
   } catch (err) {
     return res.status(500).json({ error: err.message });
+  }
+};
+// ==========================
+// GET EVENT USERS
+// ==========================
+export const getEventUsers = async (req, res) => {
+  try {
+    const teams = await Team.find({
+      event: req.params.id,
+    }).populate("leader", "name role");
+
+    const users = teams
+      .filter((team) => team.leader)
+      .map((team) => ({
+        _id: team.leader._id,
+        name: team.leader.name,
+        role: team.leader.role,
+      }));
+
+    return res.status(200).json(users);
+  } catch (err) {
+    return res.status(500).json({
+      error: err.message,
+    });
   }
 };

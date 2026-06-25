@@ -9,64 +9,55 @@ import { generateCertificateId } from "../utils/generateCertificateId.js";
 // ==========================
 export const generateCertificate = async (req, res) => {
   try {
-    const { eventName, user } = req.body;
+    const { eventName, user, team } = req.body; // 🔥 ADDED TEAM SUPPORT (safe)
 
-    if (!eventName || !user) {
+    if (!eventName || (!user && !team)) {
       return res.status(400).json({
         success: false,
-        message: "eventName and user are required",
+        message: "eventName and user/team are required",
       });
     }
 
-    const existingUser = await User.findById(user);
+    let existingUser = null;
 
-    if (!existingUser) {
-      return res.status(404).json({
-        success: false,
-        message: "User not found",
-      });
-    }
+    if (user) {
+      existingUser = await User.findById(user);
 
-    const existingCertificate = await Certificate.findOne({
-      user: existingUser._id,
-      eventName: eventName.trim(),
-    });
+      if (!existingUser) {
+        return res.status(404).json({
+          success: false,
+          message: "User not found",
+        });
+      }
 
-    if (existingCertificate) {
-      return res.status(400).json({
-        success: false,
-        message: "Certificate already exists",
-      });
-    }
-
-    const pointsData = await Points.aggregate([
-      {
-        $match: { user: existingUser._id },
-      },
-      {
-        $group: {
-          _id: "$user",
-          totalPoints: { $sum: "$points" },
+      // eligibility check only for individual users
+      const pointsData = await Points.aggregate([
+        { $match: { user: existingUser._id } },
+        {
+          $group: {
+            _id: "$user",
+            totalPoints: { $sum: "$points" },
+          },
         },
-      },
-    ]);
+      ]);
 
-    const totalPoints = pointsData[0]?.totalPoints || 0;
+      const totalPoints = pointsData[0]?.totalPoints || 0;
 
-    if (totalPoints <= 0) {
-      return res.status(400).json({
-        success: false,
-        message: "User is not eligible for certificate",
-      });
+      if (totalPoints <= 0) {
+        return res.status(400).json({
+          success: false,
+          message: "User is not eligible for certificate",
+        });
+      }
     }
 
-    const certificateId = generateCertificateId();
+    const certificateId = await generateCertificateId();
 
     const hash = crypto
       .createHash("sha256")
       .update(
         certificateId +
-          existingUser._id.toString() +
+          (user || team) +
           eventName.trim()
       )
       .digest("hex");
@@ -74,19 +65,26 @@ export const generateCertificate = async (req, res) => {
     const certificate = await Certificate.create({
       certificateId,
       eventName: eventName.trim(),
-      user: existingUser._id,
+      user: user || null,
+      team: team || null, // 🔥 IMPORTANT FIX
       issuedBy: req.user?.id || null,
       hash,
     });
 
-    // 🔥 MINIMAL FIX: return populated-like structure immediately
     const populatedCertificate = await Certificate.findById(certificate._id)
       .populate("user", "name email role")
+      .populate("team", "name members")
       .populate("issuedBy", "name email");
 
     return res.status(201).json({
       success: true,
-      certificate: populatedCertificate,
+      certificate: {
+        ...populatedCertificate.toObject(),
+        displayName:
+          populatedCertificate.user?.name ||
+          populatedCertificate.team?.name ||
+          "Unknown Participant",
+      },
     });
   } catch (err) {
     console.error("CERTIFICATE ERROR:", err);
@@ -104,14 +102,23 @@ export const generateCertificate = async (req, res) => {
 export const getCertificates = async (req, res) => {
   try {
     const certificates = await Certificate.find()
-      .populate("user", "name email role") // 🔥 minimal improvement
-      .populate("issuedBy", "name email")  // 🔥 minimal improvement
+      .populate("user", "name email role")
+      .populate("team", "name members") // 🔥 ADDED
+      .populate("issuedBy", "name email")
       .sort({ createdAt: -1 });
+
+    const normalized = certificates.map((c) => ({
+      ...c.toObject(),
+      displayName:
+        c.user?.name ||
+        c.team?.name ||
+        "Unknown Participant",
+    }));
 
     return res.status(200).json({
       success: true,
       count: certificates.length,
-      certificates,
+      certificates: normalized,
     });
   } catch (err) {
     return res.status(500).json({
@@ -136,7 +143,8 @@ export const verifyCertificate = async (req, res) => {
     }
 
     const certificate = await Certificate.findOne({ certificateId })
-      .populate("user", "name email role") // 🔥 ensure consistent UI
+      .populate("user", "name email role")
+      .populate("team", "name members") // 🔥 ADDED
       .populate("issuedBy", "name email");
 
     if (!certificate) {
@@ -146,10 +154,18 @@ export const verifyCertificate = async (req, res) => {
       });
     }
 
+    const normalized = {
+      ...certificate.toObject(),
+      displayName:
+        certificate.user?.name ||
+        certificate.team?.name ||
+        "Unknown Participant",
+    };
+
     return res.status(200).json({
       success: true,
       verified: true,
-      certificate,
+      certificate: normalized,
     });
   } catch (err) {
     return res.status(500).json({

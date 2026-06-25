@@ -28,7 +28,10 @@ const VerifyResultCard = ({ certificate }) => {
 
         <p>
           <strong>Name:</strong>{" "}
-          {certificate.user?.name || "Unknown User"}
+          {certificate.displayName ||
+            certificate.user?.name ||
+            certificate.team?.name ||
+            "Unknown Participant"}
         </p>
 
         <p>

@@ -10,6 +10,7 @@ import {
   approveEvent,
   publishEvent,
   getPendingEvents,
+  getEventUsers,
 } from "../controllers/eventController.js";
 
 import { protect } from "../middleware/authMiddleware.js";
@@ -136,6 +137,12 @@ router.delete(
  * GET SINGLE EVENT
  * ==========================
  */
+router.get(
+  "/:id/users",
+  protect,
+  authorizeRoles(...allUsers),
+  getEventUsers
+);
 router.get(
   "/:id",
   protect,
