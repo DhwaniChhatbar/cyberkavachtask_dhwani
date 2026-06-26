@@ -9,6 +9,11 @@ const ManualEntry = ({ eventId, refreshAttendance }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (!eventId) {
+      alert("Please select an event");
+      return;
+    }
+
     if (!collegeId.trim()) {
       alert("Please enter College ID");
       return;
@@ -17,28 +22,22 @@ const ManualEntry = ({ eventId, refreshAttendance }) => {
     try {
       setLoading(true);
 
+      // Backend expects memberId, not collegeId
       const payload = {
         eventId,
-        collegeId: collegeId.trim(),
+        memberId: collegeId.trim(),
       };
 
       let res;
 
       if (mode === "checkin") {
-        res = await api.post(
-          "/attendance/checkin",
-          payload
-        );
+        res = await api.post("/attendance/checkin", payload);
       } else {
-        res = await api.post(
-          "/attendance/checkout",
-          payload
-        );
+        res = await api.post("/attendance/checkout", payload);
       }
 
       alert(
-        res.data.message ||
-          "Attendance updated successfully"
+        res.data.message || "Attendance updated successfully"
       );
 
       setCollegeId("");
@@ -50,8 +49,7 @@ const ManualEntry = ({ eventId, refreshAttendance }) => {
       console.error(err);
 
       alert(
-        err.response?.data?.message ||
-          "Operation failed"
+        err.response?.data?.message || "Operation failed"
       );
     } finally {
       setLoading(false);
@@ -64,30 +62,20 @@ const ManualEntry = ({ eventId, refreshAttendance }) => {
         Manual Attendance
       </h2>
 
-      <form
-        onSubmit={handleSubmit}
-        className="space-y-4"
-      >
+      <form onSubmit={handleSubmit} className="space-y-4">
         <select
           value={mode}
           onChange={(e) => setMode(e.target.value)}
           className="w-full bg-gray-800 text-white p-3 rounded-lg"
         >
-          <option value="checkin">
-            Check In
-          </option>
-
-          <option value="checkout">
-            Check Out
-          </option>
+          <option value="checkin">Check In</option>
+          <option value="checkout">Check Out</option>
         </select>
 
         <input
           type="text"
           value={collegeId}
-          onChange={(e) =>
-            setCollegeId(e.target.value)
-          }
+          onChange={(e) => setCollegeId(e.target.value)}
           placeholder="Enter College ID"
           className="w-full bg-gray-800 text-white p-3 rounded-lg outline-none"
         />

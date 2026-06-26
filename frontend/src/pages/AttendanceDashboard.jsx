@@ -82,20 +82,19 @@ const AttendanceDashboard = () => {
       const records = res.data.attendance || [];
 
       const formatted = records.map((item) => ({
-        id: item.collegeId || item._id, // fallback
-        teamId: item.team?.collegeId || item.team?._id || null,
-        memberId: item.member?.collegeId || item.member?._id || null,
+        id: item._id,
 
-        name:
-          item.fullName ||
-          item.member?.name ||
-          item.team?.teamName ||
-          "Unknown",
+        name: item.fullName || "Unknown",
 
-        email:
-          item.email ||
-          item.member?.email ||
-          "-",
+        email: item.email || "-",
+
+        collegeId: item.collegeId || "-",
+
+        department: item.department || "-",
+
+        institute: item.institute || "-",
+
+        team: item.team || "-",
 
         checkIn: item.checkInTime
           ? new Date(item.checkInTime).toLocaleString()
@@ -113,42 +112,6 @@ const AttendanceDashboard = () => {
       console.error(err);
     } finally {
       setLoading(false);
-    }
-  };
-
-  // ==========================
-  // CHECK IN
-  // ==========================
-  const handleCheckIn = async (row) => {
-    try {
-      await api.post("/attendance/checkin", {
-        eventId,
-        teamId: row.teamId,
-        memberId: row.memberId,
-      });
-
-      fetchStats();
-      fetchAttendance();
-    } catch (err) {
-      alert(err.response?.data?.message || "Check-in failed");
-    }
-  };
-
-  // ==========================
-  // CHECK OUT
-  // ==========================
-  const handleCheckOut = async (row) => {
-    try {
-      await api.post("/attendance/checkout", {
-        eventId,
-        teamId: row.teamId,
-        memberId: row.memberId,
-      });
-
-      fetchStats();
-      fetchAttendance();
-    } catch (err) {
-      alert(err.response?.data?.message || "Check-out failed");
     }
   };
 
@@ -208,8 +171,8 @@ const AttendanceDashboard = () => {
           >
             {events.map((event) => (
               <option
-                key={event.collegeId || event._id}
-                value={event.collegeId || event._id}
+                key={event._id}
+                value={event._id}
               >
                 {event.name}
               </option>
@@ -261,44 +224,6 @@ const AttendanceDashboard = () => {
         ) : (
           <>
             <AttendanceTable data={filteredData} />
-
-            {canManageAttendance && (
-              <div className="mt-8 bg-gray-900 rounded-2xl p-6">
-                <h2 className="text-2xl text-white font-bold mb-4">
-                  Attendance Actions
-                </h2>
-
-                <div className="space-y-4">
-                  {filteredData.map((row) => (
-                    <div
-                      key={row.id}
-                      className="flex flex-col md:flex-row md:items-center md:justify-between bg-gray-800 rounded-xl p-4"
-                    >
-                      <div>
-                        <p className="text-white font-semibold">{row.name}</p>
-                        <p className="text-gray-400 text-sm">{row.status}</p>
-                      </div>
-
-                      <div className="flex gap-3 mt-3 md:mt-0">
-                        <button
-                          onClick={() => handleCheckIn(row)}
-                          className="bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg text-white"
-                        >
-                          Check In
-                        </button>
-
-                        <button
-                          onClick={() => handleCheckOut(row)}
-                          className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg text-white"
-                        >
-                          Check Out
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
           </>
         )}
       </div>
