@@ -30,7 +30,7 @@ export const checkIn = async (req, res) => {
       });
     }
 
-    if (!eventId || (!teamId && !memberId)) {
+    if (!eventId || !collegeId) {
       return res.status(400).json({
         success: false,
         message: "Event ID and Team ID or Member ID is required",
@@ -56,54 +56,7 @@ export const checkIn = async (req, res) => {
     // ======================
     // TEAM CHECK-IN
     // ======================
-    if (teamId) {
-      const team = await Team.findById(teamId);
 
-      if (!team) {
-        return res.status(404).json({
-          success: false,
-          message: "Team not found",
-        });
-      }
-
-      const existing = await Attendance.findOne({
-        event: eventId,
-        team: teamId,
-      });
-
-      if (existing) {
-        return res.status(400).json({
-          success: false,
-          message: "Team already checked in",
-        });
-      }
-
-      const attendance = await Attendance.create({
-        event: eventId,
-        team: team._id,
-        member: null,
-        checkInTime: new Date(),
-        status: "checked-in",
-        participantDetails: {
-          fullName: team.teamName,
-          email: "",
-          collegeId: team.teamId || "",
-          department: "TEAM",
-          institute: "TEAM",
-        },
-      });
-
-      io?.to(eventId).emit("attendance:checkin", {
-        type: "CHECKIN",
-        data: attendance,
-      });
-
-      return res.status(201).json({
-        success: true,
-        message: "Team checked in successfully",
-        attendance,
-      });
-    }
 
     // ======================
     // MEMBER CHECK-IN
@@ -111,7 +64,7 @@ export const checkIn = async (req, res) => {
 
     const team = await Team.findOne({
       event: eventId,
-      "members.collegeId": memberId.trim(),
+      "members.collegeId": collegeId.trim(),
     });
 
     if (!team) {
@@ -124,7 +77,7 @@ export const checkIn = async (req, res) => {
     const participant = team.members.find(
       (m) =>
         m.collegeId.trim().toUpperCase() ===
-        memberId.trim().toUpperCase()
+        collegeId.trim().toUpperCase()
     );
 
     if (!participant) {
@@ -146,21 +99,19 @@ export const checkIn = async (req, res) => {
       });
     }
 
-    let user = null;
-
-    if (participant.email) {
-      user = await User.findOne({ email: participant.email });
-    }
+    const user = await User.findOne({
+      collegeId: participant.collegeId,
+    });
 
     const attendance = await Attendance.create({
       event: eventId,
       team: team._id,
-      member: user ? user._id : null,
+      member: user?._id || null,
       checkInTime: new Date(),
       status: "checked-in",
       participantDetails: {
         fullName: participant.fullName,
-        email: participant.email,
+        email: "",
         collegeId: participant.collegeId,
         department: participant.department,
         institute: participant.institute,
@@ -205,7 +156,7 @@ export const checkOut = async (req, res) => {
       });
     }
 
-    if (!eventId || (!teamId && !memberId)) {
+    if (!eventId || !collegeId) {
       return res.status(400).json({
         success: false,
         message: "Event ID and Team ID or Member ID is required",
@@ -217,46 +168,7 @@ export const checkOut = async (req, res) => {
     // ======================
     // TEAM CHECK-OUT
     // ======================
-    if (teamId) {
-      const attendance = await Attendance.findOne({
-        event: eventId,
-        team: teamId,
-      });
 
-      if (!attendance) {
-        return res.status(404).json({
-          success: false,
-          message: "Team attendance not found",
-        });
-      }
-
-      if (attendance.checkOutTime) {
-        return res.status(400).json({
-          success: false,
-          message: "Team already checked out",
-        });
-      }
-
-      attendance.checkOutTime = now;
-      attendance.durationMinutes = Math.floor(
-        (now - attendance.checkInTime) / 60000
-      );
-
-      attendance.status = "checked-out";
-
-      await attendance.save();
-
-      io?.to(eventId).emit("attendance:checkout", {
-        type: "CHECKOUT",
-        data: attendance,
-      });
-
-      return res.status(200).json({
-        success: true,
-        message: "Team checked out successfully",
-        attendance,
-      });
-    }
 
     // ======================
     // MEMBER CHECK-OUT
@@ -264,7 +176,7 @@ export const checkOut = async (req, res) => {
 
     const team = await Team.findOne({
       event: eventId,
-      "members.collegeId": memberId.trim(),
+      "members.collegeId": collegeId.trim(),
     });
 
     if (!team) {
@@ -273,13 +185,11 @@ export const checkOut = async (req, res) => {
         message: "Member not registered for this event",
       });
     }
-
     const participant = team.members.find(
       (m) =>
         m.collegeId.trim().toUpperCase() ===
-        memberId.trim().toUpperCase()
+        collegeId.trim().toUpperCase()
     );
-
     if (!participant) {
       return res.status(404).json({
         success: false,
@@ -316,7 +226,7 @@ export const checkOut = async (req, res) => {
 
     attendance.participantDetails = {
       fullName: participant.fullName,
-      email: participant.email,
+      email: "",
       collegeId: participant.collegeId,
       department: participant.department,
       institute: participant.institute,
@@ -688,7 +598,7 @@ export const completeAttendance = async (req, res) => {
         if (record.team && !record.pointsAwarded) {
           for (const participant of record.team.members || []) {
             const user = await User.findOne({
-              email: participant.email,
+              collegeId: participant.collegeId,
             });
 
             if (!user) continue;
