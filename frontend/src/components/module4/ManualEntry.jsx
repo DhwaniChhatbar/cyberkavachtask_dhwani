@@ -22,10 +22,10 @@ const ManualEntry = ({ eventId, refreshAttendance }) => {
     try {
       setLoading(true);
 
-      // Backend expects memberId, not collegeId
+      // Backend expects collegeId
       const payload = {
         eventId,
-        memberId: collegeId.trim(),
+        collegeId: collegeId.trim(),
       };
 
       let res;
@@ -36,9 +36,7 @@ const ManualEntry = ({ eventId, refreshAttendance }) => {
         res = await api.post("/attendance/checkout", payload);
       }
 
-      alert(
-        res.data.message || "Attendance updated successfully"
-      );
+      alert(res.data.message);
 
       setCollegeId("");
 
@@ -47,10 +45,7 @@ const ManualEntry = ({ eventId, refreshAttendance }) => {
       }
     } catch (err) {
       console.error(err);
-
-      alert(
-        err.response?.data?.message || "Operation failed"
-      );
+      alert(err.response?.data?.message || "Operation failed");
     } finally {
       setLoading(false);
     }

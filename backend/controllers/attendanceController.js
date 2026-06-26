@@ -33,7 +33,7 @@ export const checkIn = async (req, res) => {
     if (!eventId || !collegeId) {
       return res.status(400).json({
         success: false,
-        message: "Event ID and Team ID or Member ID is required",
+        message: "Event ID and College ID are required",
       });
     }
 
@@ -159,7 +159,7 @@ export const checkOut = async (req, res) => {
     if (!eventId || !collegeId) {
       return res.status(400).json({
         success: false,
-        message: "Event ID and Team ID or Member ID is required",
+        message: "Event ID and College ID are required",
       });
     }
 
