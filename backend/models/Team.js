@@ -173,7 +173,7 @@ const teamSchema = new mongoose.Schema(
 // ==========================
 teamSchema.index({ event: 1 });
 teamSchema.index({ leader: 1 });
-
+teamSchema.index({ event: 1, "members.collegeId": 1 });
 // Used frequently in attendance lookups
 teamSchema.index({ "members.collegeId": 1 });
 teamSchema.index({ "members.email": 1 });

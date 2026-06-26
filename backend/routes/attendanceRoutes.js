@@ -60,20 +60,16 @@ router.get(
 // ==========================
 // CHECK-IN
 // ==========================
-router.post(
-  "/checkin",
-  protect,
-  allowRoles(COORDINATORS),
+router.post("/checkin", protect, (req, res, next) =>
+  allowRoles(COORDINATORS)(req, res, next),
   checkIn
 );
 
 // ==========================
 // CHECK-OUT
 // ==========================
-router.post(
-  "/checkout",
-  protect,
-  allowRoles(COORDINATORS),
+router.post("/checkout", protect, (req, res, next) =>
+  allowRoles(COORDINATORS)(req, res, next),
   checkOut
 );
 

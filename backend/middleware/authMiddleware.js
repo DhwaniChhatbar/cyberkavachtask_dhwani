@@ -56,7 +56,7 @@ req.user = {
   isApproved: user.isApproved,
 };
 
-next();
+return next();
 
 } catch (err) {
 return res.status(401).json({

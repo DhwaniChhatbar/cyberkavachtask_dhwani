@@ -139,7 +139,7 @@ const attendanceSchema = new mongoose.Schema(
 
 // Prevent duplicate attendance per participant/team in an event
 attendanceSchema.index(
-  { event: 1, team: 1, member: 1 },
+  { event: 1, "participantDetails.collegeId": 1 },
   { unique: true }
 );
 

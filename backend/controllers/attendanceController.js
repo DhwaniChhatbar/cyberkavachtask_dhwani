@@ -15,7 +15,7 @@ import { evaluateBadgesForUser } from "../utils/badgeEngine.js";
 // ======================
 export const checkIn = async (req, res) => {
   try {
-    const { eventId, teamId, memberId } = req.body;
+    const { eventId, collegeId } = req.body;
 
     if (
       ![
@@ -190,7 +190,7 @@ export const checkIn = async (req, res) => {
 // ======================
 export const checkOut = async (req, res) => {
   try {
-    const { eventId, teamId, memberId } = req.body;
+    const { eventId, collegeId } = req.body;
 
     if (
       ![
