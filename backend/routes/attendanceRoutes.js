@@ -42,7 +42,7 @@ const COORDINATORS = [
 // TEST ROUTE
 // ==========================
 router.get("/test", (req, res) => {
-  return res.status(200).json({
+  res.json({
     success: true,
     message: "Attendance routes working",
   });
@@ -58,18 +58,22 @@ router.get(
 );
 
 // ==========================
-// CHECK-IN
+// CHECK IN
 // ==========================
-router.post("/checkin", protect, (req, res, next) =>
-  allowRoles(COORDINATORS)(req, res, next),
+router.post(
+  "/checkin",
+  protect,
+  allowRoles(COORDINATORS),
   checkIn
 );
 
 // ==========================
-// CHECK-OUT
+// CHECK OUT
 // ==========================
-router.post("/checkout", protect, (req, res, next) =>
-  allowRoles(COORDINATORS)(req, res, next),
+router.post(
+  "/checkout",
+  protect,
+  allowRoles(COORDINATORS),
   checkOut
 );
 
@@ -84,7 +88,7 @@ router.put(
 );
 
 // ==========================
-// DASHBOARD STATISTICS
+// DASHBOARD STATS
 // ==========================
 router.get(
   "/dashboard/:eventId",
@@ -94,7 +98,7 @@ router.get(
 );
 
 // ==========================
-// DOWNLOAD ATTENDANCE REPORT
+// DOWNLOAD REPORT
 // ==========================
 router.get(
   "/report/:eventId",
@@ -104,7 +108,7 @@ router.get(
 );
 
 // ==========================
-// EVENT ATTENDANCE LIST
+// EVENT ATTENDANCE
 // ==========================
 router.get(
   "/event/:eventId",
