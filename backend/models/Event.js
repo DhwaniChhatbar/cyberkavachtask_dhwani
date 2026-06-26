@@ -25,6 +25,7 @@ const eventSchema = new mongoose.Schema(
     time: {
       type: String,
       default: "",
+      trim: true,
     },
 
     venue: {
@@ -46,7 +47,6 @@ const eventSchema = new mongoose.Schema(
       trim: true,
     },
 
-    // ✅ ADD THIS (minimal change)
     registrations: [
       {
         type: mongoose.Schema.Types.ObjectId,
@@ -121,15 +121,24 @@ const eventSchema = new mongoose.Schema(
     approvedBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
+      default: null,
     },
 
     publishedBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
+      default: null,
     },
 
-    approvalDate: Date,
-    publishDate: Date,
+    approvalDate: {
+      type: Date,
+      default: null,
+    },
+
+    publishDate: {
+      type: Date,
+      default: null,
+    },
 
     // ==========================
     // WORKFLOW STATUS
@@ -154,10 +163,12 @@ const eventSchema = new mongoose.Schema(
         type: Boolean,
         default: false,
       },
+
       facultyReviewed: {
         type: Boolean,
         default: false,
       },
+
       studentPublished: {
         type: Boolean,
         default: false,
@@ -171,18 +182,20 @@ const eventSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+
     attendanceEnabled: {
       type: Boolean,
       default: true,
     },
 
     // ==========================
-    // COMPLETION FLAG
+    // COMPLETION
     // ==========================
     isCompleted: {
       type: Boolean,
       default: false,
     },
+
     attendanceCompleted: {
       type: Boolean,
       default: false,
@@ -190,6 +203,7 @@ const eventSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
+    versionKey: false,
   }
 );
 

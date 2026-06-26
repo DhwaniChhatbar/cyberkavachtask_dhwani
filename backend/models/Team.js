@@ -1,5 +1,8 @@
 import mongoose from "mongoose";
 
+// ==========================
+// MEMBER SCHEMA
+// ==========================
 const memberSchema = new mongoose.Schema(
   {
     user: {
@@ -18,6 +21,7 @@ const memberSchema = new mongoose.Schema(
       type: String,
       required: true,
       trim: true,
+      lowercase: true,
     },
 
     collegeId: {
@@ -43,9 +47,14 @@ const memberSchema = new mongoose.Schema(
       default: false,
     },
   },
-  { _id: false }
+  {
+    _id: false,
+  }
 );
 
+// ==========================
+// LEADER SCHEMA
+// ==========================
 const leaderSchema = new mongoose.Schema(
   {
     fullName: {
@@ -58,6 +67,7 @@ const leaderSchema = new mongoose.Schema(
       type: String,
       required: true,
       trim: true,
+      lowercase: true,
     },
 
     collegeId: {
@@ -78,9 +88,14 @@ const leaderSchema = new mongoose.Schema(
       trim: true,
     },
   },
-  { _id: false }
+  {
+    _id: false,
+  }
 );
 
+// ==========================
+// TEAM SCHEMA
+// ==========================
 const teamSchema = new mongoose.Schema(
   {
     teamName: {
@@ -92,8 +107,8 @@ const teamSchema = new mongoose.Schema(
     teamId: {
       type: String,
       required: true,
-      trim: true,
       unique: true,
+      trim: true,
     },
 
     event: {
@@ -149,15 +164,18 @@ const teamSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
+    versionKey: false,
   }
 );
 
 // ==========================
-// ONLY CLEAN INDEXES (NO DUPLICATES)
+// INDEXES
 // ==========================
 teamSchema.index({ event: 1 });
 teamSchema.index({ leader: 1 });
 
-// ⚠️ IMPORTANT: teamId already has unique:true → NO NEED extra index
-// (removes duplicate index warning)
+// Used frequently in attendance lookups
+teamSchema.index({ "members.collegeId": 1 });
+teamSchema.index({ "members.email": 1 });
+
 export default mongoose.model("Team", teamSchema);

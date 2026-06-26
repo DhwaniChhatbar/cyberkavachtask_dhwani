@@ -2,6 +2,9 @@ import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema(
   {
+    // ======================
+    // BASIC DETAILS
+    // ======================
     name: {
       type: String,
       required: true,
@@ -21,6 +24,44 @@ const userSchema = new mongoose.Schema(
       required: true,
     },
 
+    // ======================
+    // COLLEGE DETAILS
+    // ======================
+    collegeId: {
+      type: String,
+      unique: true,
+      sparse: true,
+      trim: true,
+      default: null,
+    },
+
+    department: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+
+    institute: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+
+    year: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+
+    phone: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+
+    // ======================
+    // ROLE
+    // ======================
     role: {
       type: String,
       enum: [
@@ -40,7 +81,9 @@ const userSchema = new mongoose.Schema(
       default: false,
     },
 
-    // OTP SYSTEM
+    // ======================
+    // AUTHENTICATION
+    // ======================
     otp: {
       type: String,
       default: null,
@@ -51,7 +94,6 @@ const userSchema = new mongoose.Schema(
       default: null,
     },
 
-    // RESET PASSWORD TOKEN
     resetPasswordToken: {
       type: String,
       default: null,
@@ -59,7 +101,16 @@ const userSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
+    versionKey: false,
   }
 );
+
+// ======================
+// INDEXES
+// ======================
+userSchema.index({ email: 1 });
+userSchema.index({ collegeId: 1 });
+userSchema.index({ role: 1 });
+userSchema.index({ isApproved: 1 });
 
 export default mongoose.model("User", userSchema);

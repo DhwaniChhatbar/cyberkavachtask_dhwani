@@ -1,22 +1,22 @@
+import mongoose from "mongoose";
 import Badge from "../models/Badge.js";
 import UserBadge from "../models/UserBadge.js";
 import Points from "../models/Points.js";
 
 /**
  * MODULE 5 - BADGE ENGINE
- * Evaluates and awards badges based on total points
  */
 export const evaluateBadgesForUser = async (userId, eventId = null) => {
   try {
-    if (!userId) return;
+    if (!userId || !mongoose.Types.ObjectId.isValid(userId)) return;
 
-    console.log("🏅 Badge engine started");
+    const userObjectId = new mongoose.Types.ObjectId(userId);
 
     // =========================
     // TOTAL POINTS CALCULATION
     // =========================
     const result = await Points.aggregate([
-      { $match: { user: userId } },
+      { $match: { user: userObjectId } },
       {
         $group: {
           _id: "$user",
@@ -25,9 +25,7 @@ export const evaluateBadgesForUser = async (userId, eventId = null) => {
       },
     ]);
 
-    const totalPoints = result[0]?.totalPoints || 0;
-
-    console.log("⭐ Total points:", totalPoints);
+    const totalPoints = result?.[0]?.totalPoints || 0;
 
     // =========================
     // GET ACTIVE BADGES
@@ -36,46 +34,36 @@ export const evaluateBadgesForUser = async (userId, eventId = null) => {
       minPoints: 1,
     });
 
-    console.log("🎖 Badges found:", badges.length);
-
     // =========================
     // UNLOCK BADGES
     // =========================
     for (const badge of badges) {
-      console.log(
-        "Checking:",
-        badge.name,
-        "Required:",
-        badge.minPoints
-      );
-
       if (totalPoints < badge.minPoints) continue;
 
       const existingBadge = await UserBadge.findOne({
-        user: userId,
+        user: userObjectId,
         badge: badge._id,
       });
 
-      if (existingBadge) {
-        console.log("Already has badge:", badge.name);
-        continue;
-      }
+      if (existingBadge) continue;
 
-      await UserBadge.create({
-        user: userId,
-        badge: badge._id,
-        event: eventId,
-        category: badge.category,
-        remarks: `${badge.name} unlocked`,
-      });
-
-      console.log(
-        `🏅 Badge unlocked: ${badge.name} for user ${userId}`
+      // atomic safety check (prevents race duplicates)
+      await UserBadge.updateOne(
+        { user: userObjectId, badge: badge._id },
+        {
+          $setOnInsert: {
+            user: userObjectId,
+            badge: badge._id,
+            event: eventId,
+            category: badge.category,
+            remarks: `${badge.name} unlocked`,
+          },
+        },
+        { upsert: true }
       );
     }
   } catch (error) {
-    console.error("❌ Badge Engine Error:");
-    console.error(error);
+    console.error("❌ Badge Engine Error:", error.message);
   }
 };
 
@@ -84,8 +72,12 @@ export const evaluateBadgesForUser = async (userId, eventId = null) => {
  */
 export const getCurrentBadgeForUser = async (userId) => {
   try {
+    if (!userId || !mongoose.Types.ObjectId.isValid(userId)) return null;
+
+    const userObjectId = new mongoose.Types.ObjectId(userId);
+
     const userBadge = await UserBadge.findOne({
-      user: userId,
+      user: userObjectId,
     })
       .populate("badge")
       .sort({ createdAt: -1 });

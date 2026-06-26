@@ -11,12 +11,6 @@ const attendanceSchema = new mongoose.Schema(
       required: true,
     },
 
-    eventName: {
-      type: String,
-      default: "",
-      trim: true,
-    },
-
     // ==========================
     // TEAM
     // ==========================
@@ -26,14 +20,8 @@ const attendanceSchema = new mongoose.Schema(
       default: null,
     },
 
-    teamName: {
-      type: String,
-      default: "",
-      trim: true,
-    },
-
     // ==========================
-    // USER
+    // MEMBER
     // ==========================
     member: {
       type: mongoose.Schema.Types.ObjectId,
@@ -41,16 +29,12 @@ const attendanceSchema = new mongoose.Schema(
       default: null,
     },
 
-    participantType: {
-      type: String,
-      enum: ["Individual", "Team"],
-      default: "Individual",
-    },
-
     // ==========================
-    // SNAPSHOT DETAILS
+    // PARTICIPANT SNAPSHOT
     // ==========================
     participantDetails: {
+      _id: false,
+
       fullName: {
         type: String,
         required: true,
@@ -59,8 +43,9 @@ const attendanceSchema = new mongoose.Schema(
 
       email: {
         type: String,
-        required: true,
+        default: "",
         trim: true,
+        lowercase: true,
       },
 
       collegeId: {
@@ -71,24 +56,19 @@ const attendanceSchema = new mongoose.Schema(
 
       department: {
         type: String,
-        required: true,
+        default: "",
         trim: true,
       },
 
       institute: {
         type: String,
-        required: true,
+        default: "",
         trim: true,
-      },
-
-      isLeader: {
-        type: Boolean,
-        default: false,
       },
     },
 
     // ==========================
-    // CHECK-IN
+    // ATTENDANCE
     // ==========================
     checkInTime: {
       type: Date,
@@ -98,6 +78,12 @@ const attendanceSchema = new mongoose.Schema(
     checkOutTime: {
       type: Date,
       default: null,
+    },
+
+    durationMinutes: {
+      type: Number,
+      default: 0,
+      min: 0,
     },
 
     // ==========================
@@ -126,7 +112,7 @@ const attendanceSchema = new mongoose.Schema(
     },
 
     // ==========================
-    // CERTIFICATE MODULE
+    // CERTIFICATE
     // ==========================
     certificateGenerated: {
       type: Boolean,
@@ -134,26 +120,24 @@ const attendanceSchema = new mongoose.Schema(
     },
 
     // ==========================
-    // POINTS MODULE
+    // POINTS
     // ==========================
     pointsAwarded: {
       type: Boolean,
       default: false,
     },
-
-    durationMinutes: {
-      type: Number,
-      default: 0,
-    },
   },
   {
     timestamps: true,
+    versionKey: false,
   }
 );
 
 // ==========================
 // INDEXES
 // ==========================
+
+// Prevent duplicate attendance per participant/team in an event
 attendanceSchema.index(
   { event: 1, team: 1, member: 1 },
   { unique: true }
@@ -162,6 +146,7 @@ attendanceSchema.index(
 attendanceSchema.index({ event: 1 });
 attendanceSchema.index({ team: 1 });
 attendanceSchema.index({ member: 1 });
+attendanceSchema.index({ status: 1 });
 
 // ==========================
 // VALIDATION
@@ -169,14 +154,11 @@ attendanceSchema.index({ member: 1 });
 attendanceSchema.pre("save", function (next) {
   if (!this.team && !this.member) {
     return next(
-      new Error("Either team or member is required")
+      new Error("Either team or member is required.")
     );
   }
 
   next();
 });
 
-export default mongoose.model(
-  "Attendance",
-  attendanceSchema
-);
+export default mongoose.model("Attendance", attendanceSchema);

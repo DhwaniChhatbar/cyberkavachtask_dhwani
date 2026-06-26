@@ -30,7 +30,7 @@ const allowRoles = (roles) => {
 };
 
 // ==========================
-// ROLES
+// COORDINATOR ROLES
 // ==========================
 const COORDINATORS = [
   "Faculty Coordinator",
@@ -42,7 +42,7 @@ const COORDINATORS = [
 // TEST ROUTE
 // ==========================
 router.get("/test", (req, res) => {
-  res.json({
+  return res.status(200).json({
     success: true,
     message: "Attendance routes working",
   });
@@ -58,8 +58,7 @@ router.get(
 );
 
 // ==========================
-// CHECK IN
-// Coordinators perform attendance
+// CHECK-IN
 // ==========================
 router.post(
   "/checkin",
@@ -69,8 +68,7 @@ router.post(
 );
 
 // ==========================
-// CHECK OUT
-// Coordinators perform attendance
+// CHECK-OUT
 // ==========================
 router.post(
   "/checkout",
@@ -90,7 +88,7 @@ router.put(
 );
 
 // ==========================
-// DASHBOARD STATS
+// DASHBOARD STATISTICS
 // ==========================
 router.get(
   "/dashboard/:eventId",
@@ -100,7 +98,7 @@ router.get(
 );
 
 // ==========================
-// DOWNLOAD REPORT
+// DOWNLOAD ATTENDANCE REPORT
 // ==========================
 router.get(
   "/report/:eventId",
