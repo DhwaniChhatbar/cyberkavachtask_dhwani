@@ -9,32 +9,33 @@ const attendanceSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Event",
       required: true,
+      index: true,
     },
 
     // ==========================
-    // TEAM
+    // TEAM (optional)
     // ==========================
     team: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Team",
       default: null,
+      index: true,
     },
 
     // ==========================
-    // MEMBER
+    // MEMBER (optional)
     // ==========================
     member: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       default: null,
+      index: true,
     },
 
     // ==========================
     // PARTICIPANT SNAPSHOT
     // ==========================
     participantDetails: {
-      _id: false,
-
       fullName: {
         type: String,
         required: true,
@@ -68,7 +69,7 @@ const attendanceSchema = new mongoose.Schema(
     },
 
     // ==========================
-    // ATTENDANCE
+    // ATTENDANCE TIMES
     // ==========================
     checkInTime: {
       type: Date,
@@ -91,14 +92,9 @@ const attendanceSchema = new mongoose.Schema(
     // ==========================
     status: {
       type: String,
-      enum: [
-        "checked-in",
-        "checked-out",
-        "late",
-        "early-exit",
-        "completed",
-      ],
+      enum: ["checked-in", "checked-out", "late", "early-exit", "completed"],
       default: "checked-in",
+      index: true,
     },
 
     lateFlag: {
@@ -133,11 +129,12 @@ const attendanceSchema = new mongoose.Schema(
   }
 );
 
+//
 // ==========================
 // INDEXES
 // ==========================
-
-// Prevent duplicate attendance per participant/team in an event
+// Prevent duplicate attendance per event + participant
+//
 attendanceSchema.index(
   { event: 1, "participantDetails.collegeId": 1 },
   { unique: true }
@@ -148,17 +145,16 @@ attendanceSchema.index({ team: 1 });
 attendanceSchema.index({ member: 1 });
 attendanceSchema.index({ status: 1 });
 
+//
 // ==========================
-// VALIDATION
+// VALIDATION (FIXED - NO next())
 // ==========================
-attendanceSchema.pre("save", function (next) {
+// This replaces pre("save") / pre("validate") middleware
+//
+attendanceSchema.pre("validate", function () {
   if (!this.team && !this.member) {
-    return next(
-      new Error("Either team or member is required.")
-    );
+    throw new Error("Either team or member is required.");
   }
-
-  next();
 });
 
 export default mongoose.model("Attendance", attendanceSchema);
