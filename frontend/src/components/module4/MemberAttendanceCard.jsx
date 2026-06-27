@@ -2,7 +2,9 @@ import React from "react";
 
 const MemberAttendanceCard = ({
   name,
-  email,
+  collegeId,
+  department,
+  institute,
   status,
   checkIn,
   checkOut,
@@ -17,9 +19,23 @@ const MemberAttendanceCard = ({
       <div className="mt-4 space-y-3 text-gray-300">
         <p>
           <span className="font-semibold text-white">
-            Email:
+            College ID:
           </span>{" "}
-          {email || "N/A"}
+          {collegeId || "N/A"}
+        </p>
+
+        <p>
+          <span className="font-semibold text-white">
+            Department:
+          </span>{" "}
+          {department || "N/A"}
+        </p>
+
+        <p>
+          <span className="font-semibold text-white">
+            Institute:
+          </span>{" "}
+          {institute || "N/A"}
         </p>
 
         <p>
@@ -52,9 +68,13 @@ const MemberAttendanceCard = ({
       </div>
 
       <div className="mt-5">
-        {status === "checked-out" ? (
-          <div className="bg-green-900 text-green-400 text-center py-2 rounded-lg font-semibold">
+        {status === "completed" ? (
+          <div className="bg-purple-900 text-purple-400 text-center py-2 rounded-lg font-semibold">
             Attendance Completed
+          </div>
+        ) : status === "checked-out" ? (
+          <div className="bg-green-900 text-green-400 text-center py-2 rounded-lg font-semibold">
+            Checked Out
           </div>
         ) : status === "checked-in" ? (
           <div className="bg-blue-900 text-blue-400 text-center py-2 rounded-lg font-semibold">

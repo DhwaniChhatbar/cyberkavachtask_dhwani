@@ -107,7 +107,9 @@ const AttendanceReport = () => {
             <MemberAttendanceCard
               key={record._id}
               name={record.fullName || "Unknown"}
-              email={record.email || "N/A"}
+              collegeId={record.collegeId || "N/A"}
+              department={record.department || "N/A"}
+              institute={record.institute || "N/A"}
               status={record.status}
               checkIn={
                 record.checkInTime

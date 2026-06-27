@@ -28,7 +28,9 @@ const MyAttendance = () => {
       </h1>
 
       {loading ? (
-        <div className="text-gray-400">Loading attendance...</div>
+        <div className="text-gray-400">
+          Loading attendance...
+        </div>
       ) : attendance.length === 0 ? (
         <div className="bg-gray-900 p-6 rounded-2xl text-gray-400">
           No attendance records found.
@@ -46,12 +48,39 @@ const MyAttendance = () => {
 
               <div className="space-y-2 text-gray-300">
                 <p>
-                  <span className="font-semibold">Type:</span>{" "}
-                  {record.role}
+                  <span className="font-semibold">
+                    College ID:
+                  </span>{" "}
+                  {record.collegeId || "N/A"}
                 </p>
 
                 <p>
-                  <span className="font-semibold">Status:</span>{" "}
+                  <span className="font-semibold">
+                    Department:
+                  </span>{" "}
+                  {record.department || "N/A"}
+                </p>
+
+                <p>
+                  <span className="font-semibold">
+                    Institute:
+                  </span>{" "}
+                  {record.institute || "N/A"}
+                </p>
+
+                {record.team && (
+                  <p>
+                    <span className="font-semibold">
+                      Team:
+                    </span>{" "}
+                    {record.team}
+                  </p>
+                )}
+
+                <p>
+                  <span className="font-semibold">
+                    Status:
+                  </span>{" "}
                   <span
                     className={`font-semibold ${
                       record.status === "checked-in"
@@ -68,16 +97,24 @@ const MyAttendance = () => {
                 </p>
 
                 <p>
-                  <span className="font-semibold">Check In:</span>{" "}
+                  <span className="font-semibold">
+                    Check In:
+                  </span>{" "}
                   {record.checkInTime
-                    ? new Date(record.checkInTime).toLocaleString()
+                    ? new Date(
+                        record.checkInTime
+                      ).toLocaleString()
                     : "-"}
                 </p>
 
                 <p>
-                  <span className="font-semibold">Check Out:</span>{" "}
+                  <span className="font-semibold">
+                    Check Out:
+                  </span>{" "}
                   {record.checkOutTime
-                    ? new Date(record.checkOutTime).toLocaleString()
+                    ? new Date(
+                        record.checkOutTime
+                      ).toLocaleString()
                     : "-"}
                 </p>
 
@@ -93,20 +130,28 @@ const MyAttendance = () => {
                     Certificate:
                   </span>{" "}
                   {record.certificateGenerated ? (
-                    <span className="text-green-400">Yes</span>
+                    <span className="text-green-400">
+                      Generated
+                    </span>
                   ) : (
-                    <span className="text-red-400">No</span>
+                    <span className="text-red-400">
+                      Not Generated
+                    </span>
                   )}
                 </p>
 
                 <p>
                   <span className="font-semibold">
-                    Points:
+                    Points Awarded:
                   </span>{" "}
                   {record.pointsAwarded ? (
-                    <span className="text-green-400">Yes</span>
+                    <span className="text-green-400">
+                      Yes
+                    </span>
                   ) : (
-                    <span className="text-red-400">No</span>
+                    <span className="text-red-400">
+                      No
+                    </span>
                   )}
                 </p>
 

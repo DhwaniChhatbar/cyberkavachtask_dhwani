@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
 import AttendanceStats from "../components/module4/AttendanceStats";
 import AttendanceTable from "../components/module4/AttendanceTable";
+import ManualEntry from "../components/module4/ManualEntry";
 import socket from "../socket";
 import api from "../utils/api";
-import ManualEntry from "../components/module4/ManualEntry";
 
 const AttendanceDashboard = () => {
   const user = JSON.parse(localStorage.getItem("user") || "null");
@@ -14,8 +14,6 @@ const AttendanceDashboard = () => {
     "Tech Coordinator",
   ].includes(user?.role);
 
-  const canDownloadReport = canManageAttendance;
-
   const [stats, setStats] = useState({
     checkedIn: 0,
     checkedOut: 0,
@@ -24,12 +22,12 @@ const AttendanceDashboard = () => {
 
   const [attendanceData, setAttendanceData] = useState([]);
   const [events, setEvents] = useState([]);
-  const [eventId, setEventId] = useState(""); // now = collegeId
+  const [eventId, setEventId] = useState("");
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
 
   // ==========================
-  // FETCH EVENTS (collegeId based)
+  // FETCH EVENTS
   // ==========================
   const fetchEvents = async () => {
     try {
@@ -39,8 +37,8 @@ const AttendanceDashboard = () => {
 
       setEvents(eventList);
 
-      if (eventList.length > 0 && !eventId) {
-        setEventId(eventList[0].collegeId || eventList[0]._id);
+      if (eventList.length && !eventId) {
+        setEventId(eventList[0]._id);
       }
     } catch (err) {
       console.error(err);
@@ -48,7 +46,7 @@ const AttendanceDashboard = () => {
   };
 
   // ==========================
-  // FETCH STATS
+  // FETCH DASHBOARD STATS
   // ==========================
   const fetchStats = async () => {
     if (!eventId) return;
@@ -69,12 +67,14 @@ const AttendanceDashboard = () => {
   };
 
   // ==========================
-  // FETCH ATTENDANCE (collegeId mapping)
+  // FETCH ATTENDANCE
   // ==========================
   const fetchAttendance = async () => {
     if (!eventId) return;
 
     try {
+      setLoading(true);
+
       const res = await api.get(
         `/attendance/event/${eventId}`
       );
@@ -83,27 +83,17 @@ const AttendanceDashboard = () => {
 
       const formatted = records.map((item) => ({
         id: item._id,
-
-        name: item.fullName || "Unknown",
-
-        email: item.email || "-",
-
-        collegeId: item.collegeId || "-",
-
-        department: item.department || "-",
-
-        institute: item.institute || "-",
-
-        team: item.team || "-",
-
+        name: item.fullName,
+        collegeId: item.collegeId,
+        department: item.department,
+        institute: item.institute,
+        team: item.team,
         checkIn: item.checkInTime
           ? new Date(item.checkInTime).toLocaleString()
           : "-",
-
         checkOut: item.checkOutTime
           ? new Date(item.checkOutTime).toLocaleString()
           : "-",
-
         status: item.status,
       }));
 
@@ -116,14 +106,14 @@ const AttendanceDashboard = () => {
   };
 
   // ==========================
-  // LOAD EVENTS
+  // INITIAL LOAD
   // ==========================
   useEffect(() => {
     fetchEvents();
   }, []);
 
   // ==========================
-  // EVENT CHANGE (collegeId based socket room)
+  // EVENT CHANGE
   // ==========================
   useEffect(() => {
     if (!eventId) return;
@@ -143,6 +133,8 @@ const AttendanceDashboard = () => {
     socket.on("attendance:completed", refresh);
 
     return () => {
+      socket.emit("leave-event", eventId);
+
       socket.off("attendance:checkin", refresh);
       socket.off("attendance:checkout", refresh);
       socket.off("attendance:completed", refresh);
@@ -152,34 +144,37 @@ const AttendanceDashboard = () => {
   // ==========================
   // SEARCH
   // ==========================
-  const filteredData = attendanceData.filter((item) =>
-    item.name.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredAttendance = attendanceData.filter((item) => {
+    const keyword = search.toLowerCase();
+
+    return (
+      item.name?.toLowerCase().includes(keyword) ||
+      item.collegeId?.toLowerCase().includes(keyword) ||
+      item.team?.toLowerCase().includes(keyword)
+    );
+  });
 
   return (
     <div className="min-h-screen bg-gray-950 p-6">
-      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-6">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
         <h1 className="text-3xl font-bold text-white">
           Attendance Dashboard
         </h1>
 
-        <div className="flex gap-4 flex-wrap">
+        <div className="flex gap-3 flex-wrap">
           <select
             value={eventId}
             onChange={(e) => setEventId(e.target.value)}
             className="bg-gray-900 text-white px-4 py-3 rounded-xl"
           >
             {events.map((event) => (
-              <option
-                key={event._id}
-                value={event._id}
-              >
+              <option key={event._id} value={event._id}>
                 {event.name}
               </option>
             ))}
           </select>
 
-          {canDownloadReport && (
+          {canManageAttendance && eventId && (
             <button
               onClick={() =>
                 window.open(
@@ -211,20 +206,28 @@ const AttendanceDashboard = () => {
 
       <div className="mt-6">
         <input
+          type="text"
+          placeholder="Search by Name, College ID or Team..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search participant..."
-          className="w-full p-4 rounded-xl bg-gray-900 text-white outline-none"
+          className="w-full bg-gray-900 text-white p-4 rounded-xl outline-none"
         />
       </div>
 
       <div className="mt-6">
         {loading ? (
-          <div className="text-gray-400">Loading attendance...</div>
+          <div className="text-gray-400">
+            Loading attendance...
+          </div>
         ) : (
-          <>
-            <AttendanceTable data={filteredData} />
-          </>
+          <AttendanceTable
+            data={filteredAttendance}
+            eventId={eventId}
+            refreshAttendance={() => {
+              fetchStats();
+              fetchAttendance();
+            }}
+          />
         )}
       </div>
     </div>
