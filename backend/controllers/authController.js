@@ -2,6 +2,7 @@ import User from "../models/User.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import sendEmail from "../utils/sendEmail.js";
+import { createAuditLog } from "./auditLogController.js";
 
 // ==========================
 // 🔥 REGISTER
@@ -33,10 +34,7 @@ export const register = async (req, res) => {
     }
 
     const existingUser = await User.findOne({
-      $or: [
-        { email },
-        { collegeId },
-      ],
+      $or: [{ email }, { collegeId }],
     });
 
     if (existingUser) {
@@ -50,7 +48,7 @@ export const register = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    await User.create({
+    const newUser = await User.create({
       name,
       email,
       password: hashedPassword,
@@ -63,7 +61,12 @@ export const register = async (req, res) => {
       isApproved: true,
     });
 
-    // OPTIONAL LOG ONLY
+    await createAuditLog(
+      newUser.name,
+      "Authentication",
+      "Registered"
+    );
+
     console.log("User registered:", email);
 
     return res.status(201).json({
@@ -131,6 +134,12 @@ export const login = async (req, res) => {
       {
         expiresIn: "7d",
       }
+    );
+
+    await createAuditLog(
+      user.name,
+      "Authentication",
+      "Logged In"
     );
 
     console.log("✅ Login successful:", user.email);

@@ -25,7 +25,6 @@ import settingRoutes from "./routes/settingRoutes.js";
 
 import pointsRoutes from "./routes/pointsRoutes.js";
 
-// ⭐ AUDIT LOG ROUTES (NEW)
 import auditLogRoutes from "./routes/auditLogRoutes.js";
 
 dotenv.config();
@@ -59,39 +58,20 @@ export const io = new Server(server, {
 });
 
 // ==========================
-// SOCKET EVENTS MAP
-// ==========================
-const SOCKET_EVENTS = {
-  JOIN: "join",
-  JOIN_EVENT: "join-event",
-  LEAVE_EVENT: "leave-event",
-
-  ATTENDANCE_CHECKIN: "attendance:checkin",
-  ATTENDANCE_CHECKOUT: "attendance:checkout",
-  ATTENDANCE_COMPLETED: "attendance:completed",
-
-  TEAM_CREATED: "team-created",
-  POINTS_UPDATE: "points:update",
-
-  // ⭐ NEW (AUDIT LOG REALTIME EVENT)
-  AUDIT_LOG_NEW: "audit:log:new",
-};
-
-// ==========================
 // SOCKET HANDLER
 // ==========================
 io.on("connection", (socket) => {
   console.log("🟢 User Connected:", socket.id);
 
-  socket.on(SOCKET_EVENTS.JOIN, (userId) => {
+  socket.on("join", (userId) => {
     socket.join(userId);
   });
 
-  socket.on(SOCKET_EVENTS.JOIN_EVENT, (eventId) => {
+  socket.on("join-event", (eventId) => {
     socket.join(eventId);
   });
 
-  socket.on(SOCKET_EVENTS.LEAVE_EVENT, (eventId) => {
+  socket.on("leave-event", (eventId) => {
     socket.leave(eventId);
   });
 
@@ -131,7 +111,7 @@ app.use("/api/points", pointsRoutes);
 app.use("/api/analytics", analyticsRoutes);
 app.use("/api/settings", settingRoutes);
 
-// ⭐ AUDIT LOGS ROUTE (NEW)
+// AUDIT LOGS
 app.use("/api/audit-logs", auditLogRoutes);
 
 // ==========================
@@ -140,14 +120,6 @@ app.use("/api/audit-logs", auditLogRoutes);
 app.get("/", (req, res) => {
   res.send("CyberKavach API Running 🚀");
 });
-
-// ==========================
-// OPTIONAL: GLOBAL AUDIT EMITTER HELPER
-// (use this in controllers later)
-// ==========================
-export const emitAuditLog = (log) => {
-  io.emit(SOCKET_EVENTS.AUDIT_LOG_NEW, log);
-};
 
 // ==========================
 // DATABASE + SERVER START

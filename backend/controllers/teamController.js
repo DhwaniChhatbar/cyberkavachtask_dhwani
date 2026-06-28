@@ -1,6 +1,7 @@
 import Team from "../models/Team.js";
 import Event from "../models/Event.js";
 import sendEmail from "../utils/sendEmail.js";
+import { createAuditLog } from "./auditLogController.js";
 
 // ==========================
 // CREATE TEAM
@@ -58,9 +59,6 @@ export const createTeam = async (req, res) => {
       });
     }
 
-    // ==========================
-    // FIX: SAFE TEAM SIZE HANDLING (PERMANENT)
-    // ==========================
     const maxMembersAllowed = parseInt(eventDoc.teamSize, 10);
 
     if (isNaN(maxMembersAllowed) || maxMembersAllowed <= 0) {
@@ -97,9 +95,6 @@ export const createTeam = async (req, res) => {
       });
     }
 
-    // ==========================
-    // CHECK DUPLICATE TEAM
-    // ==========================
     const existingTeam = await Team.findOne({
       teamName,
       event,
@@ -112,14 +107,8 @@ export const createTeam = async (req, res) => {
       });
     }
 
-    // ==========================
-    // TEAM ID
-    // ==========================
     const teamId = "TEAM-" + Date.now();
 
-    // ==========================
-    // LEADER OBJECT
-    // ==========================
     const leader = {
       user: req.user.id,
       fullName: leaderDetails.fullName,
@@ -130,9 +119,6 @@ export const createTeam = async (req, res) => {
       isLeader: true,
     };
 
-    // ==========================
-    // FINAL TEAM MEMBERS
-    // ==========================
     const finalMembers = [
       leader,
       ...validMembers.map((m) => ({
@@ -146,9 +132,6 @@ export const createTeam = async (req, res) => {
       })),
     ];
 
-    // ==========================
-    // CREATE TEAM
-    // ==========================
     const team = await Team.create({
       teamName,
       teamId,
@@ -160,21 +143,18 @@ export const createTeam = async (req, res) => {
       status: "Approved",
     });
 
-    // ==========================
-    // UPDATE EVENT COUNT
-    // ==========================
     eventDoc.registrationCount += 1;
     await eventDoc.save();
 
-    // ==========================
-    // SOCKET EVENT
-    // ==========================
+    await createAuditLog(
+      req.user.name,
+      "Team",
+      "Created Team"
+    );
+
     const io = req.app.get("io");
     if (io) io.emit("team-created", team);
 
-    // ==========================
-    // EMAIL
-    // ==========================
     try {
       await sendEmail(
         leader.email,
@@ -207,7 +187,6 @@ Status: Registered`
     });
   }
 };
-
 // ==========================
 // GET ALL TEAMS
 // ==========================
@@ -224,13 +203,9 @@ export const getTeams = async (req, res) => {
       teamId: team.teamId,
       status: team.status,
       createdAt: team.createdAt,
-
       event: team.event,
-
       leaderDetails: team.leaderDetails,
-
       members: team.members,
-
       participantCount: team.members?.length || 0,
     }));
 
@@ -248,6 +223,7 @@ export const getTeams = async (req, res) => {
     });
   }
 };
+
 // ==========================
 // GET TEAM BY ID
 // ==========================
@@ -281,20 +257,33 @@ export const getTeamById = async (req, res) => {
 // ==========================
 export const updateTeam = async (req, res) => {
   try {
-    const team = await Team.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-    });
+    const team = await Team.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      {
+        new: true,
+      }
+    );
 
     if (!team) {
-      return res.status(404).json({ message: "Team not found" });
+      return res.status(404).json({
+        message: "Team not found",
+      });
     }
+
+    await createAuditLog(
+      req.user.name,
+      "Team",
+      "Updated Team"
+    );
 
     return res.json(team);
   } catch (err) {
-    return res.status(500).json({ error: err.message });
+    return res.status(500).json({
+      error: err.message,
+    });
   }
 };
-
 // ==========================
 // DELETE TEAM
 // ==========================
@@ -303,7 +292,9 @@ export const deleteTeam = async (req, res) => {
     const team = await Team.findById(req.params.id);
 
     if (!team) {
-      return res.status(404).json({ message: "Team not found" });
+      return res.status(404).json({
+        message: "Team not found",
+      });
     }
 
     const eventDoc = await Event.findById(team.event);
@@ -315,11 +306,19 @@ export const deleteTeam = async (req, res) => {
 
     await team.deleteOne();
 
+    await createAuditLog(
+      req.user.name,
+      "Team",
+      "Deleted Team"
+    );
+
     return res.json({
       success: true,
       message: "Team deleted successfully",
     });
   } catch (err) {
-    return res.status(500).json({ error: err.message });
+    return res.status(500).json({
+      error: err.message,
+    });
   }
 };

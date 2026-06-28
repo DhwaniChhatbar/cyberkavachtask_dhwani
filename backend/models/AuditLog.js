@@ -3,28 +3,27 @@ import mongoose from "mongoose";
 const auditLogSchema = new mongoose.Schema(
   {
     user: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      default: null, // system actions allowed
+      type: String,
+      required: true,
+      trim: true,
     },
+
+    module: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
     action: {
       type: String,
       required: true,
-    },
-    module: {
-      type: String,
-      default: "",
-    },
-    details: {
-      type: String,
-      default: "",
-    },
-    metadata: {
-      type: Object,
-      default: {},
+      trim: true,
     },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+    versionKey: false,
+  }
 );
 
 export default mongoose.model("AuditLog", auditLogSchema);

@@ -5,7 +5,7 @@ import User from "../models/User.js";
 import Points from "../models/Points.js";
 import Notification from "../models/Notification.js";
 import mongoose from "mongoose";
-
+import { createAuditLog } from "./auditLogController.js";
 import { io } from "../server.js";
 import { generateAttendanceCSV } from "../utils/attendanceReport.js";
 import { evaluateBadgesForUser } from "../utils/badgeEngine.js";
@@ -52,7 +52,7 @@ export const checkIn = async (req, res) => {
         message: "Attendance is available only for published events",
       });
     }
-
+    await createAuditLog(req.user.name, "Attendance", "Checked In");
     // ======================
     // FIND PARTICIPANT
     // ======================
@@ -121,7 +121,11 @@ export const checkIn = async (req, res) => {
       checkInTime: new Date(),
       status: "checked-in",
     });
-
+    await createAuditLog(
+      req.user.name,
+      "Attendance",
+      "Checked In"
+    );
     // ======================
     // SOCKET EVENT
     // ======================
@@ -230,7 +234,11 @@ export const checkOut = async (req, res) => {
     };
 
     await attendance.save();
-
+    await createAuditLog(
+      req.user.name,
+      "Attendance",
+      "Checked Out"
+    );
     io.to(eventId).emit("attendance:checkout", attendance);
 
     return res.status(200).json({
@@ -247,6 +255,7 @@ export const checkOut = async (req, res) => {
     });
   }
 };
+
 // ======================
 // GET ATTENDANCE BY EVENT
 // ======================
@@ -553,7 +562,7 @@ export const completeAttendance = async (req, res) => {
           record.durationMinutes = Math.floor(
             (record.checkOutTime.getTime() -
               record.checkInTime.getTime()) /
-              60000
+            60000
           );
         }
 
@@ -588,6 +597,11 @@ export const completeAttendance = async (req, res) => {
         record.pointsAwarded = true;
 
         await record.save();
+        await createAuditLog(
+          req.user.name,
+          "Attendance",
+          `Completed Attendance for ${record.participantDetails.fullName}`
+        );
       } catch (err) {
         console.error(
           "Reward Processing Error:",
@@ -602,7 +616,11 @@ export const completeAttendance = async (req, res) => {
     await Event.findByIdAndUpdate(eventId, {
       attendanceCompleted: true,
     });
-
+    await createAuditLog(
+      req.user.name,
+      "Attendance",
+      "Completed Event Attendance"
+    );
     // ==========================
     // SOCKET UPDATE
     // ==========================
