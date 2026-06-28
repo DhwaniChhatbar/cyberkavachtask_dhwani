@@ -16,10 +16,7 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const res = await loginUser({
-        email,
-        password,
-      });
+      const res = await loginUser({ email, password });
 
       if (!res || !res.data) {
         throw new Error("Invalid server response");
@@ -55,11 +52,28 @@ const Login = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-950 text-white">
+
       <div className="w-full max-w-md bg-gray-900 p-8 rounded-xl shadow-lg">
 
-        <h1 className="text-3xl font-bold mb-6 text-center">
-          Login
-        </h1>
+        {/* HEADER */}
+        <div className="text-center mb-6">
+          <h1 className="text-3xl font-bold">
+            Welcome to CyberKavach
+          </h1>
+          <p className="text-gray-400 text-sm mt-2">
+            Secure access to your dashboard, events, attendance and certificates
+          </p>
+        </div>
+
+        {/* 🔥 TECH QUOTE SECTION ADDED */}
+        <div className="mb-5 p-4 rounded bg-gray-800 text-center border border-gray-700">
+          <p className="text-sm italic text-gray-300">
+            “Any sufficiently advanced technology is indistinguishable from magic.”
+          </p>
+          <p className="text-xs text-gray-500 mt-2">
+            — Arthur C. Clarke
+          </p>
+        </div>
 
         {error && (
           <div className="bg-red-600 p-3 rounded mb-4">
@@ -99,10 +113,7 @@ const Login = () => {
 
         <p className="text-center mt-5 text-gray-400">
           New user?{" "}
-          <Link
-            to="/register"
-            className="text-blue-400 hover:underline"
-          >
+          <Link to="/register" className="text-blue-400 hover:underline">
             Register
           </Link>
         </p>

@@ -11,7 +11,6 @@ const Register = () => {
     password: "",
     role: "Guest",
 
-    // ✅ ADDED FIELDS
     collegeId: "",
     department: "",
     institute: "",
@@ -55,15 +54,27 @@ const Register = () => {
 
   return (
     <div className="min-h-screen bg-gray-950 flex items-center justify-center px-4 text-white">
+
       <div className="w-full max-w-md bg-gray-900 p-8 rounded-2xl shadow-lg">
 
+        {/* HEADER */}
         <h1 className="text-3xl font-bold text-center mb-2">
           Create Account
         </h1>
 
-        <p className="text-gray-400 text-center mb-6">
-          Register to access the platform
+        <p className="text-gray-400 text-center mb-4">
+          Register to access CyberKavach platform
         </p>
+
+        {/* 🔥 SAME TECH QUOTE AS LOGIN */}
+        <div className="mb-5 p-4 rounded bg-gray-800 text-center border border-gray-700">
+          <p className="text-sm italic text-gray-300">
+            “Any sufficiently advanced technology is indistinguishable from magic.”
+          </p>
+          <p className="text-xs text-gray-500 mt-2">
+            — Arthur C. Clarke
+          </p>
+        </div>
 
         {error && (
           <div className="bg-red-600 text-white p-3 rounded-lg mb-4">
@@ -103,7 +114,6 @@ const Register = () => {
             required
           />
 
-          {/* COLLEGE ID */}
           <input
             type="text"
             name="collegeId"
@@ -114,7 +124,6 @@ const Register = () => {
             required
           />
 
-          {/* PHONE */}
           <input
             type="text"
             name="phone"
@@ -125,18 +134,16 @@ const Register = () => {
             required
           />
 
-          {/* YEAR */}
           <input
             type="text"
             name="year"
-            placeholder="Year (e.g. 1st, 2nd, 3rd, 4th)"
+            placeholder="Year (1st / 2nd / 3rd / 4th)"
             value={formData.year}
             onChange={handleChange}
             className="w-full p-3 bg-gray-800 rounded-lg outline-none"
             required
           />
 
-          {/* OPTIONAL FIELDS */}
           <input
             type="text"
             name="department"
