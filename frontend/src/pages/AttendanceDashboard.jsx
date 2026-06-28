@@ -32,9 +32,7 @@ const AttendanceDashboard = () => {
   const fetchEvents = async () => {
     try {
       const res = await api.get("/events");
-
       const eventList = res.data.events || res.data || [];
-
       setEvents(eventList);
 
       if (eventList.length && !eventId) {
@@ -52,9 +50,7 @@ const AttendanceDashboard = () => {
     if (!eventId) return;
 
     try {
-      const res = await api.get(
-        `/attendance/dashboard/${eventId}`
-      );
+      const res = await api.get(`/attendance/dashboard/${eventId}`);
 
       setStats({
         checkedIn: res.data.checkedIn || 0,
@@ -75,9 +71,7 @@ const AttendanceDashboard = () => {
     try {
       setLoading(true);
 
-      const res = await api.get(
-        `/attendance/event/${eventId}`
-      );
+      const res = await api.get(`/attendance/event/${eventId}`);
 
       const records = res.data.attendance || [];
 
@@ -102,6 +96,32 @@ const AttendanceDashboard = () => {
       console.error(err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // ==========================
+  // CSV DOWNLOAD (FIXED)
+  // ==========================
+  const downloadCSV = async () => {
+    try {
+      const res = await api.get(
+        `/attendance/report/${eventId}`,
+        {
+          responseType: "blob",
+        }
+      );
+
+      const url = window.URL.createObjectURL(new Blob([res.data]));
+
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", "attendance-report.csv");
+
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (err) {
+      console.error("CSV download failed:", err);
     }
   };
 
@@ -176,12 +196,7 @@ const AttendanceDashboard = () => {
 
           {canManageAttendance && eventId && (
             <button
-              onClick={() =>
-                window.open(
-                  `${import.meta.env.VITE_API_URL}/attendance/report/${eventId}`,
-                  "_blank"
-                )
-              }
+              onClick={downloadCSV}
               className="bg-green-600 hover:bg-green-700 px-5 py-3 rounded-xl text-white font-semibold"
             >
               Download CSV
@@ -216,9 +231,7 @@ const AttendanceDashboard = () => {
 
       <div className="mt-6">
         {loading ? (
-          <div className="text-gray-400">
-            Loading attendance...
-          </div>
+          <div className="text-gray-400">Loading attendance...</div>
         ) : (
           <AttendanceTable
             data={filteredAttendance}

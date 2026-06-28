@@ -8,19 +8,43 @@ import sendEmail from "../utils/sendEmail.js";
 // ==========================
 export const register = async (req, res) => {
   try {
-    const { name, email, password, role } = req.body;
+    const {
+      name,
+      email,
+      password,
+      role,
+      collegeId,
+      phone,
+      year,
+      department,
+      institute,
+    } = req.body;
 
-    if (!name || !email || !password || !role) {
+    if (
+      !name ||
+      !email ||
+      !password ||
+      !role ||
+      !collegeId
+    ) {
       return res.status(400).json({
-        message: "All fields are required",
+        message: "Name, email, password, role and college ID are required",
       });
     }
 
-    const existingUser = await User.findOne({ email });
+    const existingUser = await User.findOne({
+      $or: [
+        { email },
+        { collegeId },
+      ],
+    });
 
     if (existingUser) {
       return res.status(400).json({
-        message: "User already exists",
+        message:
+          existingUser.email === email
+            ? "User already exists"
+            : "College ID already exists",
       });
     }
 
@@ -31,6 +55,11 @@ export const register = async (req, res) => {
       email,
       password: hashedPassword,
       role,
+      collegeId,
+      phone,
+      year,
+      department,
+      institute,
       isApproved: true,
     });
 
@@ -46,6 +75,7 @@ export const register = async (req, res) => {
     });
   }
 };
+
 // ==========================
 // 🔥 LOGIN
 // ==========================

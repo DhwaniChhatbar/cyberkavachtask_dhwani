@@ -10,6 +10,13 @@ const Register = () => {
     email: "",
     password: "",
     role: "Guest",
+
+    // ✅ ADDED FIELDS
+    collegeId: "",
+    department: "",
+    institute: "",
+    year: "",
+    phone: "",
   });
 
   const [loading, setLoading] = useState(false);
@@ -96,6 +103,58 @@ const Register = () => {
             required
           />
 
+          {/* COLLEGE ID */}
+          <input
+            type="text"
+            name="collegeId"
+            placeholder="College ID"
+            value={formData.collegeId}
+            onChange={handleChange}
+            className="w-full p-3 bg-gray-800 rounded-lg outline-none"
+            required
+          />
+
+          {/* PHONE */}
+          <input
+            type="text"
+            name="phone"
+            placeholder="Phone Number"
+            value={formData.phone}
+            onChange={handleChange}
+            className="w-full p-3 bg-gray-800 rounded-lg outline-none"
+            required
+          />
+
+          {/* YEAR */}
+          <input
+            type="text"
+            name="year"
+            placeholder="Year (e.g. 1st, 2nd, 3rd, 4th)"
+            value={formData.year}
+            onChange={handleChange}
+            className="w-full p-3 bg-gray-800 rounded-lg outline-none"
+            required
+          />
+
+          {/* OPTIONAL FIELDS */}
+          <input
+            type="text"
+            name="department"
+            placeholder="Department (optional)"
+            value={formData.department}
+            onChange={handleChange}
+            className="w-full p-3 bg-gray-800 rounded-lg outline-none"
+          />
+
+          <input
+            type="text"
+            name="institute"
+            placeholder="Institute (optional)"
+            value={formData.institute}
+            onChange={handleChange}
+            className="w-full p-3 bg-gray-800 rounded-lg outline-none"
+          />
+
           <select
             name="role"
             value={formData.role}
@@ -103,30 +162,12 @@ const Register = () => {
             className="w-full p-3 bg-gray-800 rounded-lg outline-none"
           >
             <option value="Guest">Guest</option>
-
-            <option value="Member">
-              Club Member
-            </option>
-
-            <option value="Student Coordinator">
-              Student Coordinator
-            </option>
-
-            <option value="Tech Coordinator">
-              Tech Coordinator
-            </option>
-
-            <option value="Content Coordinator">
-              Content Coordinator
-            </option>
-
-            <option value="Social Media Coordinator">
-              Social Media Coordinator
-            </option>
-
-            <option value="Faculty Coordinator">
-              Faculty Coordinator
-            </option>
+            <option value="Member">Club Member</option>
+            <option value="Student Coordinator">Student Coordinator</option>
+            <option value="Tech Coordinator">Tech Coordinator</option>
+            <option value="Content Coordinator">Content Coordinator</option>
+            <option value="Social Media Coordinator">Social Media Coordinator</option>
+            <option value="Faculty Coordinator">Faculty Coordinator</option>
           </select>
 
           <button

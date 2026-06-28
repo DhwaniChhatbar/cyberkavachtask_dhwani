@@ -29,34 +29,33 @@ const userSchema = new mongoose.Schema(
     // ======================
     collegeId: {
       type: String,
-      unique: true, // Already creates an index
-      sparse: true,
+      required: true,
+      unique: true,
       trim: true,
-      default: null,
-    },
-
-    department: {
-      type: String,
-      trim: true,
-      default: "",
-    },
-
-    institute: {
-      type: String,
-      trim: true,
-      default: "",
-    },
-
-    year: {
-      type: String,
-      trim: true,
-      default: "",
     },
 
     phone: {
       type: String,
-      trim: true,
       default: "",
+      trim: true,
+    },
+
+    year: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+
+    department: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+
+    institute: {
+      type: String,
+      default: "",
+      trim: true,
     },
 
     // ======================
@@ -108,8 +107,8 @@ const userSchema = new mongoose.Schema(
 // ======================
 // INDEXES
 // ======================
-// Don't create indexes for email and collegeId again.
-// unique:true already creates them.
+// email already unique indexed
+// collegeId already unique indexed
 
 userSchema.index({ role: 1 });
 userSchema.index({ isApproved: 1 });
