@@ -34,27 +34,18 @@ export const createEvent = async (req, res) => {
       createdBy: req.user.id,
       poster: req.file ? req.file.filename : "",
       status: "Draft",
-
       registrations: [],
-
       registrationCount: 0,
-
       certificatesEnabled: false,
       registrationLink: "",
       approvalStage: "NONE",
     });
 
-    await createAuditLog(
-      req.user.name,
-      "Event",
-      "Created Event"
-    );
+    await createAuditLog(req.user.name, "Event", "Created Event");
 
     return res.status(201).json(event);
   } catch (err) {
-    return res.status(500).json({
-      error: err.message,
-    });
+    return res.status(500).json({ error: err.message });
   }
 };
 
@@ -77,9 +68,7 @@ export const registerForEvent = async (req, res) => {
     }
 
     if (event.registrations.includes(userId)) {
-      return res.status(400).json({
-        message: "Already registered",
-      });
+      return res.status(400).json({ message: "Already registered" });
     }
 
     event.registrations.push(userId);
@@ -87,11 +76,7 @@ export const registerForEvent = async (req, res) => {
 
     await event.save();
 
-    await createAuditLog(
-      req.user.name,
-      "Event",
-      "Registered For Event"
-    );
+    await createAuditLog(req.user.name, "Event", "Registered For Event");
 
     return res.json({
       success: true,
@@ -99,11 +84,10 @@ export const registerForEvent = async (req, res) => {
       registrationCount: event.registrationCount,
     });
   } catch (err) {
-    return res.status(500).json({
-      error: err.message,
-    });
+    return res.status(500).json({ error: err.message });
   }
 };
+
 // ==========================
 // SEND FOR APPROVAL (TECH)
 // ==========================
@@ -116,9 +100,7 @@ export const sendForApproval = async (req, res) => {
     const event = await Event.findById(req.params.id);
 
     if (!event) {
-      return res.status(404).json({
-        message: "Event not found",
-      });
+      return res.status(404).json({ message: "Event not found" });
     }
 
     if (event.status !== "Draft") {
@@ -132,11 +114,7 @@ export const sendForApproval = async (req, res) => {
 
     await event.save();
 
-    await createAuditLog(
-      req.user.name,
-      "Event",
-      "Sent Event For Approval"
-    );
+    await createAuditLog(req.user.name, "Event", "Sent Event For Approval");
 
     return res.json({
       success: true,
@@ -144,9 +122,7 @@ export const sendForApproval = async (req, res) => {
       event,
     });
   } catch (err) {
-    return res.status(500).json({
-      error: err.message,
-    });
+    return res.status(500).json({ error: err.message });
   }
 };
 
@@ -162,9 +138,7 @@ export const approveEvent = async (req, res) => {
     const event = await Event.findById(req.params.id);
 
     if (!event) {
-      return res.status(404).json({
-        message: "Event not found",
-      });
+      return res.status(404).json({ message: "Event not found" });
     }
 
     if (event.status !== "Pending Faculty Review") {
@@ -179,11 +153,7 @@ export const approveEvent = async (req, res) => {
 
     await event.save();
 
-    await createAuditLog(
-      req.user.name,
-      "Event",
-      "Approved Event"
-    );
+    await createAuditLog(req.user.name, "Event", "Approved Event");
 
     return res.json({
       success: true,
@@ -191,9 +161,7 @@ export const approveEvent = async (req, res) => {
       event,
     });
   } catch (err) {
-    return res.status(500).json({
-      error: err.message,
-    });
+    return res.status(500).json({ error: err.message });
   }
 };
 
@@ -209,9 +177,7 @@ export const publishEvent = async (req, res) => {
     const event = await Event.findById(req.params.id);
 
     if (!event) {
-      return res.status(404).json({
-        message: "Event not found",
-      });
+      return res.status(404).json({ message: "Event not found" });
     }
 
     if (event.status !== "Faculty Approved") {
@@ -228,11 +194,7 @@ export const publishEvent = async (req, res) => {
 
     await event.save();
 
-    await createAuditLog(
-      req.user.name,
-      "Event",
-      "Published Event"
-    );
+    await createAuditLog(req.user.name, "Event", "Published Event");
 
     return res.json({
       success: true,
@@ -240,11 +202,10 @@ export const publishEvent = async (req, res) => {
       event,
     });
   } catch (err) {
-    return res.status(500).json({
-      error: err.message,
-    });
+    return res.status(500).json({ error: err.message });
   }
 };
+
 // ==========================
 // UPDATE EVENT
 // ==========================
@@ -253,9 +214,7 @@ export const updateEvent = async (req, res) => {
     const event = await Event.findById(req.params.id);
 
     if (!event) {
-      return res.status(404).json({
-        message: "Event not found",
-      });
+      return res.status(404).json({ message: "Event not found" });
     }
 
     if (
@@ -283,25 +242,19 @@ export const updateEvent = async (req, res) => {
 
     await event.save();
 
-    await createAuditLog(
-      req.user.name,
-      "Event",
-      "Updated Event"
-    );
+    await createAuditLog(req.user.name, "Event", "Updated Event");
 
     return res.json({
       success: true,
       event,
     });
   } catch (err) {
-    return res.status(500).json({
-      error: err.message,
-    });
+    return res.status(500).json({ error: err.message });
   }
 };
 
 // ==========================
-// GET EVENTS (FIXED HERE)
+// GET EVENTS
 // ==========================
 export const getEvents = async (req, res) => {
   try {
@@ -314,9 +267,7 @@ export const getEvents = async (req, res) => {
     ];
 
     if (isRole(req.user, publicRoles)) {
-      filter = {
-        status: "Published",
-      };
+      filter = { status: "Published" };
     }
 
     const events = await Event.find(filter)
@@ -330,15 +281,12 @@ export const getEvents = async (req, res) => {
       ...e,
       registrations: e.registrations || [],
       registrationCount:
-        e.registrationCount ??
-        (e.registrations?.length || 0),
+        e.registrationCount ?? (e.registrations?.length || 0),
     }));
 
     return res.json(safeEvents);
   } catch (err) {
-    return res.status(500).json({
-      error: err.message,
-    });
+    return res.status(500).json({ error: err.message });
   }
 };
 
@@ -363,11 +311,10 @@ export const getPendingEvents = async (req, res) => {
 
     return res.json(events);
   } catch (err) {
-    return res.status(500).json({
-      error: err.message,
-    });
+    return res.status(500).json({ error: err.message });
   }
 };
+
 // ==========================
 // GET EVENT BY ID
 // ==========================
@@ -380,22 +327,17 @@ export const getEventById = async (req, res) => {
       .lean();
 
     if (!event) {
-      return res.status(404).json({
-        message: "Event not found",
-      });
+      return res.status(404).json({ message: "Event not found" });
     }
 
     return res.json({
       ...event,
       registrations: event.registrations || [],
       registrationCount:
-        event.registrationCount ??
-        (event.registrations?.length || 0),
+        event.registrationCount ?? (event.registrations?.length || 0),
     });
   } catch (err) {
-    return res.status(500).json({
-      error: err.message,
-    });
+    return res.status(500).json({ error: err.message });
   }
 };
 
@@ -407,9 +349,7 @@ export const deleteEvent = async (req, res) => {
     const event = await Event.findById(req.params.id);
 
     if (!event) {
-      return res.status(404).json({
-        message: "Event not found",
-      });
+      return res.status(404).json({ message: "Event not found" });
     }
 
     if (event.status === "Published") {
@@ -420,20 +360,14 @@ export const deleteEvent = async (req, res) => {
 
     await event.deleteOne();
 
-    await createAuditLog(
-      req.user.name,
-      "Event",
-      "Deleted Event"
-    );
+    await createAuditLog(req.user.name, "Event", "Deleted Event");
 
     return res.json({
       success: true,
       message: "Event deleted successfully",
     });
   } catch (err) {
-    return res.status(500).json({
-      error: err.message,
-    });
+    return res.status(500).json({ error: err.message });
   }
 };
 
@@ -456,8 +390,6 @@ export const getEventUsers = async (req, res) => {
 
     return res.status(200).json(users);
   } catch (err) {
-    return res.status(500).json({
-      error: err.message,
-    });
+    return res.status(500).json({ error: err.message });
   }
 };

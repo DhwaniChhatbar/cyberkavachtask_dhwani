@@ -3,6 +3,7 @@ import User from "../models/User.js";
 import Team from "../models/Team.js";
 import crypto from "crypto";
 import { generateCertificateId } from "../utils/generateCertificateId.js";
+import { createAuditLog } from "./auditLogController.js";
 
 // ==========================
 // GENERATE CERTIFICATE
@@ -77,11 +78,7 @@ export const generateCertificate = async (req, res) => {
 
     const hash = crypto
       .createHash("sha256")
-      .update(
-        certificateId +
-          (user || team) +
-          eventName.trim()
-      )
+      .update(certificateId + (user || team) + eventName.trim())
       .digest("hex");
 
     const certificate = await Certificate.create({
@@ -92,6 +89,13 @@ export const generateCertificate = async (req, res) => {
       issuedBy: req.user.id,
       hash,
     });
+
+    // ✅ AUDIT LOG ADDED
+    await createAuditLog(
+      req.user.name,
+      "Certificate",
+      `Generated certificate for ${eventName}`
+    );
 
     const populatedCertificate = await Certificate.findById(
       certificate._id
@@ -134,10 +138,15 @@ export const getCertificates = async (req, res) => {
     const normalized = certificates.map((c) => ({
       ...c.toObject(),
       displayName:
-        c.user?.name ||
-        c.team?.teamName ||
-        "Unknown Participant",
+        c.user?.name || c.team?.teamName || "Unknown Participant",
     }));
+
+    // ✅ AUDIT LOG ADDED
+    await createAuditLog(
+      req.user.name,
+      "Certificate",
+      "Viewed all certificates"
+    );
 
     return res.status(200).json({
       success: true,
@@ -179,6 +188,13 @@ export const verifyCertificate = async (req, res) => {
         message: "Certificate not found",
       });
     }
+
+    // ✅ AUDIT LOG ADDED
+    await createAuditLog(
+      req.user?.name || "Public",
+      "Certificate",
+      `Verified certificate ${certificateId}`
+    );
 
     return res.status(200).json({
       success: true,
