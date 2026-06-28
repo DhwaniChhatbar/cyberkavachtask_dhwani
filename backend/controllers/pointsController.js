@@ -1,6 +1,7 @@
 import Points from "../models/Points.js";
 import User from "../models/User.js";
 import { evaluateBadgesForUser } from "../utils/badgeEngine.js";
+import { createAuditLog } from "./auditLogController.js";
 
 // =======================
 // ASSIGN POINTS
@@ -16,7 +17,6 @@ export const assignPoints = async (req, res) => {
       });
     }
 
-    // Find user
     const user = await User.findOne({ name: userName });
 
     if (!user) {
@@ -26,7 +26,6 @@ export const assignPoints = async (req, res) => {
       });
     }
 
-    // Create new points entry
     const newPoint = await Points.create({
       user: user._id,
       points: Number(points),
@@ -35,8 +34,14 @@ export const assignPoints = async (req, res) => {
       assignedBy: req.user?.id,
     });
 
-    // ⭐ Evaluate badges after assigning points
     await evaluateBadgesForUser(user._id);
+
+    // ✅ AUDIT LOG ADDED
+    await createAuditLog(
+      req.user?.name || "System",
+      "Points",
+      `Assigned ${points} points to ${user.name}`
+    );
 
     return res.status(201).json({
       success: true,
@@ -65,6 +70,13 @@ export const getPointsHistory = async (req, res) => {
       .populate("user", "name")
       .populate("assignedBy", "name")
       .sort({ createdAt: -1 });
+
+    // ✅ AUDIT LOG ADDED
+    await createAuditLog(
+      req.user?.name || "System",
+      "Points",
+      "Viewed points history"
+    );
 
     return res.status(200).json({
       success: true,

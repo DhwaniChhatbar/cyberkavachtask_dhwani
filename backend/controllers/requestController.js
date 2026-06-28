@@ -2,6 +2,7 @@ import Request from "../models/Request.js";
 import Notification from "../models/Notification.js";
 import { io } from "../server.js";
 import { logAudit } from "../utils/auditLogger.js";
+
 /**
  * ==========================
  * CREATE REQUEST
@@ -51,7 +52,6 @@ export const createRequest = async (req, res) => {
 
     io.emit("requestCreated", request);
 
-    // ✅ AUDIT LOG ADDED
     await logAudit({
       user: req.user.id,
       action: "CREATE_REQUEST",
@@ -71,6 +71,7 @@ export const createRequest = async (req, res) => {
     });
   }
 };
+
 /**
  * ==========================
  * GET ALL REQUESTS
@@ -91,11 +92,19 @@ export const getAllRequests = async (req, res) => {
 
     const requests = canViewAll
       ? await Request.find()
-        .populate("createdBy", "name email role")
-        .sort({ createdAt: -1 })
+          .populate("createdBy", "name email role")
+          .sort({ createdAt: -1 })
       : await Request.find({ createdBy: req.user.id })
-        .populate("createdBy", "name email role")
-        .sort({ createdAt: -1 });
+          .populate("createdBy", "name email role")
+          .sort({ createdAt: -1 });
+
+    // ✅ AUDIT LOG ADDED
+    await logAudit({
+      user: req.user.id,
+      action: "VIEW_ALL_REQUESTS",
+      module: "REQUEST",
+      details: "Viewed request list",
+    });
 
     return res.json(requests);
   } catch (err) {
@@ -117,6 +126,14 @@ export const getMyRequests = async (req, res) => {
     })
       .populate("createdBy", "name email role")
       .sort({ createdAt: -1 });
+
+    // ✅ AUDIT LOG ADDED
+    await logAudit({
+      user: req.user.id,
+      action: "VIEW_MY_REQUESTS",
+      module: "REQUEST",
+      details: "Viewed own requests",
+    });
 
     return res.json(requests);
   } catch (err) {
@@ -163,6 +180,14 @@ export const getRequestById = async (req, res) => {
         message: "Access denied",
       });
     }
+
+    // ✅ AUDIT LOG ADDED
+    await logAudit({
+      user: req.user.id,
+      action: "VIEW_REQUEST_BY_ID",
+      module: "REQUEST",
+      details: req.params.id,
+    });
 
     return res.json(request);
   } catch (err) {
@@ -224,7 +249,6 @@ export const approveRequest = async (req, res) => {
       });
     }
 
-    // Admin can approve any stage
     if (role !== "Admin" && currentRole !== role) {
       return res.status(403).json({
         message: "Not your approval level",
@@ -250,13 +274,14 @@ export const approveRequest = async (req, res) => {
     }
 
     await request.save();
-    // after await request.save();
+
     await logAudit({
       user: req.user.id,
       action: "APPROVE_REQUEST",
       module: "REQUEST",
       details: req.params.id,
     });
+
     await Notification.create({
       recipient: request.createdBy,
       message: `${role} approved your request`,
@@ -325,13 +350,14 @@ export const rejectRequest = async (req, res) => {
     });
 
     await request.save();
-    // after await request.save();
+
     await logAudit({
       user: req.user.id,
       action: "REJECT_REQUEST",
       module: "REQUEST",
       details: req.params.id,
     });
+
     await Notification.create({
       recipient: request.createdBy,
       message: `${role} rejected your request`,
